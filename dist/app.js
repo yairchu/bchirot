@@ -4,7 +4,7 @@ import { PARTIES } from './parties.js';
 const app = document.querySelector('#app');
 const main = document.querySelector('#main');
 const mouseAvailable = matchMedia('(hover: hover) and (pointer: fine)').matches;
-const state = { step: 'welcome', authority: false, party: null, robot: null, cutscene: false };
+const state = { step: 'welcome', topics: [], authority: false, party: null, robot: null, cutscene: false };
 let history = [];
 let timers = [];
 const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
@@ -32,16 +32,16 @@ function back() {
 
 function restart(step = 'welcome') {
   clearTimers();
-  Object.assign(state, { step, authority: false, party: null, robot: null, cutscene: false });
+  Object.assign(state, { step, topics: [], authority: false, party: null, robot: null, cutscene: false });
   history = [];
   render();
   main.focus({ preventScroll: true });
 }
 
-function frame(content, { stage = '', heading = 'h2' } = {}) {
+function frame(content, { stage = '', heading = 'h2', className = '' } = {}) {
   const { current, total } = progress(state.step, mouseAvailable);
   const label = current ? `שאלה ${current} ${total ? `מתוך ${total}` : 'מתוך כמה שצריך'}` : stage;
-  return `<section class="screen" aria-labelledby="question-title">
+  return `<section class="screen ${className}" aria-labelledby="question-title">
     ${label ? `<div class="step-label">${label}</div>` : ''}
     <${heading} id="question-title">${content.title}</${heading}>
     ${content.body}</section>`;
@@ -58,9 +58,11 @@ function welcomeView() {
 function topicsView() {
   // TODO: Define the actual topic choices and their follow-up questions in TODO.md.
   return frame({ title: 'מה הכי חשוב לך?', body: `
-    <div class="todo"><span class="todo-label">TODO</span> · להגדיר את שאר האפשרויות.</div>
+    <div role="group" aria-label="אפשרויות שעדיין צריך להגדיר">
+      ${['todo-1', 'todo-2'].map((id, index) => `<label class="choice"><input type="checkbox" name="topic" value="${id}" ${state.topics.includes(id) ? 'checked' : ''} ${state.authority ? 'disabled' : ''}><span class="choice-copy"><strong><bdi>TODO ${index + 1}</bdi></strong></span></label>`).join('')}
+    </div>
     <label class="choice authority"><input type="checkbox" name="authority" ${state.authority ? 'checked' : ''}><span class="choice-copy"><strong>אני מצביע לפי מישהו שאני סומך עליו</strong><small>רב, משפחה, ראש קהילה, עיתונאי או אדם אחר</small></span></label>
-    ${actions('ממשיכים', !state.authority)}` });
+    ${actions('ממשיכים', !state.authority && !state.topics.length)}` });
 }
 
 function partyView() {
@@ -81,6 +83,10 @@ function robotView() {
   return frame({ title: 'האם אתה רובוט?', body: `
     <div class="answer-options"><button class="answer" data-action="robot-no">לא</button><button class="answer" data-action="robot-yes">כן</button></div>
     <div class="actions"><button class="back" data-action="back">חזרה</button></div>` });
+}
+
+function robotThanksView() {
+  return frame({ title: 'מעריך את המודעות העצמית', body: '' }, { className: 'robot-thanks' });
 }
 
 function sureView() {
@@ -120,8 +126,11 @@ function independentView() {
 }
 
 function render() {
-  const views = { welcome: welcomeView, topics: topicsView, party: partyView, robot: robotView, sure: sureView, loading: loadingView, result: resultView, independent: independentView };
+  const views = { welcome: welcomeView, topics: topicsView, party: partyView, robot: robotView, 'robot-thanks': robotThanksView, sure: sureView, loading: loadingView, result: resultView, independent: independentView };
   app.innerHTML = views[state.step]();
+  if (state.step === 'robot-thanks') {
+    timers.push(setTimeout(() => go('loading'), CUTSCENE_DURATION));
+  }
   if (state.step === 'sure') {
     const option = document.querySelector('#sure-button');
     option.addEventListener('pointerenter', event => {
@@ -141,7 +150,11 @@ app.addEventListener('change', event => {
   const input = event.target;
   if (input.name === 'authority') {
     state.authority = input.checked;
-    document.querySelector('[data-action="next"]').disabled = !state.authority;
+    app.querySelectorAll('[name="topic"]').forEach(topic => { topic.disabled = state.authority; });
+    document.querySelector('[data-action="next"]').disabled = !state.authority && !state.topics.length;
+  } else if (input.name === 'topic') {
+    state.topics = [...app.querySelectorAll('[name="topic"]:checked')].map(topic => topic.value);
+    document.querySelector('[data-action="next"]').disabled = !state.authority && !state.topics.length;
   } else if (input.name === 'party') {
     state.party = PARTIES.find(party => party[0] === input.value);
     document.querySelector('[data-action="next"]').disabled = false;
@@ -161,7 +174,7 @@ app.addEventListener('click', event => {
   else if (action === 'independent') restart('independent');
   else if (action === 'topics') restart('topics');
   else if (action === 'next') {
-    if (state.step === 'topics' && state.authority) go('party');
+    if (state.step === 'topics' && (state.authority || state.topics.length)) go(state.authority ? 'party' : 'independent');
     else if (state.step === 'party' && state.party) go('robot');
   } else if (action === 'robot-no' || action === 'robot-yes') {
     state.robot = action === 'robot-no' ? 'no' : 'yes';

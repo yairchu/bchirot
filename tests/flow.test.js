@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import { afterRobot, progress } from '../dist/flow.js';
 import { PARTIES } from '../dist/parties.js';
 
-test('only a mouse user answering no gets the extra joke', () => {
+test('no gets the desktop hover scene or mobile loading; yes gets the acknowledgement', () => {
   assert.equal(afterRobot('no', true), 'sure');
   assert.equal(afterRobot('no', false), 'loading');
-  assert.equal(afterRobot('yes', true), 'loading');
-  assert.equal(afterRobot('yes', false), 'loading');
+  assert.equal(afterRobot('yes', true), 'robot-thanks');
+  assert.equal(afterRobot('yes', false), 'robot-thanks');
 });
 
 test('the counter adapts to the device and starts without an invented total', () => {

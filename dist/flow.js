@@ -1,7 +1,8 @@
 export const CUTSCENE_DURATION = 1000;
 
 export function afterRobot(answer, mouseAvailable) {
-  return answer === 'no' && mouseAvailable ? 'sure' : 'loading';
+  if (answer === 'yes') return 'robot-thanks';
+  return mouseAvailable ? 'sure' : 'loading';
 }
 
 export function progress(step, mouseAvailable) {

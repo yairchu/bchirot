@@ -25,10 +25,10 @@ async function setup(t, mouseAvailable = true) {
     assert.ok(button, `Action ${action} must exist`);
     button.click();
   };
-  const choose = selector => {
+  const choose = (selector, checked = true) => {
     const input = $(selector);
     assert.ok(input, `Input ${selector} must exist`);
-    input.checked = true;
+    input.checked = checked;
     input.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
   };
   const hover = (pointerType = 'mouse') => {
@@ -52,9 +52,38 @@ test('welcome starts the questionnaire; unfinished choices are explicit TODOs', 
   assert.equal($('[name="authority"]'), null);
   click('start');
   assert.equal($('h2').textContent, 'מה הכי חשוב לך?');
-  assert.ok($('.todo').textContent.includes('TODO'));
-  assert.equal($('[name="topic"]'), null);
+  assert.equal(document.querySelectorAll('[name="topic"]').length, 2);
+  assert.ok($('[name="topic"]').closest('label').textContent.includes('TODO'));
   assert.equal($('[data-action="next"]').disabled, true);
+});
+
+test('authority disables both TODO choices and restores their selections when unchecked', async t => {
+  const { $, click, choose } = await setup(t);
+  click('start');
+  choose('[value="todo-1"]');
+  choose('[value="todo-2"]');
+  assert.equal($('[data-action="next"]').disabled, false);
+  choose('[name="authority"]');
+  assert.equal(document.querySelectorAll('[name="topic"]:disabled').length, 2);
+  click('next');
+  assert.ok($('.party-grid'), 'authority takes precedence over stored TODO selections');
+  click('back');
+  choose('[name="authority"]', false);
+  assert.equal(document.querySelectorAll('[name="topic"]:disabled').length, 0);
+  assert.equal(document.querySelectorAll('[name="topic"]:checked').length, 2);
+  choose('[value="todo-1"]', false);
+  choose('[value="todo-2"]', false);
+  assert.equal($('[data-action="next"]').disabled, true);
+});
+
+test('a TODO selection leads to the unfinished branch rather than party results', async t => {
+  const { $, click, choose } = await setup(t);
+  click('start');
+  choose('[value="todo-2"]');
+  click('next');
+  assert.ok($('.todo').textContent.includes('TODO'));
+  assert.equal($('.party-grid'), null);
+  assert.equal($('.result-ballot'), null);
 });
 
 test('desktop hover plays one cutscene and automatically computes the selected result', async t => {
@@ -117,12 +146,20 @@ test('mobile skips the sure step and full restart returns to welcome', async t =
   assert.equal($('[name="authority"]').checked, false);
 });
 
-test('a robot answer bypasses the cutscene on desktop as well', async t => {
-  const { $, click, robotQuestion } = await setup(t);
-  robotQuestion();
-  click('robot-yes');
-  assert.ok($('.loading-ballot'));
-  assert.equal($('#sure-button'), null);
-  t.mock.timers.tick(2500);
-  assert.ok($('.result-ballot'));
-});
+for (const mouseAvailable of [true, false]) {
+  test(`a robot answer acknowledges self-awareness on ${mouseAvailable ? 'desktop' : 'mobile'} before computing`, async t => {
+    const { $, click, robotQuestion } = await setup(t, mouseAvailable);
+    robotQuestion();
+    click('robot-yes');
+    assert.equal($('.robot-thanks h2').textContent, 'מעריך את המודעות העצמית');
+    assert.equal($('.loading-ballot'), null);
+    assert.equal($('#sure-button'), null);
+    t.mock.timers.tick(CUTSCENE_DURATION - 1);
+    assert.ok($('.robot-thanks'));
+    t.mock.timers.tick(1);
+    assert.equal($('.robot-thanks'), null);
+    assert.ok($('.loading-ballot'));
+    t.mock.timers.tick(2500);
+    assert.equal($('.result-ballot strong').textContent, 'מחל');
+  });
+}
