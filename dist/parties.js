@@ -19,7 +19,7 @@ export const PARTIES = [
 
 // A questionnaire answer, not a party or an official ballot letter.
 export const BLANK_BALLOT = ['blank', 'פתק לבן'];
-export const FAKE_BALLOT = ['קקה', 'קקה'];
+export const FAKE_BALLOT = ['קקה', 'לשחרר את הצב'];
 export const BALLOT_CHOICES = [
   ...PARTIES.flatMap(party => party[0] === 'קה' ? [party, FAKE_BALLOT] : [party]),
   BLANK_BALLOT,

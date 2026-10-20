@@ -100,7 +100,7 @@ function robotThanksView() {
 }
 
 function fakeBallotView() {
-  return frame({ title: 'הלכת על קקה.', body: '<p class="description">אין באמת מפלגה כזאת.</p>' });
+  return frame({ title: 'הלכת על קקה.', body: '<p class="description">אתה בטוח שאתה יודע מה אתה עושה?</p><p class="description">אין באמת מפלגה כזו. אנחנו רק מנסים לוודא שאתה בקיא בחומר.</p>' });
 }
 
 function sureView() {

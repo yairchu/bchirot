@@ -222,11 +222,15 @@ test('fictional ballot reveals the joke only after continuing, then returns to u
   click('next');
   const fictional = $('[name="party"][value="קקה"]');
   assert.ok(fictional);
+  assert.equal(fictional.closest('label').querySelector('.ballot-name').textContent, 'לשחרר את הצב');
   choose('[name="party"][value="קקה"]');
   assert.ok($('.party-grid'));
   click('next');
   assert.equal($('h2').textContent, 'הלכת על קקה.');
-  assert.equal($('.description').textContent, 'אין באמת מפלגה כזאת.');
+  assert.deepEqual([...document.querySelectorAll('.description')].map(element => element.textContent), [
+    'אתה בטוח שאתה יודע מה אתה עושה?',
+    'אין באמת מפלגה כזו. אנחנו רק מנסים לוודא שאתה בקיא בחומר.',
+  ]);
   assert.equal($('.result-ballot'), null);
   t.mock.timers.tick(EASTER_EGG_DURATION - 1);
   assert.equal($('.party-grid'), null);
