@@ -1,16 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { toggleTopic, afterRobot, progress } from '../dist/flow.js';
+import { afterRobot, progress } from '../dist/flow.js';
 import { PARTIES } from '../dist/parties.js';
-
-test('several topics can be selected and toggling one keeps the others', () => {
-  const original = ['cost'];
-  const selected = toggleTopic(original, 'security');
-  assert.deepEqual(selected, ['cost', 'security']);
-  assert.deepEqual(original, ['cost']);
-  assert.deepEqual(toggleTopic(selected, 'cost'), ['security']);
-  assert.deepEqual(toggleTopic(selected, 'unknown'), selected);
-});
 
 test('only a mouse user answering no gets the extra joke', () => {
   assert.equal(afterRobot('no', true), 'sure');

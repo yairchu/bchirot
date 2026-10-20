@@ -6,5 +6,8 @@
     "dev": "python3 -m http.server 5173 --bind 127.0.0.1 --directory dist",
     "check": "node --check dist/app.js && node --check dist/flow.js && node --check dist/parties.js",
     "test": "node --test tests/*.test.js"
+  },
+  "devDependencies": {
+    "jsdom": "^27.0.1"
   }
 }
