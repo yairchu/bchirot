@@ -12,6 +12,8 @@ test('no gets the desktop hover scene or mobile loading; yes gets the acknowledg
 
 test('the counter adapts to the device and starts without an invented total', () => {
   assert.deepEqual(progress('topics', true), { current: 1, total: null });
+  assert.deepEqual(progress('bridge', true), { current: 2, total: null });
+  assert.deepEqual(progress('bridge', false), { current: 2, total: null });
   assert.deepEqual(progress('party', true), { current: 2, total: 4 });
   assert.deepEqual(progress('robot', false), { current: 3, total: 3 });
   assert.deepEqual(progress('sure', true), { current: 4, total: 4 });

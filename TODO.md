@@ -5,19 +5,20 @@
 - [ ] Agree on the actual choices for “מה הכי חשוב לך?”. The invented sample topics have been removed.
 - [x] Support multiple selection; selecting authority disables the other choices, and deselecting authority restores earlier choices. The first named topic is “דת ותחבורה”; one TODO choice remains.
 - [ ] Write follow-up questions for each topic, including their branching rules and question counts.
-- [ ] Build the independent-judgment branch reached from the TODO choices. It currently stops at an explicit TODO; both result restart buttons return to question one.
+- [ ] Extend the independent-judgment branch beyond the first religion/transport dilemma. Unwritten content still stops at an explicit TODO; both result restart buttons return to question one.
 - [ ] Decide how party positions will be sourced, compared, and explained before adding any matching results.
 - [ ] Develop humor and useful insights for the other branches together.
 
 ## Next topic: דת ותחבורה
 
 - [x] Add the topic to the first question, replacing one TODO choice.
-- [ ] Choose real political dilemmas and record sources for the events and the actual alternatives available at the time.
-- [ ] Write the questions and answer choices together, before implementing the branch.
+- [x] Implement the first dilemma about the construction of Yehudit Bridge, with two answer choices and optional sourced background. See [the source notes](docs/yehudit-bridge.md).
+- [ ] Choose and source the next real political dilemmas, including the alternatives available at the time.
+- [ ] Write the next questions and answer choices together, before implementing them.
 - [ ] Develop the humor and useful context for each answer.
 - [ ] Define branching and explain any resulting party comparisons using sourced positions.
 
-The welcome line is “השאלון שמבוסס על דילמות פוליטיות אמיתיות שקרו”. Source-backed dilemmas are still to be written; the topic currently ends at an explicit TODO.
+The welcome line is “השאלון שמבוסס על דילמות פוליטיות אמיתיות שקרו”. The first sourced dilemma works; further questions and party matching remain explicit TODOs.
 
 ## Ballot data
 

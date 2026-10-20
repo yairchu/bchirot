@@ -1,10 +1,11 @@
 import { CUTSCENE_DURATION, TOPIC_CHOICES, afterRobot, progress } from './flow.js';
 import { PARTIES } from './parties.js';
+import { BRIDGE_DILEMMA } from './dilemmas.js';
 
 const app = document.querySelector('#app');
 const main = document.querySelector('#main');
 const mouseAvailable = matchMedia('(hover: hover) and (pointer: fine)').matches;
-const state = { step: 'welcome', topics: [], authority: false, party: null, robot: null, cutscene: false };
+const state = { step: 'welcome', topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null };
 let timers = [];
 const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 
@@ -37,7 +38,7 @@ function back() {
 
 function restart(step = 'topics') {
   clearTimers();
-  Object.assign(state, { step, topics: [], authority: false, party: null, robot: null, cutscene: false });
+  Object.assign(state, { step, topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null });
   saveHistory();
   render();
   focusQuestion();
@@ -61,7 +62,7 @@ function welcomeView() {
 }
 
 function topicsView() {
-  // TODO: Develop religion/transport dilemmas and define the remaining topics in TODO.md.
+  // TODO: Add more religion/transport dilemmas and define the remaining topics in TODO.md.
   return frame({ title: 'מה הכי חשוב לך?', body: `
     <label class="choice authority"><input type="checkbox" name="authority" ${state.authority ? 'checked' : ''}><span class="choice-copy"><strong>כבר אמרו לי למי להצביע</strong><small>רב, משפחה, ראש קהילה, עיתונאי או אדם אחר</small><small class="authority-joke">יש לנו קיצור דרך בשבילך.</small></span></label>
     <div role="group" aria-label="נושאים לבחירה">
@@ -125,14 +126,29 @@ function resultView() {
     <button class="primary" data-action="independent">בואו נבדוק גם לפי העמדות שלי <span aria-hidden="true">↻</span></button><button class="text-button" data-action="restart">להתחיל מחדש</button>` }, { stage: 'התוצאה שלך' });
 }
 
+function bridgeView() {
+  const dilemma = BRIDGE_DILEMMA;
+  return frame({ title: dilemma.title, body: `
+    <p class="description">${escape(dilemma.context)}</p>
+    <div class="dilemma-options" role="radiogroup" aria-label="מתי עדיף לבצע את עבודות הגשר?">
+      ${dilemma.options.map(option => `<label class="choice dilemma-option"><input type="radio" name="bridge-answer" value="${option.id}" ${state.bridgeAnswer === option.id ? 'checked' : ''}><span class="choice-copy"><strong>${escape(option.label)}</strong><small>${escape(option.detail)}</small></span></label>`).join('')}
+    </div>
+    <details class="dilemma-details"><summary>לפרטים נוספים</summary>
+      <div class="dilemma-background"><h3>זה קרה בגשר יהודית</h3>
+        ${dilemma.timeline.map(item => `<p>${escape(item.text)} <a href="${item.url}" target="_blank" rel="noopener noreferrer">${escape(item.source)}</a>.</p>`).join('')}
+      </div>
+    </details>
+    ${actions('ממשיכים', !state.bridgeAnswer)}` });
+}
+
 function independentView() {
-  // TODO: Replace this explicit stop with the independently chosen positions flow.
+  // TODO: Continue the topic flow with more dilemmas and sourced comparisons.
   const religionTransport = state.topics.includes('religion-transport');
-  return frame({ title: religionTransport ? 'דת ותחבורה' : 'השאלות לפי העמדות שלך', body: `<p class="todo"><span class="todo-label">TODO</span> · ${religionTransport ? 'לבחור דילמות אמיתיות ולכתוב את השאלות.' : 'לכתוב את השאלות ולבנות את המסלול.'}</p><button class="primary" data-action="topics">חזרה להתחלה <span aria-hidden="true">↻</span></button>` });
+  return frame({ title: religionTransport ? 'דת ותחבורה' : 'השאלות לפי העמדות שלך', body: `<p class="todo"><span class="todo-label">TODO</span> · ${religionTransport ? 'להוסיף את הדילמה הבאה ולבנות את המשך המסלול.' : 'לכתוב את השאלות ולבנות את המסלול.'}</p><button class="primary" data-action="topics">חזרה להתחלה <span aria-hidden="true">↻</span></button>` });
 }
 
 function render() {
-  const views = { welcome: welcomeView, topics: topicsView, party: partyView, robot: robotView, 'robot-thanks': robotThanksView, sure: sureView, loading: loadingView, result: resultView, independent: independentView };
+  const views = { welcome: welcomeView, topics: topicsView, bridge: bridgeView, party: partyView, robot: robotView, 'robot-thanks': robotThanksView, sure: sureView, loading: loadingView, result: resultView, independent: independentView };
   app.innerHTML = views[state.step]();
   if (state.step === 'robot-thanks') {
     timers.push(setTimeout(() => go('loading', true), CUTSCENE_DURATION));
@@ -165,8 +181,11 @@ app.addEventListener('change', event => {
     state.party = PARTIES.find(party => party[0] === input.value);
     document.querySelector('[data-action="next"]').disabled = false;
     document.querySelector('#party-selection').textContent = `הפתק שבחרת: ${state.party[1]} (${state.party[0]})`;
+  } else if (input.name === 'bridge-answer') {
+    state.bridgeAnswer = input.value;
+    document.querySelector('[data-action="next"]').disabled = false;
   }
-  if (['authority', 'topic', 'party'].includes(input.name)) saveHistory();
+  if (['authority', 'topic', 'party', 'bridge-answer'].includes(input.name)) saveHistory();
 });
 
 app.addEventListener('input', event => {
@@ -181,8 +200,9 @@ app.addEventListener('click', event => {
   else if (action === 'independent') restart();
   else if (action === 'topics') restart('topics');
   else if (action === 'next') {
-    if (state.step === 'topics' && (state.authority || state.topics.length)) go(state.authority ? 'party' : 'independent');
+    if (state.step === 'topics' && (state.authority || state.topics.length)) go(state.authority ? 'party' : state.topics.includes('religion-transport') ? 'bridge' : 'independent');
     else if (state.step === 'party' && state.party) go('robot');
+    else if (state.step === 'bridge' && state.bridgeAnswer) go('independent');
   } else if (action === 'robot-no' || action === 'robot-yes') {
     state.robot = action === 'robot-no' ? 'no' : 'yes';
     go(afterRobot(state.robot, mouseAvailable));

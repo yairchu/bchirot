@@ -12,6 +12,6 @@ export function afterRobot(answer, mouseAvailable) {
 
 export function progress(step, mouseAvailable) {
   const total = mouseAvailable ? 4 : 3;
-  const current = { topics: 1, party: 2, robot: 3, sure: 4 }[step];
-  return { current, total: step === 'topics' ? null : total };
+  const current = { topics: 1, party: 2, bridge: 2, robot: 3, sure: 4 }[step];
+  return { current, total: ['topics', 'bridge'].includes(step) ? null : total };
 }

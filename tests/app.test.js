@@ -98,14 +98,51 @@ test('a TODO selection leads to the unfinished branch rather than party results'
   assert.equal($('.result-ballot'), null);
 });
 
-test('religion and transport opens its explicit unfinished dilemma branch', async t => {
+test('religion and transport opens the bridge dilemma with optional background', async t => {
   const { $, click, choose } = await setup(t);
   click('start');
   choose('[value="religion-transport"]');
   click('next');
-  assert.equal($('h2').textContent, 'דת ותחבורה');
-  assert.ok($('.todo').textContent.includes('לבחור דילמות אמיתיות ולכתוב את השאלות'));
+  assert.equal($('h2').textContent, 'מתי בונים את הגשר?');
+  assert.equal($('.step-label').textContent, 'שאלה 2 מתוך כמה שצריך');
+  assert.equal(document.querySelectorAll('[name="bridge-answer"]').length, 2);
+  assert.equal($('[data-action="next"]').disabled, true);
+  assert.equal($('.dilemma-details').open, false);
+  $('.dilemma-details summary').click();
+  assert.equal($('.dilemma-details').open, true);
+  assert.ok($('.dilemma-background h3').textContent.includes('גשר יהודית'));
+  assert.equal(document.querySelectorAll('.dilemma-background a').length, 4);
   assert.equal($('.result-ballot'), null);
+});
+
+test('bridge answers are mutually exclusive, undoable, and restored when returning from the TODO', async t => {
+  const { $, click, choose, traverse } = await setup(t);
+  click('start');
+  choose('[value="religion-transport"]');
+  choose('[value="todo-2"]');
+  click('next');
+  choose('[name="bridge-answer"][value="shabbat"]');
+  assert.equal($('[data-action="next"]').disabled, false);
+  choose('[name="bridge-answer"][value="weekdays"]');
+  assert.equal(document.querySelectorAll('[name="bridge-answer"]:checked').length, 1);
+  click('next');
+  assert.ok($('.todo').textContent.includes('להוסיף את הדילמה הבאה'));
+  assert.equal($('.result-ballot'), null);
+
+  await traverse('back');
+  assert.equal($('[name="bridge-answer"]:checked').value, 'weekdays');
+  await traverse('back');
+  assert.equal($('[name="bridge-answer"]:checked').value, 'shabbat');
+  await traverse('back');
+  assert.equal($('[name="bridge-answer"]:checked'), null);
+  assert.equal($('[data-action="next"]').disabled, true);
+  await traverse('forward');
+  assert.equal($('[name="bridge-answer"]:checked').value, 'shabbat');
+  click('next');
+  click('topics');
+  choose('[value="religion-transport"]');
+  click('next');
+  assert.equal($('[name="bridge-answer"]:checked'), null);
 });
 
 test('browser Back and Forward undo and redo individual selections and exclusivity', async t => {

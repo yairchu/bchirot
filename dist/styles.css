@@ -88,6 +88,16 @@ p { margin: 0 0 28px; }
 .source-note { font-size: 15px; line-height: 1.8; color: var(--muted); margin-top: 28px; }
 .source-note summary { cursor: pointer; }
 .source-note p { margin-top: 12px; }
+.dilemma-options { display: grid; gap: 16px; width: 100%; }
+.dilemma-option { border: 2px solid var(--border); border-radius: 10px; background: #fffef9; padding: 18px 24px; }
+.dilemma-option:has(input:checked) { border-color: var(--green); background: #eaf0e2; }
+.dilemma-option input { border-radius: 50%; }
+.dilemma-option .choice-copy strong { font-size: clamp(24px, 2.5vw, 32px); }
+.dilemma-details { width: 100%; margin-top: 24px; font-size: 21px; line-height: 1.8; color: var(--muted); }
+.dilemma-details summary { cursor: pointer; width: fit-content; color: var(--green); text-decoration: underline; text-underline-offset: 5px; }
+.dilemma-details summary:focus-visible { outline: 3px solid var(--orange); outline-offset: 6px; }
+.dilemma-background { max-width: 900px; padding-top: 12px; }
+.dilemma-background h3 { color: var(--green); font-size: 27px; margin: 16px 0; }
 .empty { grid-column: 1/-1; font-size: 24px; padding-block: 30px; }
 .answer-options { display: flex; flex-direction: column; gap: 18px; width: min(100%, 650px); }
 .answer { display: block; width: 100%; border: 2px solid var(--border); border-radius: 10px; background: #fffef9; padding: 20px 30px; text-align: start; font-size: clamp(28px, 3vw, 40px); line-height: 1.5; }
@@ -129,6 +139,8 @@ p { margin: 0 0 28px; }
   .ballot-letter { font-size: 36px; }
   .ballot-name { font-size: 14px; }
   .answer { padding: 18px 24px; }
+  .dilemma-option { padding: 16px; }
+  .dilemma-details { font-size: 19px; }
   .todo { font-size: 18px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
