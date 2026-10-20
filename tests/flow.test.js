@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { afterRobot, progress } from '../dist/flow.js';
-import { PARTIES } from '../dist/parties.js';
+import { PARTIES, BALLOT_CHOICES, BLANK_BALLOT } from '../dist/parties.js';
 
 test('no gets the desktop hover scene or mobile loading; yes gets the acknowledgement', () => {
   assert.equal(afterRobot('no', true), 'sure');
@@ -12,11 +12,18 @@ test('no gets the desktop hover scene or mobile loading; yes gets the acknowledg
 
 test('the counter adapts to the device and starts without an invented total', () => {
   assert.deepEqual(progress('topics', true), { current: 1, total: null });
-  assert.deepEqual(progress('bridge', true), { current: 2, total: null });
-  assert.deepEqual(progress('bridge', false), { current: 2, total: null });
+  assert.deepEqual(progress('bridge', true), { current: 2, total: 2 });
+  assert.deepEqual(progress('bridge', false), { current: 2, total: 2 });
   assert.deepEqual(progress('party', true), { current: 2, total: 4 });
   assert.deepEqual(progress('robot', false), { current: 3, total: 3 });
   assert.deepEqual(progress('sure', true), { current: 4, total: 4 });
+});
+
+test('blank ballot is a separate answer and not one of the official party choices', () => {
+  assert.equal(BALLOT_CHOICES.length, PARTIES.length + 1);
+  assert.equal(new Set(BALLOT_CHOICES.map(([value]) => value)).size, BALLOT_CHOICES.length);
+  assert.ok(BALLOT_CHOICES.includes(BLANK_BALLOT));
+  assert.equal(PARTIES.includes(BLANK_BALLOT), false);
 });
 
 test('all 38 ballot choices have unique letters and usable names', () => {

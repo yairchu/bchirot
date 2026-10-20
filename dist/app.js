@@ -1,6 +1,7 @@
 import { CUTSCENE_DURATION, TOPIC_CHOICES, afterRobot, progress } from './flow.js';
-import { PARTIES } from './parties.js';
+import { BALLOT_CHOICES, BLANK_BALLOT, BLANK_BALLOT_SOURCE } from './parties.js';
 import { BRIDGE_DILEMMA } from './dilemmas.js';
+import { BASIS_LABELS, scoreBridge } from './scoring.js';
 
 const app = document.querySelector('#app');
 const main = document.querySelector('#main');
@@ -73,16 +74,19 @@ function topicsView() {
 
 function partyView() {
   return frame({ title: 'ומה ההמלצה שקיבלת?', body: `
-    <label class="sr-only" for="party-search">חיפוש לפי שם הרשימה או אותיות הפתק</label><input class="search" id="party-search" type="search" placeholder="חיפוש לפי שם או אותיות הפתק…" autocomplete="off">
-    <div class="party-grid" role="radiogroup" aria-label="פתקי ההצבעה">${partyOptions('')}</div>
-    <p class="selection-note" id="party-selection" role="status">${state.party ? `הפתק שבחרת: ${escape(state.party[1])} (${escape(state.party[0])})` : ''}</p>
+    <div class="party-grid" role="radiogroup" aria-label="פתקי ההצבעה">${partyOptions()}</div>
+    <p class="selection-note" id="party-selection" role="status">${state.party ? `הפתק שבחרת: ${escape(state.party[1])}${state.party[0] === BLANK_BALLOT[0] ? '' : ` (${escape(state.party[0])})`}` : ''}</p>
+    <div id="blank-ballot-note" ${state.party?.[0] === BLANK_BALLOT[0] ? '' : 'hidden'}>${blankBallotNote()}</div>
     ${actions('ממשיכים', !state.party)}
     <details class="source-note"><summary>מקור נתוני הפתקים</summary><p><a href="https://bechirot.fyi/lists/26" target="_blank" rel="noopener noreferrer">bechirot.fyi</a>. השמות קוצרו לתצוגה; הרשימה דורשת אימות מול <a href="https://www.gov.il/he/pages/candidates-lists-26" target="_blank" rel="noopener noreferrer">ועדת הבחירות</a>.</p></details>` });
 }
 
-function partyOptions(query) {
-  const filtered = PARTIES.filter(party => party.join(' ').normalize('NFKC').toLocaleLowerCase('he').includes(query.trim().normalize('NFKC').toLocaleLowerCase('he')));
-  return filtered.length ? filtered.map(party => `<label class="ballot"><input type="radio" name="party" value="${escape(party[0])}" ${state.party?.[0] === party[0] ? 'checked' : ''}><span class="ballot-letter">${escape(party[0])}</span><span class="ballot-name">${escape(party[1])}</span></label>`).join('') : '<p class="empty" role="status">לא נמצא פתק כזה.</p>';
+function blankBallotNote() {
+  return `<p class="blank-note">פתק לבן ריק נחשב לפתק פסול ואינו נכלל במניין הקולות הכשרים. <a href="${BLANK_BALLOT_SOURCE}" target="_blank" rel="noopener noreferrer">הסבר ועדת הבחירות</a>.</p>`;
+}
+
+function partyOptions() {
+  return BALLOT_CHOICES.map(party => `<label class="ballot"><input type="radio" name="party" value="${escape(party[0])}" ${state.party?.[0] === party[0] ? 'checked' : ''}><span class="ballot-letter" ${party[0] === BLANK_BALLOT[0] ? 'aria-hidden="true"' : ''}>${party[0] === BLANK_BALLOT[0] ? '&nbsp;' : escape(party[0])}</span><span class="ballot-name">${escape(party[1])}</span></label>`).join('');
 }
 
 function robotView() {
@@ -120,9 +124,11 @@ function loadingView() {
 function resultView() {
   // This result repeats the user's input; it does not score or endorse a party.
   const [letters, name] = state.party;
+  const blank = letters === BLANK_BALLOT[0];
   return frame({ title: `הפתק שלך: ${escape(name)}`, body: `
-    <div class="result-ballot"><strong>${escape(letters)}</strong><span>${escape(name)}</span></div>
+    <div class="result-ballot">${blank ? '<span class="sr-only">פתק לבן ריק</span>' : `<strong>${escape(letters)}</strong><span>${escape(name)}</span>`}</div>
     <p class="reason"><strong>השיקול שהוביל לתוצאה</strong>זו ההמלצה של האדם שבחרת לסמוך עליו.</p>
+    ${blank ? blankBallotNote() : ''}
     <button class="primary" data-action="independent">בואו נבדוק גם לפי העמדות שלי <span aria-hidden="true">↻</span></button><button class="text-button" data-action="restart">להתחיל מחדש</button>` }, { stage: 'התוצאה שלך' });
 }
 
@@ -138,7 +144,22 @@ function bridgeView() {
         ${dilemma.timeline.map(item => `<p>${escape(item.text)} <a href="${item.url}" target="_blank" rel="noopener noreferrer">${escape(item.source)}</a>.</p>`).join('')}
       </div>
     </details>
-    ${actions('ממשיכים', !state.bridgeAnswer)}` });
+    ${actions('לתוצאות', !state.bridgeAnswer)}` });
+}
+
+function bridgeResultView() {
+  const answer = BRIDGE_DILEMMA.options.find(option => option.id === state.bridgeAnswer);
+  const scores = scoreBridge(state.bridgeAnswer);
+  return frame({ title: 'איפה התשובה שלך פוגשת את המפלגות?', body: `
+    <p class="description">בחרת: ${escape(answer.label)}.</p>
+    <p class="score-context">ההשוואה מבוססת על פרשת גשר יהודית ב־2018–2019. המפלגות מוצגות בשמותיהן אז, והניקוד מתייחס לדילמה הזו.</p>
+    <table class="score-table"><caption class="sr-only">ניקוד המפלגות לפי התשובה לשאלת גשר יהודית</caption>
+      <thead><tr><th scope="col">מפלגה</th><th scope="col">נקודות</th></tr></thead>
+      <tbody>${scores.map(party => `<tr data-party-id="${party.id}"><th scope="row"><strong>${escape(party.name)}</strong><details><summary>למה?</summary><p>${escape(party.reason)}</p><p>${BASIS_LABELS[party.basis]} · <a href="${party.source}" target="_blank" rel="noopener noreferrer">מקור</a>${party.followupSource ? ` · <a href="${party.followupSource}" target="_blank" rel="noopener noreferrer">חידוש העבודות</a>` : ''}</p></details></th><td><bdi class="score ${party.points > 0 ? 'score-positive' : 'score-negative'}">${party.points > 0 ? '+' : '−'}${Math.abs(party.points)}</bdi></td></tr>`).join('')}</tbody>
+    </table>
+    <details class="score-method"><summary>איך הניקוד עובד?</summary><p>ציון חיובי הוא באותו כיוון כמו התשובה שלך, וציון שלילי הוא בכיוון ההפוך. משקל של 2 נקודות ניתן לעמדה מתועדת; משקל של נקודה אחת ניתן להתנהלות מעורבת או להערכת אחריות קואליציונית. האחריות הקואליציונית היא פרשנות במודל, ולא עמדה מפורשת של המפלגה.</p><p>רשימות שעדיין לא נבדקו אינן מקבלות ציון. שמות ומיזוגים של מפלגות השתנו מאז; הניקוד כאן אינו מיפוי אוטומטי לרשימות בבחירות הנוכחיות.</p></details>
+    ${state.topics.includes('todo-2') ? '<p class="todo"><span class="todo-label">TODO</span> · הנושא הנוסף שבחרת עדיין לא נכלל בחישוב.</p>' : ''}
+    <div class="actions"><button class="primary" data-action="restart">להתחיל מחדש <span aria-hidden="true">↻</span></button><button class="back" data-action="back">חזרה</button></div>` }, { stage: 'דת ותחבורה · תוצאות' });
 }
 
 function independentView() {
@@ -148,7 +169,7 @@ function independentView() {
 }
 
 function render() {
-  const views = { welcome: welcomeView, topics: topicsView, bridge: bridgeView, party: partyView, robot: robotView, 'robot-thanks': robotThanksView, sure: sureView, loading: loadingView, result: resultView, independent: independentView };
+  const views = { welcome: welcomeView, topics: topicsView, bridge: bridgeView, 'bridge-result': bridgeResultView, party: partyView, robot: robotView, 'robot-thanks': robotThanksView, sure: sureView, loading: loadingView, result: resultView, independent: independentView };
   app.innerHTML = views[state.step]();
   if (state.step === 'robot-thanks') {
     timers.push(setTimeout(() => go('loading', true), CUTSCENE_DURATION));
@@ -178,18 +199,15 @@ app.addEventListener('change', event => {
     state.topics = [...app.querySelectorAll('[name="topic"]:checked')].map(topic => topic.value);
     document.querySelector('[data-action="next"]').disabled = !state.authority && !state.topics.length;
   } else if (input.name === 'party') {
-    state.party = PARTIES.find(party => party[0] === input.value);
+    state.party = BALLOT_CHOICES.find(party => party[0] === input.value);
     document.querySelector('[data-action="next"]').disabled = false;
-    document.querySelector('#party-selection').textContent = `הפתק שבחרת: ${state.party[1]} (${state.party[0]})`;
+    document.querySelector('#party-selection').textContent = `הפתק שבחרת: ${state.party[1]}${state.party[0] === BLANK_BALLOT[0] ? '' : ` (${state.party[0]})`}`;
+    document.querySelector('#blank-ballot-note').hidden = state.party[0] !== BLANK_BALLOT[0];
   } else if (input.name === 'bridge-answer') {
     state.bridgeAnswer = input.value;
     document.querySelector('[data-action="next"]').disabled = false;
   }
   if (['authority', 'topic', 'party', 'bridge-answer'].includes(input.name)) saveHistory();
-});
-
-app.addEventListener('input', event => {
-  if (event.target.id === 'party-search') document.querySelector('.party-grid').innerHTML = partyOptions(event.target.value);
 });
 
 app.addEventListener('click', event => {
@@ -202,7 +220,7 @@ app.addEventListener('click', event => {
   else if (action === 'next') {
     if (state.step === 'topics' && (state.authority || state.topics.length)) go(state.authority ? 'party' : state.topics.includes('religion-transport') ? 'bridge' : 'independent');
     else if (state.step === 'party' && state.party) go('robot');
-    else if (state.step === 'bridge' && state.bridgeAnswer) go('independent');
+    else if (state.step === 'bridge' && state.bridgeAnswer) go('bridge-result');
   } else if (action === 'robot-no' || action === 'robot-yes') {
     state.robot = action === 'robot-no' ? 'no' : 'yes';
     go(afterRobot(state.robot, mouseAvailable));

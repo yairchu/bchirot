@@ -104,7 +104,7 @@ test('religion and transport opens the bridge dilemma with optional background',
   choose('[value="religion-transport"]');
   click('next');
   assert.equal($('h2').textContent, 'מתי בונים את הגשר?');
-  assert.equal($('.step-label').textContent, 'שאלה 2 מתוך כמה שצריך');
+  assert.equal($('.step-label').textContent, 'שאלה 2 מתוך 2');
   assert.equal(document.querySelectorAll('[name="bridge-answer"]').length, 2);
   assert.equal($('[data-action="next"]').disabled, true);
   assert.equal($('.dilemma-details').open, false);
@@ -115,7 +115,7 @@ test('religion and transport opens the bridge dilemma with optional background',
   assert.equal($('.result-ballot'), null);
 });
 
-test('bridge answers are mutually exclusive, undoable, and restored when returning from the TODO', async t => {
+test('bridge answers are mutually exclusive, undoable, and restored when returning from results', async t => {
   const { $, click, choose, traverse } = await setup(t);
   click('start');
   choose('[value="religion-transport"]');
@@ -126,7 +126,8 @@ test('bridge answers are mutually exclusive, undoable, and restored when returni
   choose('[name="bridge-answer"][value="weekdays"]');
   assert.equal(document.querySelectorAll('[name="bridge-answer"]:checked').length, 1);
   click('next');
-  assert.ok($('.todo').textContent.includes('להוסיף את הדילמה הבאה'));
+  assert.ok($('.score-table'));
+  assert.ok($('.todo').textContent.includes('הנושא הנוסף שבחרת עדיין לא נכלל'));
   assert.equal($('.result-ballot'), null);
 
   await traverse('back');
@@ -139,7 +140,7 @@ test('bridge answers are mutually exclusive, undoable, and restored when returni
   await traverse('forward');
   assert.equal($('[name="bridge-answer"]:checked').value, 'shabbat');
   click('next');
-  click('topics');
+  click('restart');
   choose('[value="religion-transport"]');
   click('next');
   assert.equal($('[name="bridge-answer"]:checked'), null);
@@ -164,6 +165,54 @@ test('browser Back and Forward undo and redo individual selections and exclusivi
   await traverse('forward');
   assert.equal($('[name="authority"]').checked, true);
   assert.equal(document.querySelectorAll('[name="topic"]:disabled').length, 2);
+});
+
+test('changing a bridge answer through browser history recalculates the visible ranking', async t => {
+  const { $, click, choose, traverse } = await setup(t);
+  click('start');
+  choose('[value="religion-transport"]');
+  click('next');
+  choose('[name="bridge-answer"][value="weekdays"]');
+  click('next');
+  assert.equal($('[data-party-id="shas"] .score').textContent, '+2');
+  assert.equal($('[data-party-id="likud"] .score').textContent, '+1');
+  assert.equal($('[data-party-id="meretz"] .score').textContent, '−2');
+  assert.ok($('.score-context').textContent.includes('2018–2019'));
+  await traverse('back');
+  choose('[name="bridge-answer"][value="shabbat"]');
+  click('next');
+  assert.equal($('[data-party-id="shas"] .score').textContent, '−2');
+  assert.equal($('[data-party-id="meretz"] .score').textContent, '+2');
+  assert.equal($('.todo'), null);
+});
+
+test('blank ballot can be selected without search, restored with Back, and returned by authority flow', async t => {
+  const { $, click, choose, traverse } = await setup(t);
+  click('start');
+  choose('[name="authority"]');
+  click('next');
+  assert.equal($('input[type="search"]'), null);
+  assert.equal(document.querySelectorAll('[name="party"]').length, 39);
+  assert.equal($('#blank-ballot-note').hidden, true);
+  choose('[name="party"][value="blank"]');
+  assert.equal($('#blank-ballot-note').hidden, false);
+  assert.ok($('#blank-ballot-note').textContent.includes('פסול'));
+  click('next');
+  await traverse('back');
+  assert.equal($('[name="party"]:checked').value, 'blank');
+  assert.equal($('#blank-ballot-note').hidden, false);
+  assert.equal($('#party-selection').textContent.includes('(blank)'), false);
+  choose('[name="party"][value="מחל"]');
+  assert.equal($('#blank-ballot-note').hidden, true);
+  choose('[name="party"][value="blank"]');
+  click('next');
+  click('robot-yes');
+  t.mock.timers.tick(CUTSCENE_DURATION);
+  t.mock.timers.tick(2500);
+  assert.equal($('h2').textContent, 'הפתק שלך: פתק לבן');
+  assert.ok($('.blank-note').textContent.includes('פסול'));
+  assert.equal($('.result-ballot strong'), null);
+  assert.equal($('.result-ballot').textContent.includes('blank'), false);
 });
 
 test('browser history restores party choices and crosses question boundaries', async t => {

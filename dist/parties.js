@@ -16,3 +16,8 @@ export const PARTIES = [
   ['פה', 'אני ואתה'], ['נץ', 'ביטחון אישי'], ['יק', 'גה״ת — גוש התנ״כי'],
   ['ז', 'בטח — בטחון חברתי'], ['נף', 'שמע'],
 ].sort((a, b) => a[0].localeCompare(b[0], 'he'));
+
+// A questionnaire answer, not a party or an official ballot letter.
+export const BLANK_BALLOT = ['blank', 'פתק לבן'];
+export const BALLOT_CHOICES = [...PARTIES, BLANK_BALLOT];
+export const BLANK_BALLOT_SOURCE = 'https://www.gov.il/he/departments/topics/faq-26';
