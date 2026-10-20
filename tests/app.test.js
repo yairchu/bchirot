@@ -57,19 +57,21 @@ async function setup(t, mouseAvailable = true) {
 test('welcome starts the questionnaire; unfinished choices are explicit TODOs', async t => {
   const { $, click } = await setup(t);
   assert.equal($('h1').textContent, 'תכלס, בחירות.');
+  assert.equal($('.description').textContent, 'השאלון שמבוסס על דילמות פוליטיות אמיתיות שקרו');
   assert.equal($('[name="authority"]'), null);
   click('start');
   assert.equal($('h2').textContent, 'מה הכי חשוב לך?');
   assert.equal(document.querySelectorAll('[name="topic"]').length, 2);
   assert.equal(document.querySelector('.choice input').name, 'authority');
-  assert.ok($('[name="topic"]').closest('label').textContent.includes('TODO'));
+  assert.ok($('[value="religion-transport"]').closest('label').textContent.includes('דת ותחבורה'));
+  assert.ok($('[value="todo-2"]').closest('label').textContent.includes('TODO'));
   assert.equal($('[data-action="next"]').disabled, true);
 });
 
-test('authority disables both TODO choices and restores their selections when unchecked', async t => {
+test('authority disables both topic choices and restores their selections when unchecked', async t => {
   const { $, click, choose } = await setup(t);
   click('start');
-  choose('[value="todo-1"]');
+  choose('[value="religion-transport"]');
   choose('[value="todo-2"]');
   assert.equal($('[data-action="next"]').disabled, false);
   choose('[name="authority"]');
@@ -81,7 +83,7 @@ test('authority disables both TODO choices and restores their selections when un
   choose('[name="authority"]', false);
   assert.equal(document.querySelectorAll('[name="topic"]:disabled').length, 0);
   assert.equal(document.querySelectorAll('[name="topic"]:checked').length, 2);
-  choose('[value="todo-1"]', false);
+  choose('[value="religion-transport"]', false);
   choose('[value="todo-2"]', false);
   assert.equal($('[data-action="next"]').disabled, true);
 });
@@ -96,10 +98,20 @@ test('a TODO selection leads to the unfinished branch rather than party results'
   assert.equal($('.result-ballot'), null);
 });
 
+test('religion and transport opens its explicit unfinished dilemma branch', async t => {
+  const { $, click, choose } = await setup(t);
+  click('start');
+  choose('[value="religion-transport"]');
+  click('next');
+  assert.equal($('h2').textContent, 'דת ותחבורה');
+  assert.ok($('.todo').textContent.includes('לבחור דילמות אמיתיות ולכתוב את השאלות'));
+  assert.equal($('.result-ballot'), null);
+});
+
 test('browser Back and Forward undo and redo individual selections and exclusivity', async t => {
   const { $, click, choose, traverse } = await setup(t);
   click('start');
-  choose('[value="todo-1"]');
+  choose('[value="religion-transport"]');
   choose('[value="todo-2"]');
   choose('[name="authority"]');
 
@@ -108,7 +120,7 @@ test('browser Back and Forward undo and redo individual selections and exclusivi
   assert.equal(document.querySelectorAll('[name="topic"]:disabled').length, 0);
   assert.equal(document.querySelectorAll('[name="topic"]:checked').length, 2);
   await traverse('back');
-  assert.equal($('[value="todo-1"]').checked, true);
+  assert.equal($('[value="religion-transport"]').checked, true);
   assert.equal($('[value="todo-2"]').checked, false);
   await traverse('forward');
   assert.equal($('[value="todo-2"]').checked, true);

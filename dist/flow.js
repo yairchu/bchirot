@@ -1,5 +1,10 @@
 export const CUTSCENE_DURATION = 1000;
 
+export const TOPIC_CHOICES = [
+  { id: 'religion-transport', label: 'דת ותחבורה' },
+  { id: 'todo-2', label: 'TODO' },
+];
+
 export function afterRobot(answer, mouseAvailable) {
   if (answer === 'yes') return 'robot-thanks';
   return mouseAvailable ? 'sure' : 'loading';

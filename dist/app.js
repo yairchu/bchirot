@@ -1,4 +1,4 @@
-import { CUTSCENE_DURATION, afterRobot, progress } from './flow.js';
+import { CUTSCENE_DURATION, TOPIC_CHOICES, afterRobot, progress } from './flow.js';
 import { PARTIES } from './parties.js';
 
 const app = document.querySelector('#app');
@@ -57,15 +57,15 @@ function actions(nextLabel = 'ממשיכים', disabled = false) {
 }
 
 function welcomeView() {
-  return frame({ title: 'תכלס, בחירות.', body: '<p class="description">בואו נתחיל במה שחשוב לך.</p><button class="primary" data-action="start">מתחילים <span aria-hidden="true">←</span></button>' }, { heading: 'h1' });
+  return frame({ title: 'תכלס, בחירות.', body: '<p class="description">השאלון שמבוסס על דילמות פוליטיות אמיתיות שקרו</p><button class="primary" data-action="start">מתחילים <span aria-hidden="true">←</span></button>' }, { heading: 'h1' });
 }
 
 function topicsView() {
-  // TODO: Define the actual topic choices and their follow-up questions in TODO.md.
+  // TODO: Develop religion/transport dilemmas and define the remaining topics in TODO.md.
   return frame({ title: 'מה הכי חשוב לך?', body: `
     <label class="choice authority"><input type="checkbox" name="authority" ${state.authority ? 'checked' : ''}><span class="choice-copy"><strong>כבר אמרו לי למי להצביע</strong><small>רב, משפחה, ראש קהילה, עיתונאי או אדם אחר</small><small class="authority-joke">יש לנו קיצור דרך בשבילך.</small></span></label>
-    <div role="group" aria-label="אפשרויות שעדיין צריך להגדיר">
-      ${['todo-1', 'todo-2'].map((id, index) => `<label class="choice"><input type="checkbox" name="topic" value="${id}" ${state.topics.includes(id) ? 'checked' : ''} ${state.authority ? 'disabled' : ''}><span class="choice-copy"><strong><bdi>TODO ${index + 1}</bdi></strong></span></label>`).join('')}
+    <div role="group" aria-label="נושאים לבחירה">
+      ${TOPIC_CHOICES.map(({ id, label }) => `<label class="choice"><input type="checkbox" name="topic" value="${id}" ${state.topics.includes(id) ? 'checked' : ''} ${state.authority ? 'disabled' : ''}><span class="choice-copy"><strong><bdi>${escape(label)}</bdi></strong></span></label>`).join('')}
     </div>
     ${actions('ממשיכים', !state.authority && !state.topics.length)}` });
 }
@@ -127,7 +127,8 @@ function resultView() {
 
 function independentView() {
   // TODO: Replace this explicit stop with the independently chosen positions flow.
-  return frame({ title: 'השאלות לפי העמדות שלך', body: '<p class="todo"><span class="todo-label">TODO</span> · לכתוב את השאלות ולבנות את המסלול.</p><button class="primary" data-action="topics">חזרה להתחלה <span aria-hidden="true">↻</span></button>' });
+  const religionTransport = state.topics.includes('religion-transport');
+  return frame({ title: religionTransport ? 'דת ותחבורה' : 'השאלות לפי העמדות שלך', body: `<p class="todo"><span class="todo-label">TODO</span> · ${religionTransport ? 'לבחור דילמות אמיתיות ולכתוב את השאלות.' : 'לכתוב את השאלות ולבנות את המסלול.'}</p><button class="primary" data-action="topics">חזרה להתחלה <span aria-hidden="true">↻</span></button>` });
 }
 
 function render() {
