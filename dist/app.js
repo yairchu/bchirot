@@ -5,7 +5,6 @@ const app = document.querySelector('#app');
 const main = document.querySelector('#main');
 const mouseAvailable = matchMedia('(hover: hover) and (pointer: fine)').matches;
 const state = { step: 'welcome', topics: [], authority: false, party: null, robot: null, cutscene: false };
-let history = [];
 let timers = [];
 const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 
@@ -14,28 +13,34 @@ function clearTimers() {
   timers = [];
 }
 
-function go(step) {
-  clearTimers();
-  history.push(state.step);
-  state.step = step;
-  render();
+function saveHistory(replace = false) {
+  const snapshot = { ...state, topics: [...state.topics], party: state.party ? [...state.party] : null };
+  window.history[replace ? 'replaceState' : 'pushState']({ bchirot: snapshot }, '');
+}
+
+function focusQuestion() {
   main.focus({ preventScroll: true });
   if (main.getBoundingClientRect().top < 0) main.scrollIntoView({ behavior: 'instant', block: 'start' });
 }
 
-function back() {
+function go(step, replace = false) {
   clearTimers();
-  state.step = history.pop() || 'welcome';
+  state.step = step;
+  saveHistory(replace);
   render();
-  main.focus({ preventScroll: true });
+  focusQuestion();
 }
 
-function restart(step = 'welcome') {
+function back() {
+  window.history.back();
+}
+
+function restart(step = 'topics') {
   clearTimers();
   Object.assign(state, { step, topics: [], authority: false, party: null, robot: null, cutscene: false });
-  history = [];
+  saveHistory();
   render();
-  main.focus({ preventScroll: true });
+  focusQuestion();
 }
 
 function frame(content, { stage = '', heading = 'h2', className = '' } = {}) {
@@ -58,10 +63,10 @@ function welcomeView() {
 function topicsView() {
   // TODO: Define the actual topic choices and their follow-up questions in TODO.md.
   return frame({ title: 'מה הכי חשוב לך?', body: `
+    <label class="choice authority"><input type="checkbox" name="authority" ${state.authority ? 'checked' : ''}><span class="choice-copy"><strong>כבר אמרו לי למי להצביע</strong><small>רב, משפחה, ראש קהילה, עיתונאי או אדם אחר</small><small class="authority-joke">יש לנו קיצור דרך בשבילך.</small></span></label>
     <div role="group" aria-label="אפשרויות שעדיין צריך להגדיר">
       ${['todo-1', 'todo-2'].map((id, index) => `<label class="choice"><input type="checkbox" name="topic" value="${id}" ${state.topics.includes(id) ? 'checked' : ''} ${state.authority ? 'disabled' : ''}><span class="choice-copy"><strong><bdi>TODO ${index + 1}</bdi></strong></span></label>`).join('')}
     </div>
-    <label class="choice authority"><input type="checkbox" name="authority" ${state.authority ? 'checked' : ''}><span class="choice-copy"><strong>אני מצביע לפי מישהו שאני סומך עליו</strong><small>רב, משפחה, ראש קהילה, עיתונאי או אדם אחר</small></span></label>
     ${actions('ממשיכים', !state.authority && !state.topics.length)}` });
 }
 
@@ -104,7 +109,7 @@ function startCutscene() {
   option.classList.add('is-playing');
   document.querySelector('#sure-label').textContent = 'עזוב, לא משנה';
   document.querySelector('#cutscene-status').textContent = 'עזוב, לא משנה';
-  timers.push(setTimeout(() => go('loading'), CUTSCENE_DURATION));
+  timers.push(setTimeout(() => go('loading', true), CUTSCENE_DURATION));
 }
 
 function loadingView() {
@@ -129,7 +134,7 @@ function render() {
   const views = { welcome: welcomeView, topics: topicsView, party: partyView, robot: robotView, 'robot-thanks': robotThanksView, sure: sureView, loading: loadingView, result: resultView, independent: independentView };
   app.innerHTML = views[state.step]();
   if (state.step === 'robot-thanks') {
-    timers.push(setTimeout(() => go('loading'), CUTSCENE_DURATION));
+    timers.push(setTimeout(() => go('loading', true), CUTSCENE_DURATION));
   }
   if (state.step === 'sure') {
     const option = document.querySelector('#sure-button');
@@ -142,7 +147,7 @@ function render() {
     timers.push(setTimeout(() => {
       document.querySelector('#loading-message').textContent = 'זה לא כזה קשה במקרה הזה…';
     }, 1100));
-    timers.push(setTimeout(() => go('result'), 2500));
+    timers.push(setTimeout(() => go('result', true), 2500));
   }
 }
 
@@ -160,6 +165,7 @@ app.addEventListener('change', event => {
     document.querySelector('[data-action="next"]').disabled = false;
     document.querySelector('#party-selection').textContent = `הפתק שבחרת: ${state.party[1]} (${state.party[0]})`;
   }
+  if (['authority', 'topic', 'party'].includes(input.name)) saveHistory();
 });
 
 app.addEventListener('input', event => {
@@ -171,7 +177,7 @@ app.addEventListener('click', event => {
   if (action === 'back') back();
   else if (action === 'start') go('topics');
   else if (action === 'restart') restart();
-  else if (action === 'independent') restart('independent');
+  else if (action === 'independent') restart();
   else if (action === 'topics') restart('topics');
   else if (action === 'next') {
     if (state.step === 'topics' && (state.authority || state.topics.length)) go(state.authority ? 'party' : 'independent');
@@ -182,4 +188,13 @@ app.addEventListener('click', event => {
   }
 });
 
+window.addEventListener('popstate', event => {
+  if (!event.state?.bchirot) return;
+  clearTimers();
+  Object.assign(state, event.state.bchirot);
+  render();
+  focusQuestion();
+});
+
+saveHistory(true);
 render();

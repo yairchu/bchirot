@@ -70,6 +70,9 @@ p { margin: 0 0 28px; }
 .choice-copy { display: flex; flex-direction: column; gap: 8px; }
 .choice-copy strong { font-size: clamp(23px, 2.7vw, 36px); font-weight: 600; line-height: 1.5; }
 .choice-copy small { font-size: clamp(18px, 1.8vw, 23px); color: var(--muted); line-height: 1.6; }
+.authority { border: 2px solid #b7c9b8; border-radius: 12px; background: #eaf0e2; padding: 24px; margin-bottom: 12px; }
+.authority:has(input:checked) { border-color: var(--green); }
+.choice-copy .authority-joke { color: var(--green); font-weight: 600; }
 .todo { color: var(--muted); font-size: 21px; border-inline-start: 3px solid var(--orange); padding: 12px 20px; margin-bottom: 24px; line-height: 1.7; }
 .todo-label { direction: ltr; display: inline-block; font: 16px/1.5 monospace; color: #9a5a38; }
 .selection-note { min-height: 32px; margin: 16px 0 0; color: var(--muted); font-size: 18px; line-height: 1.7; }

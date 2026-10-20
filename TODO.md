@@ -5,7 +5,7 @@
 - [ ] Agree on the actual choices for “מה הכי חשוב לך?”. The invented sample topics have been removed.
 - [x] Support multiple selection using two explicit TODO choices; selecting authority disables them, and deselecting authority restores earlier choices.
 - [ ] Write follow-up questions for each topic, including their branching rules and question counts.
-- [ ] Build the independent-judgment branch linked from the result. It currently stops at an explicit TODO.
+- [ ] Build the independent-judgment branch reached from the TODO choices. It currently stops at an explicit TODO; both result restart buttons return to question one.
 - [ ] Decide how party positions will be sourced, compared, and explained before adding any matching results.
 - [ ] Develop humor and useful insights for the other branches together.
 
@@ -19,4 +19,4 @@
 - [ ] Visually review the full-page layout on desktop and mobile, including large text, zoom, and long party names.
 - [ ] Review the hover cutscene with a real mouse and the focus-triggered equivalent with a keyboard, including reduced-motion settings.
 
-DOM tests cover the welcome screen, exclusive authority selection, desktop hover and keyboard cutscenes, robot self-awareness acknowledgement on desktop and mobile, automatic continuation, mobile skipping, results, and restart. Visual browser checks remain outstanding because the current execution environment blocks browser preview infrastructure.
+DOM tests cover the welcome screen, exclusive authority selection, browser Back/Forward with restored choices and canceled timers, desktop hover and keyboard cutscenes, robot self-awareness acknowledgement on desktop and mobile, automatic continuation, mobile skipping, results, and restart. Visual browser checks remain outstanding because the current execution environment blocks browser preview infrastructure.
