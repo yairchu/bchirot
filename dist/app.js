@@ -1,5 +1,5 @@
-import { CUTSCENE_DURATION, TOPIC_CHOICES, afterRobot, progress } from './flow.js';
-import { BALLOT_CHOICES, BLANK_BALLOT, BLANK_BALLOT_SOURCE } from './parties.js';
+import { CUTSCENE_DURATION, EASTER_EGG_DURATION, TOPIC_CHOICES, afterRobot, progress } from './flow.js';
+import { BALLOT_CHOICES, BLANK_BALLOT, BLANK_BALLOT_SOURCE, FAKE_BALLOT } from './parties.js';
 import { BRIDGE_DILEMMA } from './dilemmas.js';
 import { BASIS_LABELS, scoreBridge } from './scoring.js';
 
@@ -99,6 +99,10 @@ function robotThanksView() {
   return frame({ title: 'מעריך את המודעות העצמית', body: '' }, { className: 'robot-thanks' });
 }
 
+function fakeBallotView() {
+  return frame({ title: 'הלכת על קקה.', body: '<p class="description">אין באמת מפלגה כזאת.</p>' });
+}
+
 function sureView() {
   return frame({ title: 'האם אתה בטוח?', body: `
     <div class="answer-options"><button type="button" class="answer cutscene-option" id="sure-button" aria-describedby="cutscene-help"><span id="sure-label">אני בטוח</span></button></div>
@@ -169,8 +173,14 @@ function independentView() {
 }
 
 function render() {
-  const views = { welcome: welcomeView, topics: topicsView, bridge: bridgeView, 'bridge-result': bridgeResultView, party: partyView, robot: robotView, 'robot-thanks': robotThanksView, sure: sureView, loading: loadingView, result: resultView, independent: independentView };
+  const views = { welcome: welcomeView, topics: topicsView, bridge: bridgeView, 'bridge-result': bridgeResultView, party: partyView, 'fake-ballot': fakeBallotView, robot: robotView, 'robot-thanks': robotThanksView, sure: sureView, loading: loadingView, result: resultView, independent: independentView };
   app.innerHTML = views[state.step]();
+  if (state.step === 'fake-ballot') {
+    timers.push(setTimeout(() => {
+      state.party = null;
+      go('party', true);
+    }, EASTER_EGG_DURATION));
+  }
   if (state.step === 'robot-thanks') {
     timers.push(setTimeout(() => go('loading', true), CUTSCENE_DURATION));
   }
@@ -219,7 +229,7 @@ app.addEventListener('click', event => {
   else if (action === 'topics') restart('topics');
   else if (action === 'next') {
     if (state.step === 'topics' && (state.authority || state.topics.length)) go(state.authority ? 'party' : state.topics.includes('religion-transport') ? 'bridge' : 'independent');
-    else if (state.step === 'party' && state.party) go('robot');
+    else if (state.step === 'party' && state.party) go(state.party[0] === FAKE_BALLOT[0] ? 'fake-ballot' : 'robot');
     else if (state.step === 'bridge' && state.bridgeAnswer) go('bridge-result');
   } else if (action === 'robot-no' || action === 'robot-yes') {
     state.robot = action === 'robot-no' ? 'no' : 'yes';

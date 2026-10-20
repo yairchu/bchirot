@@ -1,4 +1,5 @@
 export const CUTSCENE_DURATION = 1000;
+export const EASTER_EGG_DURATION = 2000;
 
 export const TOPIC_CHOICES = [
   { id: 'religion-transport', label: 'דת ותחבורה' },

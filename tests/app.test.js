@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
-import { CUTSCENE_DURATION } from '../dist/flow.js';
+import { CUTSCENE_DURATION, EASTER_EGG_DURATION } from '../dist/flow.js';
 
 const html = readFileSync(new URL('../dist/index.html', import.meta.url), 'utf8');
 let run = 0;
@@ -192,7 +192,7 @@ test('blank ballot can be selected without search, restored with Back, and retur
   choose('[name="authority"]');
   click('next');
   assert.equal($('input[type="search"]'), null);
-  assert.equal(document.querySelectorAll('[name="party"]').length, 39);
+  assert.equal(document.querySelectorAll('[name="party"]').length, 40);
   assert.equal($('#blank-ballot-note').hidden, true);
   choose('[name="party"][value="blank"]');
   assert.equal($('#blank-ballot-note').hidden, false);
@@ -213,6 +213,48 @@ test('blank ballot can be selected without search, restored with Back, and retur
   assert.ok($('.blank-note').textContent.includes('פסול'));
   assert.equal($('.result-ballot strong'), null);
   assert.equal($('.result-ballot').textContent.includes('blank'), false);
+});
+
+test('fictional ballot reveals the joke only after continuing, then returns to usable choices', async t => {
+  const { $, click, choose } = await setup(t);
+  click('start');
+  choose('[name="authority"]');
+  click('next');
+  const fictional = $('[name="party"][value="קקה"]');
+  assert.ok(fictional);
+  choose('[name="party"][value="קקה"]');
+  assert.ok($('.party-grid'));
+  click('next');
+  assert.equal($('h2').textContent, 'הלכת על קקה.');
+  assert.equal($('.description').textContent, 'אין באמת מפלגה כזאת.');
+  assert.equal($('.result-ballot'), null);
+  t.mock.timers.tick(EASTER_EGG_DURATION - 1);
+  assert.equal($('.party-grid'), null);
+  t.mock.timers.tick(1);
+  assert.ok($('.party-grid'));
+  assert.equal($('[name="party"]:checked'), null);
+  assert.equal($('[data-action="next"]').disabled, true);
+  choose('[name="party"][value="מחל"]');
+  click('next');
+  assert.equal($('h2').textContent, 'האם אתה רובוט?');
+});
+
+test('browser Back cancels the fictional ballot scene and Forward can replay it', async t => {
+  const { $, click, choose, traverse } = await setup(t);
+  click('start');
+  choose('[name="authority"]');
+  click('next');
+  choose('[name="party"][value="קקה"]');
+  click('next');
+  await traverse('back');
+  assert.equal($('[name="party"]:checked').value, 'קקה');
+  t.mock.timers.tick(EASTER_EGG_DURATION);
+  assert.equal($('[name="party"]:checked').value, 'קקה');
+  await traverse('forward');
+  assert.equal($('h2').textContent, 'הלכת על קקה.');
+  t.mock.timers.tick(EASTER_EGG_DURATION);
+  assert.ok($('.party-grid'));
+  assert.equal($('[name="party"]:checked'), null);
 });
 
 test('browser history restores party choices and crosses question boundaries', async t => {

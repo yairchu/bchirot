@@ -19,5 +19,9 @@ export const PARTIES = [
 
 // A questionnaire answer, not a party or an official ballot letter.
 export const BLANK_BALLOT = ['blank', 'פתק לבן'];
-export const BALLOT_CHOICES = [...PARTIES, BLANK_BALLOT];
+export const FAKE_BALLOT = ['קקה', 'קקה'];
+export const BALLOT_CHOICES = [
+  ...PARTIES.flatMap(party => party[0] === 'קה' ? [party, FAKE_BALLOT] : [party]),
+  BLANK_BALLOT,
+];
 export const BLANK_BALLOT_SOURCE = 'https://www.gov.il/he/departments/topics/faq-26';
