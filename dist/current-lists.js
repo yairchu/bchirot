@@ -40,8 +40,8 @@ export function mapHistoricalScores(historicalScores) {
   }).sort((a, b) => b.contributions.length - a.contributions.length || b.points - a.points || a.name.localeCompare(b.name, 'he'));
 }
 
-export function scoreCurrentReligion(bridgeAnswer, weekendAnswer) {
-  return mapHistoricalScores(scoreReligion(bridgeAnswer, weekendAnswer));
+export function scoreCurrentReligion(bridgeAnswer, weekendAnswer, emergencyAnswer = null) {
+  return mapHistoricalScores(scoreReligion(bridgeAnswer, weekendAnswer, emergencyAnswer));
 }
 
 export function unscoredCurrentLists(scores) {

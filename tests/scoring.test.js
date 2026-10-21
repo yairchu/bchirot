@@ -1,6 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { BRIDGE_POSITIONS, WEEKEND_POSITIONS, scoreBridge, scoreWeekend, scoreReligion } from '../dist/scoring.js';
+import { BRIDGE_POSITIONS, WEEKEND_POSITIONS, scoreBridge, scoreWeekend, scoreEmergency, scoreReligion } from '../dist/scoring.js';
+
+test('wartime transit affects only Likud by one point, with no invented opposition scores', () => {
+  const critical = scoreEmergency('continue');
+  const supportive = scoreEmergency('on-demand');
+  assert.deepEqual(critical.map(party => [party.id, party.points]), [['likud', -1]]);
+  assert.deepEqual(supportive.map(party => [party.id, party.points]), [['likud', 1]]);
+  assert.equal(critical[0].basis, 'responsibility');
+  assert.deepEqual(scoreEmergency(null), []);
+  assert.deepEqual(scoreEmergency('unknown'), []);
+  assert.deepEqual(scoreReligion(null, null, null), []);
+});
 
 test('weekdays gives strongest alignment to explicit opponents and less to coalition responsibility', () => {
   const results = scoreBridge('weekdays');

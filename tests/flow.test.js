@@ -8,10 +8,11 @@ test('no gets the confirmation scene on all devices; yes gets the acknowledgemen
   assert.equal(afterRobot('yes'), 'robot-thanks');
 });
 
-test('the counter uses four authority questions and three religion/transport questions', () => {
+test('the counter uses four authority questions and four religion/transport questions', () => {
   assert.deepEqual(progress('topics', true), { current: 1, total: null });
-  assert.deepEqual(progress('bridge'), { current: 2, total: 3 });
-  assert.deepEqual(progress('weekend'), { current: 3, total: 3 });
+  assert.deepEqual(progress('bridge'), { current: 2, total: 4 });
+  assert.deepEqual(progress('weekend'), { current: 3, total: 4 });
+  assert.deepEqual(progress('emergency'), { current: 4, total: 4 });
   assert.deepEqual(progress('party', true), { current: 2, total: 4 });
   assert.deepEqual(progress('robot', false), { current: 3, total: 4 });
   assert.deepEqual(progress('sure', true), { current: 4, total: 4 });

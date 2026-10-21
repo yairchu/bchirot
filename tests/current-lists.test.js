@@ -4,6 +4,23 @@ import { PARTIES, PARTY_NOTICES } from '../dist/parties.js';
 import { scoreReligion } from '../dist/scoring.js';
 import { CURRENT_LIST_MAPPINGS, mapHistoricalScores, scoreCurrentReligion, unscoredCurrentLists } from '../dist/current-lists.js';
 
+test('ministerial responsibility is preserved once through current-list mapping', () => {
+  const [only] = scoreCurrentReligion(null, null, 'continue');
+  assert.equal(only.id, 'likud');
+  assert.equal(only.points, -1);
+  assert.equal(only.contributions.length, 1);
+  assert.equal(only.contributions[0].evidence.length, 1);
+  const before = scoreCurrentReligion('shabbat', 'expand');
+  const after = scoreCurrentReligion('shabbat', 'expand', 'continue');
+  for (const party of after) {
+    const previous = before.find(item => item.id === party.id);
+    assert.equal(party.points, previous.points - (party.id === 'likud' ? 1 : 0));
+  }
+  const likud = after.find(party => party.id === 'likud');
+  assert.equal(likud.points, -2);
+  assert.equal(likud.contributions.length, 2);
+});
+
 test('mapped results use unique present ballots and exclude old standalone parties', () => {
   const results = scoreCurrentReligion('shabbat', 'expand');
   assert.equal(results.length, 6);

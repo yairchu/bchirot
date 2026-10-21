@@ -23,6 +23,7 @@ export const BASIS_LABELS = {
   direct: 'עמדה מתועדת',
   mixed: 'התנהלות מעורבת',
   coalition: 'הערכת אחריות קואליציונית',
+  responsibility: 'הערכת אחריות מיניסטריאלית — משקל 1',
 };
 
 export function scoreBridge(answer) {
@@ -52,9 +53,20 @@ export function scoreWeekend(answer) {
     .sort((a, b) => b.points - a.points || a.name.localeCompare(b.name, 'he'));
 }
 
-export function scoreReligion(bridgeAnswer, weekendAnswer) {
+export function scoreEmergency(answer) {
+  if (!['continue', 'on-demand'].includes(answer)) return [];
+  return [{
+    id: 'likud', name: 'הליכוד', points: answer === 'on-demand' ? 1 : -1, basis: 'responsibility',
+    reason: 'משרד התחבורה בראשות מירי רגב מהליכוד הפסיק בנובמבר 2023 את מתכונת החירום בשבת, לאחר בדיקת הביקוש והצורך הביטחוני, והתחייב לחידושה לפי צורך חיוני. בג״ץ לא מצא עילה להתערבות. השיוך לליכוד הוא הערכת אחריות לשרת התחבורה, ולא קביעה על מניע דתי או על התנהלות מפלגות אחרות.',
+    source: 'https://www.gov.il/BlobFolder/news/news-28-11/he/23082230.Y05.pdf',
+    followupSource: 'https://img.haarets.co.il/bs/0000018c-11c0-d65f-a7dd-f1d7cc590000/2d/a3/1d17d3c7472693b9e5df0db8a30f/transportation.pdf',
+    followupLabel: 'עותק נוסף של פסק הדין',
+  }];
+}
+
+export function scoreReligion(bridgeAnswer, weekendAnswer, emergencyAnswer = null) {
   const totals = new Map();
-  for (const [question, scores] of [['גשר יהודית', scoreBridge(bridgeAnswer)], ['נעים בסופ״ש', scoreWeekend(weekendAnswer)]]) {
+  for (const [question, scores] of [['גשר יהודית', scoreBridge(bridgeAnswer)], ['נעים בסופ״ש', scoreWeekend(weekendAnswer)], ['תחבורה בזמן מלחמה', scoreEmergency(emergencyAnswer)]]) {
     for (const party of scores) {
       if (!totals.has(party.id)) totals.set(party.id, { id: party.id, name: party.name, points: 0, contributions: [] });
       const total = totals.get(party.id);

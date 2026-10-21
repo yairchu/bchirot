@@ -5,11 +5,11 @@
 - [ ] Agree on the actual choices for “מה הכי חשוב לך?”. The invented sample topics have been removed.
 - [x] Support multiple selection; selecting authority disables the other choices, and deselecting authority restores earlier choices. The first named topic is “דת ותחבורה”; one TODO choice remains.
 - [ ] Write follow-up questions for each topic, including their branching rules and question counts.
-- [x] Extend religion/transport to two sourced dilemmas, with skipping and combined scores. Unwritten topics still stop at an explicit TODO.
+- [x] Extend religion/transport to three sourced dilemmas, with skipping and combined scores. Unwritten topics still stop at an explicit TODO.
 - [x] Add a first sourced, explained scoring model for historical parties in the Yehudit Bridge case. See [the scoring model](docs/bridge-scoring.md).
 - [x] Map sourced historical evidence to current electoral lists, average predecessors per question, and disclose partial membership and unmapped history. See [current-list mapping](docs/current-lists.md).
 - [ ] Expand evidence to unscored current lists and their current positions, and combine scores across further dilemmas.
-- [x] Allow continuing without topic selections; show a brief joke, then enter the two dilemmas without inventing selections.
+- [x] Allow continuing without topic selections; show a brief joke, then enter the three dilemmas without inventing selections.
 - [x] Exclude skips from scoring, show per-party evidence coverage, and show no ranking when all dilemmas are skipped.
 - [ ] Develop humor and useful insights for the other branches together.
 
@@ -21,9 +21,9 @@
 - [ ] Write the next questions and answer choices together, before implementing them.
 - [ ] Develop the humor and useful context for each answer.
 - [x] Add the Na'im Busofash dilemma with expansion, ban and current-arrangement choices. See [source notes](docs/naim-busofash.md).
-- [x] Finish the current religion/transport route at question 3 of 3 with sourced party scores.
+- [x] Add the wartime transit dilemma as question 4 of 4, with sourced background and one-point ministerial responsibility scoring for Likud only. See [source notes](docs/emergency-transit.md).
 
-The welcome line is “השאלון שמבוסס על דילמות פוליטיות אמיתיות שקרו”. Two sourced dilemmas and combined party scoring work; current-list mapping is implemented; further topics and broader source coverage remain TODOs.
+The welcome line is “השאלון שמבוסס על דילמות פוליטיות אמיתיות שקרו”. Three sourced dilemmas and combined party scoring work; current-list mapping is implemented; further topics and broader source coverage remain TODOs.
 
 ## Ballot data
 

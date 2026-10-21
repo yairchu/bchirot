@@ -14,8 +14,9 @@ export function afterRobot(answer) {
 }
 
 export function progress(step) {
-  if (step === 'bridge') return { current: 2, total: 3 };
-  if (step === 'weekend') return { current: 3, total: 3 };
+  if (step === 'bridge') return { current: 2, total: 4 };
+  if (step === 'weekend') return { current: 3, total: 4 };
+  if (step === 'emergency') return { current: 4, total: 4 };
   const total = 4;
   const current = { topics: 1, party: 2, robot: 3, sure: 4 }[step];
   return { current, total: step === 'topics' ? null : total };

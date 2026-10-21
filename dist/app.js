@@ -1,13 +1,13 @@
 import { CUTSCENE_DURATION, MOBILE_CONFIRM_DELAY, EASTER_EGG_DURATION, NO_TOPICS_DURATION, TOPIC_CHOICES, afterRobot, progress } from './flow.js';
 import { BALLOT_CHOICES, BLANK_BALLOT, BLANK_BALLOT_SOURCE, FAKE_BALLOT, PARTY_NOTICES } from './parties.js';
-import { BRIDGE_DILEMMA, WEEKEND_DILEMMA } from './dilemmas.js';
+import { BRIDGE_DILEMMA, WEEKEND_DILEMMA, EMERGENCY_DILEMMA } from './dilemmas.js';
 import { BASIS_LABELS } from './scoring.js';
 import { scoreCurrentReligion, unscoredCurrentLists, UNMAPPED_HISTORY, MAPPING_CHECKED_ON } from './current-lists.js';
 
 const app = document.querySelector('#app');
 const main = document.querySelector('#main');
 const mouseAvailable = matchMedia('(hover: hover) and (pointer: fine)').matches;
-const state = { step: 'welcome', topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null };
+const state = { step: 'welcome', topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null, emergencyAnswer: null };
 let timers = [];
 const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 
@@ -40,7 +40,7 @@ function back() {
 
 function restart(step = 'topics') {
   clearTimers();
-  Object.assign(state, { step, topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null });
+  Object.assign(state, { step, topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null, emergencyAnswer: null });
   saveHistory();
   render();
   focusQuestion();
@@ -157,7 +157,11 @@ function bridgeView() {
 }
 
 function weekendView() {
-  return dilemmaView(WEEKEND_DILEMMA, 'weekendAnswer', 'weekend-answer', 'נעים בסופ״ש: הרקע והאפשרויות', 'לתוצאות');
+  return dilemmaView(WEEKEND_DILEMMA, 'weekendAnswer', 'weekend-answer', 'נעים בסופ״ש: הרקע והאפשרויות', 'ממשיכים');
+}
+
+function emergencyView() {
+  return dilemmaView(EMERGENCY_DILEMMA, 'emergencyAnswer', 'emergency-answer', 'תחבורה בשבת במלחמת חרבות ברזל', 'לתוצאות');
 }
 
 function dilemmaView(dilemma, answerKey, inputName, backgroundTitle, nextLabel) {
@@ -176,21 +180,21 @@ function dilemmaView(dilemma, answerKey, inputName, backgroundTitle, nextLabel) 
 }
 
 function currentContributionView(item) {
-  return `<p><b>${escape(item.question)}: ${item.points > 0 ? '+' : ''}${item.points} נקודות.</b></p>${item.evidence.map(evidence => `<p><strong>${escape(evidence.name)} במקור ההיסטורי:</strong> ${escape(evidence.reason)}</p><p>${BASIS_LABELS[evidence.basis]} · <a href="${evidence.source}" target="_blank" rel="noopener noreferrer">מקור</a>${evidence.followupSource ? ` · <a href="${evidence.followupSource}" target="_blank" rel="noopener noreferrer">חידוש העבודות</a>` : ''}</p>`).join('')}`;
+  return `<p><b>${escape(item.question)}: ${item.points > 0 ? '+' : ''}${item.points} נקודות.</b></p>${item.evidence.map(evidence => `<p><strong>${escape(evidence.name)} במקור ההיסטורי:</strong> ${escape(evidence.reason)}</p><p>${BASIS_LABELS[evidence.basis]} · <a href="${evidence.source}" target="_blank" rel="noopener noreferrer">מקור</a>${evidence.followupSource ? ` · <a href="${evidence.followupSource}" target="_blank" rel="noopener noreferrer">${escape(evidence.followupLabel || 'חידוש העבודות')}</a>` : ''}</p>`).join('')}`;
 }
 
 function bridgeResultView() {
-  const scores = scoreCurrentReligion(state.bridgeAnswer, state.weekendAnswer);
-  const answered = Number(Boolean(state.bridgeAnswer)) + Number(Boolean(state.weekendAnswer));
-  if (!answered) return frame({ title: 'עוד אין לנו מספיק חומר.', body: '<p class="description">דילגת על שתי הדילמות. נשאיר את האפשרויות פתוחות.</p><button class="primary" data-action="review-questions">בחזרה לשאלות <span aria-hidden="true">↻</span></button><button class="text-button" data-action="restart">להתחיל מחדש</button>' });
+  const scores = scoreCurrentReligion(state.bridgeAnswer, state.weekendAnswer, state.emergencyAnswer);
+  const answered = Number(Boolean(state.bridgeAnswer)) + Number(Boolean(state.weekendAnswer)) + Number(Boolean(state.emergencyAnswer));
+  if (!answered) return frame({ title: 'עוד אין לנו מספיק חומר.', body: '<p class="description">דילגת על כל הדילמות. נשאיר את האפשרויות פתוחות.</p><button class="primary" data-action="review-questions">בחזרה לשאלות <span aria-hidden="true">↻</span></button><button class="text-button" data-action="restart">להתחיל מחדש</button>' });
   return frame({ title: 'איפה התשובה שלך פוגשת את המפלגות?', body: `
-    <p class="description">ענית על ${answered} מתוך 2 דילמות. דילוגים לא נכללים בניקוד.</p>
+    <p class="description">ענית על ${answered} מתוך 3 דילמות. דילוגים לא נכללים בניקוד.</p>
     <p class="score-context">הרשימות מוצגות בשמותיהן ובאותיות הפתק הנוכחיות, לפי מיפוי ההיסטוריה המפלגתית. הניקוד מבוסס על התנהלות בעבר, ולא בהכרח על עמדת הרשימה כיום. תחילה מוצגות מפלגות שיש להן מקורות לכל התשובות שלך, ואחריהן אלה עם מידע חלקי.</p>
     <table class="score-table"><caption class="sr-only">ניקוד המפלגות לפי התשובות בדת ותחבורה</caption>
       <thead><tr><th scope="col">מפלגה</th><th scope="col">נקודות</th></tr></thead>
       <tbody>${scores.map(party => `<tr data-party-id="${party.id}"><th scope="row"><strong>${escape(party.name)} · ${escape(party.letters)}</strong><small class="score-coverage">מקורות ל־${party.contributions.length} מתוך ${answered} תשובות</small><details><summary>למה?</summary><p>${escape(party.note)} <a href="${party.source}" target="_blank" rel="noopener noreferrer">מקור המיפוי</a>.</p>${party.contributions.map(currentContributionView).join('')}</details></th><td><bdi class="score ${party.points > 0 ? 'score-positive' : party.points < 0 ? 'score-negative' : ''}">${party.points > 0 ? '+' : party.points < 0 ? '−' : ''}${Math.abs(party.points)}</bdi></td></tr>`).join('')}</tbody>
     </table>
-    <details class="score-method"><summary>איך הניקוד עובד?</summary><p>בשאלת הגשר: משקל 2 לעמדה מתועדת ומשקל 1 להתנהלות מעורבת או להערכת אחריות קואליציונית. בנעים בסופ״ש: ציר של איסור, מצב קיים והרחבה. עמדה באותה קטגוריה מקבלת 2, קטגוריה סמוכה 0, והקצה ההפוך מינוס 2. הקטגוריות והמשקלים הם פרשנות במודל.</p><p>אפס הוא ציון של מרחק בין החלופות במודל, לא קביעה שהמפלגה נייטרלית. דילוג או היעדר מקור אינם מוסיפים ציון כלל. ההשוואה בנעים בסופ״ש עוסקת בכיוון המדיניות, ולא בהסכמה נפרדת לכל פרט כמו תעריף או סוג רכבת. באיחוד רשימות מחושב ממוצע הציונים ההיסטוריים לכל שאלה, כדי לא להכפיל את משקלה. המקורות והשיוך ההיסטורי מפורטים תחת ״למה?״.</p></details>
+    <details class="score-method"><summary>איך הניקוד עובד?</summary><p>בשאלת הגשר: משקל 2 לעמדה מתועדת ומשקל 1 להתנהלות מעורבת או להערכת אחריות קואליציונית. בנעים בסופ״ש: ציר של איסור, מצב קיים והרחבה. עמדה באותה קטגוריה מקבלת 2, קטגוריה סמוכה 0, והקצה ההפוך מינוס 2. בשאלת התחבורה במלחמה ניתנת לליכוד בלבד נקודה אחת, לחיוב או לשלילה, לפי החלטת משרד התחבורה בראשות מירי רגב. זהו שיוך של אחריות מיניסטריאלית; אין כאן הערכה איך מפלגות אחרות היו פועלות. הקטגוריות והמשקלים הם פרשנות במודל.</p><p>אפס הוא ציון של מרחק בין החלופות במודל, לא קביעה שהמפלגה נייטרלית. דילוג או היעדר מקור אינם מוסיפים ציון כלל. ההשוואה בנעים בסופ״ש עוסקת בכיוון המדיניות, ולא בהסכמה נפרדת לכל פרט כמו תעריף או סוג רכבת. באיחוד רשימות מחושב ממוצע הציונים ההיסטוריים לכל שאלה, כדי לא להכפיל את משקלה. המקורות והשיוך ההיסטורי מפורטים תחת ״למה?״.</p></details>
     <details class="score-method"><summary>מי עדיין לא נכלל בהשוואה?</summary><p>לרשימות הבאות אין כרגע ניקוד לתשובות שלך; היעדר מידע אינו עמדה נייטרלית:</p><p>${unscoredCurrentLists(scores).map(([letters, name]) => `${escape(name)} (${escape(letters)})`).join(' · ')}</p>${UNMAPPED_HISTORY.map(item => `<p>${escape(item.reason)}</p>`).join('')}<p>המיפוי נבדק ב־${MAPPING_CHECKED_ON}. רשימות שהודיעו על פרישה אינן נכללות בתוצאות.</p></details>
     ${state.topics.includes('todo-2') ? '<p class="todo"><span class="todo-label">TODO</span> · הנושא הנוסף שבחרת עדיין לא נכלל בחישוב.</p>' : ''}
     <div class="actions"><button class="primary" data-action="review-questions">לעבור שוב על השאלות <span aria-hidden="true">↻</span></button><button class="back" data-action="back">חזרה</button></div><button class="text-button" data-action="restart">להתחיל מחדש</button>` }, { stage: 'דת ותחבורה · תוצאות' });
@@ -203,7 +207,7 @@ function independentView() {
 }
 
 function render() {
-  const views = { welcome: welcomeView, topics: topicsView, 'no-topics': noTopicsView, bridge: bridgeView, weekend: weekendView, 'bridge-result': bridgeResultView, party: partyView, 'fake-ballot': fakeBallotView, robot: robotView, 'robot-thanks': robotThanksView, sure: sureView, loading: loadingView, result: resultView, independent: independentView };
+  const views = { welcome: welcomeView, topics: topicsView, 'no-topics': noTopicsView, bridge: bridgeView, weekend: weekendView, emergency: emergencyView, 'bridge-result': bridgeResultView, party: partyView, 'fake-ballot': fakeBallotView, robot: robotView, 'robot-thanks': robotThanksView, sure: sureView, loading: loadingView, result: resultView, independent: independentView };
   app.innerHTML = views[state.step]();
   if (state.step === 'no-topics') timers.push(setTimeout(() => go('bridge', true), NO_TOPICS_DURATION));
   if (state.step === 'fake-ballot') {
@@ -243,11 +247,11 @@ app.addEventListener('change', event => {
     document.querySelector('[data-action="next"]').disabled = false;
     document.querySelector('#party-selection').textContent = `הפתק שבחרת: ${state.party[1]}${state.party[0] === BLANK_BALLOT[0] ? '' : ` (${state.party[0]})`}`;
     document.querySelector('#blank-ballot-note').hidden = state.party[0] !== BLANK_BALLOT[0];
-  } else if (['bridge-answer', 'weekend-answer'].includes(input.name)) {
-    state[input.name === 'bridge-answer' ? 'bridgeAnswer' : 'weekendAnswer'] = input.value;
+  } else if (['bridge-answer', 'weekend-answer', 'emergency-answer'].includes(input.name)) {
+    state[{ 'bridge-answer': 'bridgeAnswer', 'weekend-answer': 'weekendAnswer', 'emergency-answer': 'emergencyAnswer' }[input.name]] = input.value;
     document.querySelector('[data-action="next"]').disabled = false;
   }
-  if (['authority', 'topic', 'party', 'bridge-answer', 'weekend-answer'].includes(input.name)) saveHistory();
+  if (['authority', 'topic', 'party', 'bridge-answer', 'weekend-answer', 'emergency-answer'].includes(input.name)) saveHistory();
 });
 
 app.addEventListener('click', event => {
@@ -258,10 +262,11 @@ app.addEventListener('click', event => {
   else if (action === 'independent') restart();
   else if (action === 'topics') restart('topics');
   else if (action === 'review-questions') go('bridge');
-  else if (action === 'skip' && ['bridge', 'weekend'].includes(state.step)) {
-    const bridge = state.step === 'bridge';
-    state[bridge ? 'bridgeAnswer' : 'weekendAnswer'] = null;
-    go(bridge ? 'weekend' : 'bridge-result');
+  else if (action === 'skip' && ['bridge', 'weekend', 'emergency'].includes(state.step)) {
+    const steps = { bridge: ['bridgeAnswer', 'weekend'], weekend: ['weekendAnswer', 'emergency'], emergency: ['emergencyAnswer', 'bridge-result'] };
+    const [answer, next] = steps[state.step];
+    state[answer] = null;
+    go(next);
   }
   else if (action === 'update-recommendation') {
     state.party = null;
@@ -273,7 +278,8 @@ app.addEventListener('click', event => {
     if (state.step === 'topics') go(state.authority ? 'party' : !state.topics.length ? 'no-topics' : state.topics.includes('religion-transport') ? 'bridge' : 'independent');
     else if (state.step === 'party' && state.party) go(state.party[0] === FAKE_BALLOT[0] ? 'fake-ballot' : 'robot');
     else if (state.step === 'bridge' && state.bridgeAnswer) go('weekend');
-    else if (state.step === 'weekend' && state.weekendAnswer) go('bridge-result');
+    else if (state.step === 'weekend' && state.weekendAnswer) go('emergency');
+    else if (state.step === 'emergency' && state.emergencyAnswer) go('bridge-result');
   } else if (action === 'robot-no' || action === 'robot-yes') {
     state.robot = action === 'robot-no' ? 'no' : 'yes';
     go(afterRobot(state.robot));
