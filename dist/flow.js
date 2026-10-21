@@ -1,6 +1,7 @@
 export const CUTSCENE_DURATION = 1000;
 export const MOBILE_CONFIRM_DELAY = 700;
 export const EASTER_EGG_DURATION = 7000;
+export const NO_TOPICS_DURATION = 1800;
 
 export const TOPIC_CHOICES = [
   { id: 'religion-transport', label: 'דת ותחבורה' },
@@ -13,7 +14,8 @@ export function afterRobot(answer) {
 }
 
 export function progress(step) {
-  if (step === 'bridge') return { current: 2, total: 2 };
+  if (step === 'bridge') return { current: 2, total: 3 };
+  if (step === 'weekend') return { current: 3, total: 3 };
   const total = 4;
   const current = { topics: 1, party: 2, robot: 3, sure: 4 }[step];
   return { current, total: step === 'topics' ? null : total };

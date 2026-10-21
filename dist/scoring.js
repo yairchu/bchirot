@@ -31,3 +31,38 @@ export function scoreBridge(answer) {
   return BRIDGE_POSITIONS.map(party => ({ ...party, points: direction * party.position }))
     .sort((a, b) => b.points - a.points || a.name.localeCompare(b.name, 'he'));
 }
+
+// A separate policy axis: ban = 0, keep today's municipal arrangement = 1,
+// expand regulated Saturday transit = 2. Distance gives +2 / 0 / -2.
+// These are editorial policy categories, not claims that every detail (fares,
+// rail, local routing) was individually endorsed. Unresearched parties are omitted.
+const transportPlatformSource = 'https://www.ynet.co.il/articles/0,7340,L-5490792,00.html';
+export const WEEKEND_POSITIONS = [
+  { id: 'shas', name: 'ש״ס', position: 0, basis: 'direct', reason: 'חברי כנסת מש״ס הציעו להרחיב את הסמכות לאסור תחבורה בשבת. המודל מסווג זאת לכיוון איסור; ההצעה אינה חוק שהתקבל.', source: 'https://www.zman.co.il/366642/' },
+  { id: 'utj', name: 'יהדות התורה', position: 0, basis: 'direct', reason: 'במענה לשאלון ב־2019 המפלגה הודיעה שתיאבק ביוזמות תחבורה ציבורית בשבת.', source: transportPlatformSource },
+  { id: 'labor', name: 'העבודה / המחנה הציוני', position: 2, basis: 'direct', reason: 'ב־2019 העבודה התחייבה לתחבורה ציבורית בשבת, לרבות רכבת, במתכונת מצומצמת ומוסדרת.', source: transportPlatformSource },
+  { id: 'meretz', name: 'מרצ', position: 2, basis: 'direct', reason: 'ב־2019 מרצ תמכה בתחבורה ציבורית בכל ימות השבוע. הניקוד מתייחס להרחבת השירות, ולא להתחייבות נפרדת לכל פרט בחלופה.', source: transportPlatformSource },
+  { id: 'yisrael-beitenu', name: 'ישראל ביתנו', position: 2, basis: 'direct', reason: 'ב־2019 ליברמן הציב תחבורה ציבורית בשבת בין דרישותיו לממשלה. המודל מסווג זאת לכיוון הרחבה, בלי להסיק הסכמה לכל פרט בחלופה.', source: 'https://shiftshatil.org.il/publictransport/' },
+];
+
+export function scoreWeekend(answer) {
+  const positions = { ban: 0, keep: 1, expand: 2 };
+  if (!Object.hasOwn(positions, answer)) return [];
+  return WEEKEND_POSITIONS.map(party => ({ ...party, points: 2 - 2 * Math.abs(positions[answer] - party.position) }))
+    .sort((a, b) => b.points - a.points || a.name.localeCompare(b.name, 'he'));
+}
+
+export function scoreReligion(bridgeAnswer, weekendAnswer) {
+  const totals = new Map();
+  for (const [question, scores] of [['גשר יהודית', scoreBridge(bridgeAnswer)], ['נעים בסופ״ש', scoreWeekend(weekendAnswer)]]) {
+    for (const party of scores) {
+      if (!totals.has(party.id)) totals.set(party.id, { id: party.id, name: party.name, points: 0, contributions: [] });
+      const total = totals.get(party.id);
+      total.points += party.points;
+      total.contributions.push({ ...party, question });
+    }
+  }
+  // Do not rank incomplete evidence above complete evidence just because a
+  // missing contribution happens to avoid a negative score.
+  return [...totals.values()].sort((a, b) => b.contributions.length - a.contributions.length || b.points - a.points || a.name.localeCompare(b.name, 'he'));
+}

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
-import { CUTSCENE_DURATION, MOBILE_CONFIRM_DELAY, EASTER_EGG_DURATION } from '../dist/flow.js';
+import { CUTSCENE_DURATION, MOBILE_CONFIRM_DELAY, EASTER_EGG_DURATION, NO_TOPICS_DURATION } from '../dist/flow.js';
 
 const html = readFileSync(new URL('../dist/index.html', import.meta.url), 'utf8');
 let run = 0;
@@ -65,7 +65,7 @@ test('welcome starts the questionnaire; unfinished choices are explicit TODOs', 
   assert.equal(document.querySelector('.choice input').name, 'authority');
   assert.ok($('[value="religion-transport"]').closest('label').textContent.includes('דת ותחבורה'));
   assert.ok($('[value="todo-2"]').closest('label').textContent.includes('TODO'));
-  assert.equal($('[data-action="next"]').disabled, true);
+  assert.equal($('[data-action="next"]').disabled, false);
 });
 
 test('authority disables both topic choices and restores their selections when unchecked', async t => {
@@ -85,7 +85,7 @@ test('authority disables both topic choices and restores their selections when u
   assert.equal(document.querySelectorAll('[name="topic"]:checked').length, 2);
   choose('[value="religion-transport"]', false);
   choose('[value="todo-2"]', false);
-  assert.equal($('[data-action="next"]').disabled, true);
+  assert.equal($('[data-action="next"]').disabled, false);
 });
 
 test('a TODO selection leads to the unfinished branch rather than party results', async t => {
@@ -98,13 +98,95 @@ test('a TODO selection leads to the unfinished branch rather than party results'
   assert.equal($('.result-ballot'), null);
 });
 
+test('continuing without topics plays a short joke without silently selecting a topic', async t => {
+  const { $, click, traverse } = await setup(t);
+  click('start');
+  click('next');
+  assert.equal($('h2').textContent, 'גם לבחור מה חשוב זו החלטה.');
+  t.mock.timers.tick(NO_TOPICS_DURATION);
+  assert.equal($('h2').textContent, 'מתי בונים את הגשר?');
+  assert.deepEqual(window.history.state.bchirot.topics, []);
+  assert.equal(window.history.state.bchirot.authority, false);
+  await traverse('back');
+  assert.equal($('h2').textContent, 'מה הכי חשוב לך?');
+  assert.equal(document.querySelectorAll('input:checked').length, 0);
+  click('next');
+  await traverse('back');
+  t.mock.timers.tick(NO_TOPICS_DURATION * 2);
+  assert.equal($('h2').textContent, 'מה הכי חשוב לך?');
+});
+
+test('weekend transit offers all three policies and scores an answer after skipping the bridge', async t => {
+  const { $, click, choose } = await setup(t);
+  click('start');
+  choose('[value="religion-transport"]');
+  click('next');
+  click('skip');
+  assert.equal($('h2').textContent, 'איך נוסעים בסופ״ש?');
+  assert.equal($('.step-label').textContent, 'שאלה 3 מתוך 3');
+  assert.equal(document.querySelectorAll('[name="weekend-answer"]').length, 3);
+  assert.equal($('[data-action="next"]').disabled, true);
+  $('.dilemma-details summary').click();
+  assert.ok($('.dilemma-background').textContent.includes('רישיון'));
+  choose('[name="weekend-answer"][value="expand"]');
+  click('next');
+  assert.ok($('.description').textContent.includes('1 מתוך 2'));
+  assert.equal($('[data-party-id="meretz"] .score').textContent, '+2');
+  assert.equal($('[data-party-id="shas"] .score').textContent, '−2');
+  assert.equal($('[data-party-id="likud"]'), null);
+  assert.ok($('[data-party-id="meretz"] details').textContent.includes('נעים בסופ״ש'));
+  assert.equal($('[data-party-id="meretz"] details').textContent.includes('גשר יהודית'), false);
+});
+
+test('skipping a selected answer clears its points while browser Back restores the earlier selection', async t => {
+  const { $, click, choose, traverse } = await setup(t);
+  click('start');
+  choose('[value="religion-transport"]');
+  click('next');
+  choose('[name="bridge-answer"][value="shabbat"]');
+  click('next');
+  choose('[name="weekend-answer"][value="expand"]');
+  click('skip');
+  assert.equal($('[data-party-id="meretz"] .score').textContent, '+2');
+  assert.equal(window.history.state.bchirot.weekendAnswer, null);
+  await traverse('back');
+  assert.equal($('[name="weekend-answer"]:checked').value, 'expand');
+  click('next');
+  assert.equal($('[data-party-id="meretz"] .score').textContent, '+4');
+  assert.ok($('[data-party-id="meretz"] .score-coverage').textContent.includes('2 מתוך 2'));
+  click('restart');
+  choose('[value="religion-transport"]');
+  click('next');
+  assert.equal($('[name="bridge-answer"]:checked'), null);
+  click('skip');
+  assert.equal($('[name="weekend-answer"]:checked'), null);
+});
+
+test('skipping both dilemmas gives no ranking and explicit status quo remains an answer', async t => {
+  const { $, click, choose } = await setup(t);
+  click('start');
+  choose('[value="religion-transport"]');
+  click('next');
+  click('skip');
+  click('skip');
+  assert.equal($('h2').textContent, 'עוד אין לנו מספיק חומר.');
+  assert.equal($('.score-table'), null);
+  click('review-questions');
+  click('skip');
+  choose('[name="weekend-answer"][value="keep"]');
+  click('next');
+  assert.ok($('.description').textContent.includes('1 מתוך 2'));
+  assert.ok($('.score-table'));
+  assert.ok([...document.querySelectorAll('.score')].every(score => score.textContent === '0'));
+});
+
 test('religion and transport opens the bridge dilemma with optional background', async t => {
   const { $, click, choose } = await setup(t);
   click('start');
   choose('[value="religion-transport"]');
   click('next');
   assert.equal($('h2').textContent, 'מתי בונים את הגשר?');
-  assert.equal($('.step-label').textContent, 'שאלה 2 מתוך 2');
+  assert.equal($('.step-label').textContent, 'שאלה 2 מתוך 3');
   assert.equal(document.querySelectorAll('[name="bridge-answer"]').length, 2);
   assert.equal($('[data-action="next"]').disabled, true);
   assert.equal($('.dilemma-details').open, false);
@@ -126,10 +208,13 @@ test('bridge answers are mutually exclusive, undoable, and restored when returni
   choose('[name="bridge-answer"][value="weekdays"]');
   assert.equal(document.querySelectorAll('[name="bridge-answer"]:checked').length, 1);
   click('next');
+  click('skip'); // Only the bridge contributes to this result.
   assert.ok($('.score-table'));
   assert.ok($('.todo').textContent.includes('הנושא הנוסף שבחרת עדיין לא נכלל'));
   assert.equal($('.result-ballot'), null);
 
+  await traverse('back');
+  assert.equal($('[name="weekend-answer"]:checked'), null);
   await traverse('back');
   assert.equal($('[name="bridge-answer"]:checked').value, 'weekdays');
   await traverse('back');
@@ -140,6 +225,7 @@ test('bridge answers are mutually exclusive, undoable, and restored when returni
   await traverse('forward');
   assert.equal($('[name="bridge-answer"]:checked').value, 'shabbat');
   click('next');
+  click('skip');
   click('restart');
   choose('[value="religion-transport"]');
   click('next');
@@ -174,13 +260,16 @@ test('changing a bridge answer through browser history recalculates the visible 
   click('next');
   choose('[name="bridge-answer"][value="weekdays"]');
   click('next');
+  click('skip');
   assert.equal($('[data-party-id="shas"] .score').textContent, '+2');
   assert.equal($('[data-party-id="likud"] .score').textContent, '+1');
   assert.equal($('[data-party-id="meretz"] .score').textContent, '−2');
-  assert.ok($('.score-context').textContent.includes('2018–2019'));
+  assert.ok($('.score-context').textContent.includes('מקורות מתקופות שונות'));
+  await traverse('back');
   await traverse('back');
   choose('[name="bridge-answer"][value="shabbat"]');
   click('next');
+  click('skip');
   assert.equal($('[data-party-id="shas"] .score').textContent, '−2');
   assert.equal($('[data-party-id="meretz"] .score').textContent, '+2');
   assert.equal($('.todo'), null);

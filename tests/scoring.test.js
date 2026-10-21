@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { BRIDGE_POSITIONS, scoreBridge } from '../dist/scoring.js';
+import { BRIDGE_POSITIONS, WEEKEND_POSITIONS, scoreBridge, scoreWeekend, scoreReligion } from '../dist/scoring.js';
 
 test('weekdays gives strongest alignment to explicit opponents and less to coalition responsibility', () => {
   const results = scoreBridge('weekdays');
@@ -14,6 +14,40 @@ test('weekdays gives strongest alignment to explicit opponents and less to coali
   assert.equal(points['yesh-atid'], -2);
   assert.equal(points['yisrael-beitenu'], -2);
   assert.ok(results.every((party, index) => !index || results[index - 1].points >= party.points));
+});
+
+test('weekend policy options use distance between ban, current arrangement, and expansion', () => {
+  const points = answer => Object.fromEntries(scoreWeekend(answer).map(party => [party.id, party.points]));
+  assert.equal(points('expand').meretz, 2);
+  assert.equal(points('expand').shas, -2);
+  assert.equal(points('ban').shas, 2);
+  assert.equal(points('ban').meretz, -2);
+  assert.equal(scoreWeekend('keep').length, WEEKEND_POSITIONS.length);
+  assert.ok(scoreWeekend('keep').every(party => party.points === 0));
+  assert.deepEqual(scoreWeekend(null), []);
+  assert.deepEqual(scoreWeekend('unknown'), []);
+});
+
+test('skipped answers add no contributions and do not invent scores for unresearched parties', () => {
+  assert.deepEqual(scoreReligion(null, null), []);
+  const weekendOnly = scoreReligion(null, 'expand');
+  assert.equal(weekendOnly.length, WEEKEND_POSITIONS.length);
+  assert.ok(weekendOnly.every(party => party.contributions.length === 1));
+  assert.equal(weekendOnly.some(party => party.id === 'likud'), false);
+  const bridgeOnly = scoreReligion('shabbat', null);
+  assert.equal(bridgeOnly.length, BRIDGE_POSITIONS.length);
+  assert.equal(bridgeOnly.find(party => party.id === 'meretz').points, 2);
+});
+
+test('combined results sum both answers and distinguish full from partial evidence', () => {
+  const results = scoreReligion('shabbat', 'expand');
+  assert.equal(results.find(party => party.id === 'meretz').points, 4);
+  assert.equal(results.find(party => party.id === 'shas').points, -4);
+  assert.equal(results.find(party => party.id === 'meretz').contributions.length, 2);
+  assert.equal(results.find(party => party.id === 'likud').contributions.length, 1);
+  const firstPartial = results.findIndex(party => party.contributions.length === 1);
+  assert.ok(results.slice(0, firstPartial).every(party => party.contributions.length === 2));
+  assert.equal(scoreReligion('shabbat', 'ban').find(party => party.id === 'meretz').points, 0);
 });
 
 test('Saturday reverses every score without treating missing parties as neutral', () => {

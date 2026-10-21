@@ -1,12 +1,12 @@
-import { CUTSCENE_DURATION, MOBILE_CONFIRM_DELAY, EASTER_EGG_DURATION, TOPIC_CHOICES, afterRobot, progress } from './flow.js';
+import { CUTSCENE_DURATION, MOBILE_CONFIRM_DELAY, EASTER_EGG_DURATION, NO_TOPICS_DURATION, TOPIC_CHOICES, afterRobot, progress } from './flow.js';
 import { BALLOT_CHOICES, BLANK_BALLOT, BLANK_BALLOT_SOURCE, FAKE_BALLOT, PARTY_NOTICES } from './parties.js';
-import { BRIDGE_DILEMMA } from './dilemmas.js';
-import { BASIS_LABELS, scoreBridge } from './scoring.js';
+import { BRIDGE_DILEMMA, WEEKEND_DILEMMA } from './dilemmas.js';
+import { BASIS_LABELS, scoreReligion } from './scoring.js';
 
 const app = document.querySelector('#app');
 const main = document.querySelector('#main');
 const mouseAvailable = matchMedia('(hover: hover) and (pointer: fine)').matches;
-const state = { step: 'welcome', topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null };
+const state = { step: 'welcome', topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null };
 let timers = [];
 const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 
@@ -39,7 +39,7 @@ function back() {
 
 function restart(step = 'topics') {
   clearTimers();
-  Object.assign(state, { step, topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null });
+  Object.assign(state, { step, topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null });
   saveHistory();
   render();
   focusQuestion();
@@ -69,7 +69,11 @@ function topicsView() {
     <div role="group" aria-label="נושאים לבחירה">
       ${TOPIC_CHOICES.map(({ id, label }) => `<label class="choice"><input type="checkbox" name="topic" value="${id}" ${state.topics.includes(id) ? 'checked' : ''} ${state.authority ? 'disabled' : ''}><span class="choice-copy"><strong><bdi>${escape(label)}</bdi></strong></span></label>`).join('')}
     </div>
-    ${actions('ממשיכים', !state.authority && !state.topics.length)}` });
+    ${actions('ממשיכים')}` });
+}
+
+function noTopicsView() {
+  return frame({ title: 'גם לבחור מה חשוב זו החלטה.', body: '<p class="description">נתחיל מהדילמות. אולי בדרך יתברר.</p>' });
 }
 
 function partyView() {
@@ -148,33 +152,42 @@ function withdrawnResultView(name, notice) {
 }
 
 function bridgeView() {
-  const dilemma = BRIDGE_DILEMMA;
+  return dilemmaView(BRIDGE_DILEMMA, 'bridgeAnswer', 'bridge-answer', 'זה קרה בגשר יהודית', 'ממשיכים');
+}
+
+function weekendView() {
+  return dilemmaView(WEEKEND_DILEMMA, 'weekendAnswer', 'weekend-answer', 'נעים בסופ״ש: הרקע והאפשרויות', 'לתוצאות');
+}
+
+function dilemmaView(dilemma, answerKey, inputName, backgroundTitle, nextLabel) {
   return frame({ title: dilemma.title, body: `
     <p class="description">${escape(dilemma.context)}</p>
-    <div class="dilemma-options" role="radiogroup" aria-label="מתי עדיף לבצע את עבודות הגשר?">
-      ${dilemma.options.map(option => `<label class="choice dilemma-option"><input type="radio" name="bridge-answer" value="${option.id}" ${state.bridgeAnswer === option.id ? 'checked' : ''}><span class="choice-copy"><strong>${escape(option.label)}</strong><small>${escape(option.detail)}</small></span></label>`).join('')}
+    <div class="dilemma-options" role="radiogroup" aria-label="${escape(dilemma.title)}">
+      ${dilemma.options.map(option => `<label class="choice dilemma-option"><input type="radio" name="${inputName}" value="${option.id}" ${state[answerKey] === option.id ? 'checked' : ''}><span class="choice-copy"><strong>${escape(option.label)}</strong><small>${escape(option.detail)}</small></span></label>`).join('')}
     </div>
     <details class="dilemma-details"><summary>לפרטים נוספים</summary>
-      <div class="dilemma-background"><h3>זה קרה בגשר יהודית</h3>
+      <div class="dilemma-background"><h3>${escape(backgroundTitle)}</h3>
         ${dilemma.timeline.map(item => `<p>${escape(item.text)} <a href="${item.url}" target="_blank" rel="noopener noreferrer">${escape(item.source)}</a>.</p>`).join('')}
       </div>
     </details>
-    ${actions('לתוצאות', !state.bridgeAnswer)}` });
+    ${actions(nextLabel, !state[answerKey])}
+    <button class="text-button" data-action="skip">לדלג על השאלה</button>` });
 }
 
 function bridgeResultView() {
-  const answer = BRIDGE_DILEMMA.options.find(option => option.id === state.bridgeAnswer);
-  const scores = scoreBridge(state.bridgeAnswer);
+  const scores = scoreReligion(state.bridgeAnswer, state.weekendAnswer);
+  const answered = Number(Boolean(state.bridgeAnswer)) + Number(Boolean(state.weekendAnswer));
+  if (!answered) return frame({ title: 'עוד אין לנו מספיק חומר.', body: '<p class="description">דילגת על שתי הדילמות. נשאיר את האפשרויות פתוחות.</p><button class="primary" data-action="review-questions">בחזרה לשאלות <span aria-hidden="true">↻</span></button><button class="text-button" data-action="restart">להתחיל מחדש</button>' });
   return frame({ title: 'איפה התשובה שלך פוגשת את המפלגות?', body: `
-    <p class="description">בחרת: ${escape(answer.label)}.</p>
-    <p class="score-context">ההשוואה מבוססת על פרשת גשר יהודית ב־2018–2019. המפלגות מוצגות בשמותיהן אז, והניקוד מתייחס לדילמה הזו.</p>
-    <table class="score-table"><caption class="sr-only">ניקוד המפלגות לפי התשובה לשאלת גשר יהודית</caption>
+    <p class="description">ענית על ${answered} מתוך 2 דילמות. דילוגים לא נכללים בניקוד.</p>
+    <p class="score-context">ההשוואה מבוססת על מקורות מתקופות שונות, והמפלגות מוצגות בשמותיהן במקורות. תחילה מוצגות מפלגות שיש להן מקורות לכל התשובות שלך, ואחריהן אלה עם מידע חלקי.</p>
+    <table class="score-table"><caption class="sr-only">ניקוד המפלגות לפי התשובות בדת ותחבורה</caption>
       <thead><tr><th scope="col">מפלגה</th><th scope="col">נקודות</th></tr></thead>
-      <tbody>${scores.map(party => `<tr data-party-id="${party.id}"><th scope="row"><strong>${escape(party.name)}</strong><details><summary>למה?</summary><p>${escape(party.reason)}</p><p>${BASIS_LABELS[party.basis]} · <a href="${party.source}" target="_blank" rel="noopener noreferrer">מקור</a>${party.followupSource ? ` · <a href="${party.followupSource}" target="_blank" rel="noopener noreferrer">חידוש העבודות</a>` : ''}</p></details></th><td><bdi class="score ${party.points > 0 ? 'score-positive' : 'score-negative'}">${party.points > 0 ? '+' : '−'}${Math.abs(party.points)}</bdi></td></tr>`).join('')}</tbody>
+      <tbody>${scores.map(party => `<tr data-party-id="${party.id}"><th scope="row"><strong>${escape(party.name)}</strong><small class="score-coverage">מקורות ל־${party.contributions.length} מתוך ${answered} תשובות</small><details><summary>למה?</summary>${party.contributions.map(item => `<p><b>${escape(item.question)}: ${item.points > 0 ? '+' : ''}${item.points} נקודות.</b> ${escape(item.reason)}</p><p>${BASIS_LABELS[item.basis]} · <a href="${item.source}" target="_blank" rel="noopener noreferrer">מקור</a>${item.followupSource ? ` · <a href="${item.followupSource}" target="_blank" rel="noopener noreferrer">חידוש העבודות</a>` : ''}</p>`).join('')}</details></th><td><bdi class="score ${party.points > 0 ? 'score-positive' : party.points < 0 ? 'score-negative' : ''}">${party.points > 0 ? '+' : party.points < 0 ? '−' : ''}${Math.abs(party.points)}</bdi></td></tr>`).join('')}</tbody>
     </table>
-    <details class="score-method"><summary>איך הניקוד עובד?</summary><p>ציון חיובי הוא באותו כיוון כמו התשובה שלך, וציון שלילי הוא בכיוון ההפוך. משקל של 2 נקודות ניתן לעמדה מתועדת; משקל של נקודה אחת ניתן להתנהלות מעורבת או להערכת אחריות קואליציונית. האחריות הקואליציונית היא פרשנות במודל, ולא עמדה מפורשת של המפלגה.</p><p>רשימות שעדיין לא נבדקו אינן מקבלות ציון. שמות ומיזוגים של מפלגות השתנו מאז; הניקוד כאן אינו מיפוי אוטומטי לרשימות בבחירות הנוכחיות.</p></details>
+    <details class="score-method"><summary>איך הניקוד עובד?</summary><p>בשאלת הגשר: משקל 2 לעמדה מתועדת ומשקל 1 להתנהלות מעורבת או להערכת אחריות קואליציונית. בנעים בסופ״ש: ציר של איסור, מצב קיים והרחבה. עמדה באותה קטגוריה מקבלת 2, קטגוריה סמוכה 0, והקצה ההפוך מינוס 2. הקטגוריות והמשקלים הם פרשנות במודל.</p><p>אפס הוא ציון של מרחק בין החלופות במודל, לא קביעה שהמפלגה נייטרלית. דילוג או היעדר מקור אינם מוסיפים ציון כלל. ההשוואה בנעים בסופ״ש עוסקת בכיוון המדיניות, ולא בהסכמה נפרדת לכל פרט כמו תעריף או סוג רכבת. שמות ומיזוגים השתנו; זה אינו מיפוי אוטומטי לרשימות בבחירות הנוכחיות.</p></details>
     ${state.topics.includes('todo-2') ? '<p class="todo"><span class="todo-label">TODO</span> · הנושא הנוסף שבחרת עדיין לא נכלל בחישוב.</p>' : ''}
-    <div class="actions"><button class="primary" data-action="restart">להתחיל מחדש <span aria-hidden="true">↻</span></button><button class="back" data-action="back">חזרה</button></div>` }, { stage: 'דת ותחבורה · תוצאות' });
+    <div class="actions"><button class="primary" data-action="review-questions">לעבור שוב על השאלות <span aria-hidden="true">↻</span></button><button class="back" data-action="back">חזרה</button></div><button class="text-button" data-action="restart">להתחיל מחדש</button>` }, { stage: 'דת ותחבורה · תוצאות' });
 }
 
 function independentView() {
@@ -184,8 +197,9 @@ function independentView() {
 }
 
 function render() {
-  const views = { welcome: welcomeView, topics: topicsView, bridge: bridgeView, 'bridge-result': bridgeResultView, party: partyView, 'fake-ballot': fakeBallotView, robot: robotView, 'robot-thanks': robotThanksView, sure: sureView, loading: loadingView, result: resultView, independent: independentView };
+  const views = { welcome: welcomeView, topics: topicsView, 'no-topics': noTopicsView, bridge: bridgeView, weekend: weekendView, 'bridge-result': bridgeResultView, party: partyView, 'fake-ballot': fakeBallotView, robot: robotView, 'robot-thanks': robotThanksView, sure: sureView, loading: loadingView, result: resultView, independent: independentView };
   app.innerHTML = views[state.step]();
+  if (state.step === 'no-topics') timers.push(setTimeout(() => go('bridge', true), NO_TOPICS_DURATION));
   if (state.step === 'fake-ballot') {
     timers.push(setTimeout(() => {
       state.party = null;
@@ -216,20 +230,18 @@ app.addEventListener('change', event => {
   if (input.name === 'authority') {
     state.authority = input.checked;
     app.querySelectorAll('[name="topic"]').forEach(topic => { topic.disabled = state.authority; });
-    document.querySelector('[data-action="next"]').disabled = !state.authority && !state.topics.length;
   } else if (input.name === 'topic') {
     state.topics = [...app.querySelectorAll('[name="topic"]:checked')].map(topic => topic.value);
-    document.querySelector('[data-action="next"]').disabled = !state.authority && !state.topics.length;
   } else if (input.name === 'party') {
     state.party = BALLOT_CHOICES.find(party => party[0] === input.value);
     document.querySelector('[data-action="next"]').disabled = false;
     document.querySelector('#party-selection').textContent = `הפתק שבחרת: ${state.party[1]}${state.party[0] === BLANK_BALLOT[0] ? '' : ` (${state.party[0]})`}`;
     document.querySelector('#blank-ballot-note').hidden = state.party[0] !== BLANK_BALLOT[0];
-  } else if (input.name === 'bridge-answer') {
-    state.bridgeAnswer = input.value;
+  } else if (['bridge-answer', 'weekend-answer'].includes(input.name)) {
+    state[input.name === 'bridge-answer' ? 'bridgeAnswer' : 'weekendAnswer'] = input.value;
     document.querySelector('[data-action="next"]').disabled = false;
   }
-  if (['authority', 'topic', 'party', 'bridge-answer'].includes(input.name)) saveHistory();
+  if (['authority', 'topic', 'party', 'bridge-answer', 'weekend-answer'].includes(input.name)) saveHistory();
 });
 
 app.addEventListener('click', event => {
@@ -239,6 +251,12 @@ app.addEventListener('click', event => {
   else if (action === 'restart') restart();
   else if (action === 'independent') restart();
   else if (action === 'topics') restart('topics');
+  else if (action === 'review-questions') go('bridge');
+  else if (action === 'skip' && ['bridge', 'weekend'].includes(state.step)) {
+    const bridge = state.step === 'bridge';
+    state[bridge ? 'bridgeAnswer' : 'weekendAnswer'] = null;
+    go(bridge ? 'weekend' : 'bridge-result');
+  }
   else if (action === 'update-recommendation') {
     state.party = null;
     state.robot = null;
@@ -246,9 +264,10 @@ app.addEventListener('click', event => {
     go('party');
   }
   else if (action === 'next') {
-    if (state.step === 'topics' && (state.authority || state.topics.length)) go(state.authority ? 'party' : state.topics.includes('religion-transport') ? 'bridge' : 'independent');
+    if (state.step === 'topics') go(state.authority ? 'party' : !state.topics.length ? 'no-topics' : state.topics.includes('religion-transport') ? 'bridge' : 'independent');
     else if (state.step === 'party' && state.party) go(state.party[0] === FAKE_BALLOT[0] ? 'fake-ballot' : 'robot');
-    else if (state.step === 'bridge' && state.bridgeAnswer) go('bridge-result');
+    else if (state.step === 'bridge' && state.bridgeAnswer) go('weekend');
+    else if (state.step === 'weekend' && state.weekendAnswer) go('bridge-result');
   } else if (action === 'robot-no' || action === 'robot-yes') {
     state.robot = action === 'robot-no' ? 'no' : 'yes';
     go(afterRobot(state.robot));

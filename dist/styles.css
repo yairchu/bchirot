@@ -105,6 +105,7 @@ p { margin: 0 0 28px; }
 .score-table td { text-align: end; white-space: nowrap; }
 .score-table thead { color: var(--muted); font-size: 18px; }
 .score-table th strong { font-weight: 600; }
+.score-coverage { display: block; font-size: 16px; font-weight: 400; color: var(--muted); margin-top: 6px; }
 .score-table details { font-size: 18px; line-height: 1.8; font-weight: 400; margin-top: 6px; }
 .score-table details p { max-width: 760px; margin-block: 12px; }
 .score-table summary, .score-method summary { cursor: pointer; width: fit-content; text-decoration: underline; text-underline-offset: 4px; }

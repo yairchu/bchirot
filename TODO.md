@@ -5,9 +5,11 @@
 - [ ] Agree on the actual choices for “מה הכי חשוב לך?”. The invented sample topics have been removed.
 - [x] Support multiple selection; selecting authority disables the other choices, and deselecting authority restores earlier choices. The first named topic is “דת ותחבורה”; one TODO choice remains.
 - [ ] Write follow-up questions for each topic, including their branching rules and question counts.
-- [ ] Extend the independent-judgment branch beyond the first religion/transport dilemma. Unwritten content still stops at an explicit TODO; both result restart buttons return to question one.
+- [x] Extend religion/transport to two sourced dilemmas, with skipping and combined scores. Unwritten topics still stop at an explicit TODO.
 - [x] Add a first sourced, explained scoring model for historical parties in the Yehudit Bridge case. See [the scoring model](docs/bridge-scoring.md).
 - [ ] Define how to map historical parties onto current electoral lists and combine scores across further dilemmas.
+- [x] Allow continuing without topic selections; show a brief joke, then enter the two dilemmas without inventing selections.
+- [x] Exclude skips from scoring, show per-party evidence coverage, and show no ranking when all dilemmas are skipped.
 - [ ] Develop humor and useful insights for the other branches together.
 
 ## Next topic: דת ותחבורה
@@ -17,9 +19,10 @@
 - [ ] Choose and source the next real political dilemmas, including the alternatives available at the time.
 - [ ] Write the next questions and answer choices together, before implementing them.
 - [ ] Develop the humor and useful context for each answer.
-- [x] Finish the current religion/transport route at question 2 of 2 with sourced party scores.
+- [x] Add the Na'im Busofash dilemma with expansion, ban and current-arrangement choices. See [source notes](docs/naim-busofash.md).
+- [x] Finish the current religion/transport route at question 3 of 3 with sourced party scores.
 
-The welcome line is “השאלון שמבוסס על דילמות פוליטיות אמיתיות שקרו”. The first sourced dilemma and historical-party scoring work; further topics and current-list mapping remain TODOs.
+The welcome line is “השאלון שמבוסס על דילמות פוליטיות אמיתיות שקרו”. Two sourced dilemmas and combined party scoring work; further topics and current-list mapping remain TODOs.
 
 ## Ballot data
 
