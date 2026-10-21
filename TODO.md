@@ -28,9 +28,11 @@ The welcome line is “השאלון שמבוסס על דילמות פוליטי�
 
 ## מלחמה וחלום
 
-- [x] Add the category and its unscored dream question, including both dreams and undecided alternatives.
+- [x] Add the category and a two-choice dream question with skipping and sourced one-point vision affinities. See [vision mapping](docs/visions.md).
 - [x] Share the October 7 transport question with religion/transport, without duplicating it or its score.
+- [x] Separate positive, zero and negative totals so a single negative result cannot appear as a positive match.
 - [ ] Develop sourced dilemmas about the tradeoffs between aspirations and security, with explained scoring.
+- [ ] Broaden vision coverage to more lists and prefer a current primary party source for Raam over the quoted 2025 chairman statement.
 
 ## Ballot data
 

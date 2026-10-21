@@ -144,29 +144,31 @@ test('topic costs, total, and overlap update in place and are restored by browse
   assert.match($('#question-budget').textContent, /3 שאלות/);
 });
 
-test('war and dream alone opens the unscored dream and reaches the shared question without transport', async t => {
+test('war and dream alone opens the two-choice dream and reaches the shared question without transport', async t => {
   const { $, click, choose, traverse } = await setup(t);
   click('start');
   choose('[value="war-dream"]');
   click('next');
   assert.equal($('h2').textContent, 'איזה חלום מדבר אליך?');
   assert.equal($('.step-label').textContent, 'שאלה 2 מתוך 3');
-  assert.equal(document.querySelectorAll('[name="dream-answer"]').length, 4);
+  assert.equal(document.querySelectorAll('[name="dream-answer"]').length, 2);
   assert.equal($('.dilemma-details'), null);
-  assert.match($('.selection-note').textContent, /ללא ניקוד/);
-  choose('[name="dream-answer"][value="both"]');
+  assert.match($('.selection-note').textContent, /נקודת זיקה אחת/);
+  choose('[name="dream-answer"][value="whole-land"]');
   await traverse('back');
   assert.equal($('[name="dream-answer"]:checked'), null);
   await traverse('forward');
-  assert.equal($('[name="dream-answer"]:checked').value, 'both');
+  assert.equal($('[name="dream-answer"]:checked').value, 'whole-land');
   click('next');
   assert.equal(window.history.state.bchirot.step, 'emergency');
   assert.equal($('.step-label').textContent, 'שאלה 3 מתוך 3');
   choose('[name="emergency-answer"][value="immediate"]');
   click('next');
-  assert.match($('.description').textContent, /1 מתוך 1/);
-  assert.match($('.dream-summary').textContent, /שניהם/);
-  assert.equal(document.querySelectorAll('.score-table tbody tr').length, 1);
+  assert.match($('.description').textContent, /2 מתוך 2/);
+  assert.match($('.dream-summary').textContent, /ארץ ישראל השלמה/);
+  assert.equal(document.querySelectorAll('.score-table tbody tr').length, 3);
+  assert.equal($('[data-score-group="positive"] [data-party-id="likud"]'), null);
+  assert.ok($('[data-score-group="negative"] [data-party-id="likud"]'));
   assert.equal($('[data-party-id="likud"] .score').textContent, '−1');
   assert.equal($('[data-party-id="likud"] details').textContent.includes('גשר יהודית'), false);
   click('review-questions');
@@ -176,11 +178,16 @@ test('war and dream alone opens the unscored dream and reaches the shared questi
   click('next');
   assert.equal($('[data-party-id="likud"] .score').textContent, '−1');
   assert.match($('.dream-summary').textContent, /שלום בר־קיימא/);
+  assert.equal($('[data-party-id="democrats"] .score').textContent, '+1');
+  assert.equal($('[data-party-id="raam"] .score').textContent, '+1');
+  assert.equal($('[data-party-id="otzma-yehudit"]'), null);
+  assert.ok($('[data-score-group="negative"] [data-party-id="likud"]'));
+  assert.equal(document.querySelector('.score-group').dataset.scoreGroup, 'positive');
   click('restart');
   assert.equal(window.history.state.bchirot.dreamAnswer, null);
 });
 
-test('a dream answer alone is acknowledged without inventing a party score', async t => {
+test('a dream answer alone adds a weak sourced affinity to current ballots', async t => {
   const { $, click, choose } = await setup(t);
   click('start');
   choose('[value="war-dream"]');
@@ -188,9 +195,12 @@ test('a dream answer alone is acknowledged without inventing a party score', asy
   choose('[name="dream-answer"][value="whole-land"]');
   click('next');
   click('skip');
-  assert.equal($('.score-table'), null);
+  assert.equal(document.querySelectorAll('[data-score-group="positive"] tbody tr').length, 2);
+  assert.equal($('[data-party-id="religious-zionism"] .score').textContent, '+1');
+  assert.equal($('[data-party-id="otzma-yehudit"] .score').textContent, '+1');
+  assert.equal($('[data-score-group="negative"]'), null);
   assert.match($('.dream-summary').textContent, /ארץ ישראל השלמה/);
-  assert.match($('.dream-summary').textContent, /אינה משפיעה על הניקוד/);
+  assert.match($('.dream-summary').textContent, /משקל נקודה אחת/);
 });
 
 test('both topics ask the shared question once and count its score once', async t => {
@@ -216,7 +226,7 @@ test('both topics ask the shared question once and count its score once', async 
   assert.equal($('[data-party-id="likud"] .score').textContent, '−2');
   assert.equal($('[data-party-id="democrats"] .score').textContent, '+4');
   assert.equal($('[data-party-id="likud"] details').querySelectorAll('b').length, 2);
-  assert.match($('.description').textContent, /3 מתוך 3/);
+  assert.match($('.description').textContent, /3 מתוך 4/);
   assert.equal($('.dream-summary'), null);
 });
 
@@ -314,6 +324,10 @@ test('skipping all dilemmas gives no ranking and explicit status quo remains an 
   assert.ok($('.description').textContent.includes('1 מתוך 3'));
   assert.ok($('.score-table'));
   assert.ok([...document.querySelectorAll('.score')].every(score => score.textContent === '0'));
+  assert.equal($('[data-score-group="positive"]'), null);
+  assert.equal($('[data-score-group="negative"]'), null);
+  assert.ok($('[data-score-group="neutral"]'));
+  assert.equal($('h2').textContent, 'עדיין לא נמצאה התאמה חיובית');
 });
 
 test('wartime transit is question four, has balanced background, and scores only Likud', async t => {
@@ -335,6 +349,11 @@ test('wartime transit is question four, has balanced background, and scores only
   assert.equal(document.querySelectorAll('.score-table tbody tr').length, 1);
   assert.equal($('[data-party-id="likud"] .score').textContent, '−1');
   assert.match($('[data-party-id="likud"] details').textContent, /אחריות מיניסטריאלית/);
+  assert.equal($('h2').textContent, 'עדיין לא נמצאה התאמה חיובית');
+  assert.equal($('[data-score-group="positive"]'), null);
+  assert.match($('[data-score-group="negative"] h3').textContent, /מחלוקת/);
+  assert.ok($('[data-score-group="negative"] [data-party-id="likud"]'));
+  assert.match($('.result-status').textContent, /אף רשימה שנבדקה לא קיבלה ציון חיובי/);
   assert.match($('.description').textContent, /1 מתוך 3/);
   await traverse('back');
   assert.equal($('[name="emergency-answer"]:checked').value, 'immediate');

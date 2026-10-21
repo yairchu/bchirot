@@ -11,7 +11,7 @@ export const TOPIC_CHOICES = [
 
 // Ordering, shared membership, answer keys and progress use one question catalog.
 export const QUESTIONS = {
-  dream: { topics: ['war-dream'], answerKey: 'dreamAnswer', inputName: 'dream-answer', scored: false },
+  dream: { topics: ['war-dream'], answerKey: 'dreamAnswer', inputName: 'dream-answer', scored: true },
   bridge: { topics: ['religion-transport'], answerKey: 'bridgeAnswer', inputName: 'bridge-answer', scored: true },
   weekend: { topics: ['religion-transport'], answerKey: 'weekendAnswer', inputName: 'weekend-answer', scored: true },
   emergency: { topics: ['religion-transport', 'war-dream'], answerKey: 'emergencyAnswer', inputName: 'emergency-answer', scored: true },

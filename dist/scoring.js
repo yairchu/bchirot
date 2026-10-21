@@ -24,6 +24,7 @@ export const BASIS_LABELS = {
   mixed: 'התנהלות מעורבת',
   coalition: 'הערכת אחריות קואליציונית',
   responsibility: 'הערכת אחריות מיניסטריאלית — משקל 1',
+  vision: 'זיקה לחזון מוצהר — משקל 1',
 };
 
 export function scoreBridge(answer) {

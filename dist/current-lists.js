@@ -1,5 +1,6 @@
 import { PARTIES, PARTY_NOTICES } from './parties.js';
 import { scoreReligion } from './scoring.js';
+import { scoreVision } from './visions.js';
 
 export const MAPPING_CHECKED_ON = '2026-10-22';
 const idi = 'https://www.idi.org.il/policy/parties-and-elections/parties/';
@@ -40,8 +41,18 @@ export function mapHistoricalScores(historicalScores) {
   }).sort((a, b) => b.contributions.length - a.contributions.length || b.points - a.points || a.name.localeCompare(b.name, 'he'));
 }
 
-export function scoreCurrentReligion(bridgeAnswer, weekendAnswer, emergencyAnswer = null) {
-  return mapHistoricalScores(scoreReligion(bridgeAnswer, weekendAnswer, emergencyAnswer));
+export function scoreCurrentReligion(bridgeAnswer, weekendAnswer, emergencyAnswer = null, dreamAnswer = null) {
+  const results = mapHistoricalScores(scoreReligion(bridgeAnswer, weekendAnswer, emergencyAnswer));
+  for (const evidence of scoreVision(dreamAnswer)) {
+    let party = results.find(party => party.id === evidence.id);
+    if (!party) {
+      party = { id: evidence.id, name: evidence.name, letters: evidence.letters, points: 0, contributions: [], note: 'זיקה ראשונית לחזון מוצהר, במשקל נקודה אחת.', source: evidence.source };
+      results.push(party);
+    }
+    party.contributions.push({ question: 'החלום שבחרת', points: evidence.points, evidence: [evidence] });
+    party.points += evidence.points;
+  }
+  return results.sort((a, b) => b.contributions.length - a.contributions.length || b.points - a.points || a.name.localeCompare(b.name, 'he'));
 }
 
 export function unscoredCurrentLists(scores) {

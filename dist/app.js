@@ -200,7 +200,7 @@ function emergencyView() {
 function dilemmaView(dilemma, answerKey, inputName, backgroundTitle, nextLabel) {
   return frame({ title: dilemma.title, body: `
     <p class="description">${escape(dilemma.context)}</p>
-    ${QUESTIONS[state.step].scored === false ? '<p class="selection-note">שאלת פתיחה ללא ניקוד מפלגתי.</p>' : ''}
+    ${dilemma.note ? `<p class="selection-note">${escape(dilemma.note)}</p>` : ''}
     <div class="dilemma-options" role="radiogroup" aria-label="${escape(dilemma.title)}">
       ${dilemma.options.map(option => `<label class="choice dilemma-option"><input type="radio" name="${inputName}" value="${option.id}" ${state[answerKey] === option.id ? 'checked' : ''}><span class="choice-copy"><strong>${escape(option.label)}</strong>${option.detail ? `<small>${escape(option.detail)}</small>` : ''}</span></label>`).join('')}
     </div>
@@ -214,33 +214,49 @@ function dilemmaView(dilemma, answerKey, inputName, backgroundTitle, nextLabel) 
 }
 
 function currentContributionView(item) {
-  return `<p><b>${escape(item.question)}: ${item.points > 0 ? '+' : ''}${item.points} נקודות.</b></p>${item.evidence.map(evidence => `<p><strong>${escape(evidence.name)} במקור ההיסטורי:</strong> ${escape(evidence.reason)}</p><p>${BASIS_LABELS[evidence.basis]} · <a href="${evidence.source}" target="_blank" rel="noopener noreferrer">מקור</a>${evidence.followupSource ? ` · <a href="${evidence.followupSource}" target="_blank" rel="noopener noreferrer">${escape(evidence.followupLabel || 'חידוש העבודות')}</a>` : ''}</p>`).join('')}`;
+  return `<p><b>${escape(item.question)}: ${item.points > 0 ? '+' : ''}${item.points} נקודות.</b></p>${item.evidence.map(evidence => `<p><strong>${escape(evidence.name)} ${evidence.basis === 'vision' ? 'בחזון המוצהר' : 'במקור ההיסטורי'}:</strong> ${escape(evidence.reason)}</p><p>${BASIS_LABELS[evidence.basis]} · <a href="${evidence.source}" target="_blank" rel="noopener noreferrer">מקור</a>${evidence.followupSource ? ` · <a href="${evidence.followupSource}" target="_blank" rel="noopener noreferrer">${escape(evidence.followupLabel || 'חידוש העבודות')}</a>` : ''}</p>`).join('')}`;
 }
 
 function dreamSummary() {
   if (!currentQuestions().includes('dream') || !state.dreamAnswer) return '';
   const option = DREAM_QUESTION.options.find(option => option.id === state.dreamAnswer);
-  return `<p class="dream-summary selection-note">החלום שבחרת: ${escape(option.label)}. שאלת הפתיחה אינה משפיעה על הניקוד.</p>`;
+  if (!option) return '';
+  return `<p class="dream-summary selection-note">החלום שבחרת: ${escape(option.label)}. זיקה לחזון מוצהר נספרת במשקל נקודה אחת.</p>`;
+}
+
+function scoreGroupsView(scores, answered) {
+  const groups = [
+    { key: 'positive', title: 'נקודות התאמה', matches: points => points > 0, note: 'רשימות עם סכום חיובי לפי התשובות והמקורות שנבדקו.' },
+    { key: 'neutral', title: 'ללא יתרון בניקוד', matches: points => points === 0, note: 'סכום אפס אינו המלצה או היעדר מידע; אפשר לפתוח את פירוט הנקודות.' },
+    { key: 'negative', title: 'נקודות מחלוקת', matches: points => points < 0, note: 'הרשימות כאן מוצגות בגלל פער מול התשובות שלך. הציון השלילי אינו התאמה חיובית.' },
+  ];
+  return groups.map(({ key, title, matches, note }) => {
+    const parties = scores.filter(party => matches(party.points));
+    if (!parties.length) return '';
+    return `<section class="score-group" data-score-group="${key}" aria-labelledby="scores-${key}"><h3 id="scores-${key}">${title}</h3><p class="selection-note">${note}</p><table class="score-table"><caption class="sr-only">${title}</caption>
+      <thead><tr><th scope="col">מפלגה</th><th scope="col">נקודות</th></tr></thead>
+      <tbody>${parties.map(party => `<tr data-party-id="${party.id}"><th scope="row"><strong>${escape(party.name)} · ${escape(party.letters)}</strong><small class="score-coverage">מקורות ל־${party.contributions.length} מתוך ${answered} תשובות</small><details><summary>למה?</summary><p>${escape(party.note)} <a href="${party.source}" target="_blank" rel="noopener noreferrer">מקור המיפוי</a>.</p>${party.contributions.map(currentContributionView).join('')}</details></th><td><bdi class="score ${party.points > 0 ? 'score-positive' : party.points < 0 ? 'score-negative' : ''}">${party.points > 0 ? '+' : party.points < 0 ? '−' : ''}${Math.abs(party.points)}</bdi></td></tr>`).join('')}</tbody>
+    </table></section>`;
+  }).join('');
 }
 
 function bridgeResultView() {
   const questions = currentQuestions();
   const activeAnswer = id => questions.includes(id) ? state[QUESTIONS[id].answerKey] : null;
-  const scores = scoreCurrentReligion(activeAnswer('bridge'), activeAnswer('weekend'), activeAnswer('emergency'));
+  const scores = scoreCurrentReligion(activeAnswer('bridge'), activeAnswer('weekend'), activeAnswer('emergency'), activeAnswer('dream'));
   const scoredQuestions = questions.filter(id => QUESTIONS[id].scored);
   const answered = scoredQuestions.filter(id => Boolean(activeAnswer(id))).length;
   const dream = dreamSummary();
   if (!answered) return frame({ title: 'עוד אין לנו מספיק חומר.', body: `${dream}<p class="description">דילגת על כל הדילמות שניתן לנקד. נשאיר את האפשרויות פתוחות.</p><button class="primary" data-action="review-questions">בחזרה לשאלות <span aria-hidden="true">↻</span></button><button class="text-button" data-action="restart">להתחיל מחדש</button>` });
   if (!scores.length) return frame({ title: 'לתשובה הזו אין ניקוד מפלגתי.', body: `${dream}<p class="description">התשובה שלך נשמרה. לחלופה של ריכוז הדרישות בידי מערכת הביטחון לא ייחסנו עמדה של מפלגה או נקודות זכות. אפשר לחזור לשאלות האחרות כדי לקבל השוואה.</p><button class="primary" data-action="review-questions">בחזרה לשאלות</button><button class="text-button" data-action="restart">להתחיל מחדש</button>` });
-  return frame({ title: 'איפה התשובה שלך פוגשת את המפלגות?', body: `
+  const hasPositive = scores.some(party => party.points > 0);
+  return frame({ title: hasPositive ? 'איפה התשובה שלך פוגשת את המפלגות?' : 'עדיין לא נמצאה התאמה חיובית', body: `
     <p class="description">ענית על ${answered} מתוך ${scoredQuestions.length} דילמות. דילוגים לא נכללים בניקוד.${state.emergencyAnswer === 'central-request' ? ' לחלופה שבחרת בשאלת 7 באוקטובר אין ניקוד מפלגתי.' : ''}</p>
     ${dream}
-    <p class="score-context">הרשימות מוצגות בשמותיהן ובאותיות הפתק הנוכחיות, לפי מיפוי ההיסטוריה המפלגתית. הניקוד מבוסס על התנהלות בעבר, ולא בהכרח על עמדת הרשימה כיום. תחילה מוצגות מפלגות שיש להן מקורות לכל התשובות שלך, ואחריהן אלה עם מידע חלקי.</p>
-    <table class="score-table"><caption class="sr-only">ניקוד המפלגות לפי התשובות שלך</caption>
-      <thead><tr><th scope="col">מפלגה</th><th scope="col">נקודות</th></tr></thead>
-      <tbody>${scores.map(party => `<tr data-party-id="${party.id}"><th scope="row"><strong>${escape(party.name)} · ${escape(party.letters)}</strong><small class="score-coverage">מקורות ל־${party.contributions.length} מתוך ${answered} תשובות</small><details><summary>למה?</summary><p>${escape(party.note)} <a href="${party.source}" target="_blank" rel="noopener noreferrer">מקור המיפוי</a>.</p>${party.contributions.map(currentContributionView).join('')}</details></th><td><bdi class="score ${party.points > 0 ? 'score-positive' : party.points < 0 ? 'score-negative' : ''}">${party.points > 0 ? '+' : party.points < 0 ? '−' : ''}${Math.abs(party.points)}</bdi></td></tr>`).join('')}</tbody>
-    </table>
-    <details class="score-method"><summary>איך הניקוד עובד?</summary><p>בשאלת הגשר: משקל 2 לעמדה מתועדת ומשקל 1 להתנהלות מעורבת או להערכת אחריות קואליציונית. בנעים בסופ״ש: ציר של איסור, מצב קיים והרחבה. עמדה באותה קטגוריה מקבלת 2, קטגוריה סמוכה 0, והקצה ההפוך מינוס 2. בשאלת בוקר 7 באוקטובר, העדפת יוזמה מיידית מורידה נקודה אחת לליכוד כהערכת אחריות מיניסטריאלית להיערכות משרד התחבורה. בחלופה השנייה אין ניקוד; אין נקודת זכות לאף מפלגה או הערכה איך שר אחר היה פועל. הקטגוריות והמשקלים הם פרשנות במודל.</p><p>אפס הוא ציון של מרחק בין החלופות במודל, לא קביעה שהמפלגה נייטרלית. דילוג או היעדר מקור אינם מוסיפים ציון כלל. ההשוואה בנעים בסופ״ש עוסקת בכיוון המדיניות, ולא בהסכמה נפרדת לכל פרט כמו תעריף או סוג רכבת. באיחוד רשימות מחושב ממוצע הציונים ההיסטוריים לכל שאלה, כדי לא להכפיל את משקלה. המקורות והשיוך ההיסטורי מפורטים תחת ״למה?״.</p></details>
+    ${hasPositive ? '' : '<p class="result-status">אף רשימה שנבדקה לא קיבלה ציון חיובי. פירוט הפערים או ציוני האפס מופיע בהמשך.</p>'}
+    <p class="score-context">הרשימות מוצגות בשמותיהן ובאותיות הפתק הנוכחיות, לפי מיפוי ההיסטוריה המפלגתית. הניקוד מבוסס על התנהלות בעבר ועל חזון מוצהר. ההתאמות, ציוני האפס והמחלוקות מוצגים בנפרד. בתוך כל קבוצה מוצגות תחילה רשימות עם יותר מידע על התשובות שלך.</p>
+    ${scoreGroupsView(scores, answered)}
+    <details class="score-method"><summary>איך הניקוד עובד?</summary><p>בשאלת הגשר: משקל 2 לעמדה מתועדת ומשקל 1 להתנהלות מעורבת או להערכת אחריות קואליציונית. בנעים בסופ״ש: ציר של איסור, מצב קיים והרחבה. עמדה באותה קטגוריה מקבלת 2, קטגוריה סמוכה 0, והקצה ההפוך מינוס 2. בשאלת בוקר 7 באוקטובר, העדפת יוזמה מיידית מורידה נקודה אחת לליכוד כהערכת אחריות מיניסטריאלית להיערכות משרד התחבורה. בחלופה השנייה אין ניקוד; אין נקודת זכות לאף מפלגה או הערכה איך שר אחר היה פועל. שאלת החלום מוסיפה נקודת זיקה אחת לרשימות שעבורן נמצא חזון תואם. אין הפחתת נקודות לחלום האחר, ואין קביעה שרשימות שלא נבדקו אינן שותפות לאותו חלום. הקטגוריות והמשקלים הם פרשנות במודל.</p><p>אפס הוא ציון של מרחק בין החלופות במודל, לא קביעה שהמפלגה נייטרלית. דילוג או היעדר מקור אינם מוסיפים ציון כלל. ההשוואה בנעים בסופ״ש עוסקת בכיוון המדיניות, ולא בהסכמה נפרדת לכל פרט כמו תעריף או סוג רכבת. באיחוד רשימות מחושב ממוצע הציונים ההיסטוריים לכל שאלה, כדי לא להכפיל את משקלה. המקורות והשיוך ההיסטורי מפורטים תחת ״למה?״.</p></details>
     <details class="score-method"><summary>מי עדיין לא נכלל בהשוואה?</summary><p>לרשימות הבאות אין כרגע ניקוד לתשובות שלך; היעדר מידע אינו עמדה נייטרלית:</p><p>${unscoredCurrentLists(scores).map(([letters, name]) => `${escape(name)} (${escape(letters)})`).join(' · ')}</p>${UNMAPPED_HISTORY.map(item => `<p>${escape(item.reason)}</p>`).join('')}<p>המיפוי נבדק ב־${MAPPING_CHECKED_ON}. רשימות שהודיעו על פרישה אינן נכללות בתוצאות.</p></details>
     ${state.topics.includes('todo-2') ? '<p class="todo"><span class="todo-label">TODO</span> · הנושא הנוסף שבחרת עדיין לא נכלל בחישוב.</p>' : ''}
     <div class="actions"><button class="primary" data-action="review-questions">לעבור שוב על השאלות <span aria-hidden="true">↻</span></button><button class="back" data-action="back">חזרה</button></div><button class="text-button" data-action="restart">להתחיל מחדש</button>` }, { stage: 'התוצאות שלך' });
