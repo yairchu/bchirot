@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "python3 scripts/dev.py",
     "check": "node --check dist/bootstrap.js && node --check dist/app.js && node --check dist/flow.js && node --check dist/parties.js && node --check dist/dilemmas.js && node --check dist/scoring.js",
-    "test": "node --test tests/*.test.js"
+    "test": "node --test tests/*.test.js && python3 -m unittest discover -s tests -p '*_test.py'"
   },
   "devDependencies": {
     "jsdom": "^27.0.1"

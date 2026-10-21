@@ -138,7 +138,7 @@ test('weekend transit offers all three policies and scores an answer after skipp
   assert.equal(document.querySelectorAll('[name="weekend-answer"]').length, 3);
   assert.equal($('[data-action="next"]').disabled, true);
   $('.dilemma-details summary').click();
-  assert.ok($('.dilemma-background').textContent.includes('רישיון'));
+  assert.ok($('.dilemma-background').textContent.includes('הנסיעה בו ללא תשלום (כי החוק לא מרשה אחרת)'));
   choose('[name="weekend-answer"][value="expand"]');
   click('next');
   assert.ok($('.description').textContent.includes('1 מתוך 2'));
