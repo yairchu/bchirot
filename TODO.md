@@ -31,7 +31,10 @@ The welcome line is “השאלון שמבוסס על דילמות פוליטי�
 - [x] Add the category and a two-choice dream question with skipping and sourced one-point vision affinities. See [vision mapping](docs/visions.md).
 - [x] Share the October 7 transport question with religion/transport, without duplicating it or its score.
 - [x] Separate positive, zero and negative totals so a single negative result cannot appear as a positive match.
-- [x] Add the shared conscription question, expanded into independent conscription/outpost choices for security interest, and a sourced Hamas/PA priorities question with explicitly interpretive scoring. See [sources and model](docs/burden-and-threat.md).
+- [x] Add the shared conscription question, expanded into independent conscription/outpost choices for security interest, and a sourced Hamas/PA policy question scored from executed decisions and a resignation. See [sources and model](docs/burden-and-threat.md).
+- [x] Add an illustrative burden meter with brief personal-cost scenes, history restoration and reduced-motion support.
+- [x] Replace the Hamas/PA platform/clarification scoring with executed government decisions and a resignation in protest.
+- [ ] Find documented actions to replace declared positions in the remaining conscription/outpost scoring; keep current position-based evidence labeled explicitly.
 - [ ] Broaden the documented party coverage for the new policy questions.
 - [ ] Broaden vision coverage to more lists and prefer a current primary party source for Raam over the quoted 2025 chairman statement.
 

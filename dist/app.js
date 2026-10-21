@@ -1,7 +1,7 @@
 import { CUTSCENE_DURATION, MOBILE_CONFIRM_DELAY, EASTER_EGG_DURATION, NO_TOPICS_DURATION, TOPIC_CHOICES, QUESTIONS, questionRoute, questionnaireQuestions, additionalQuestionCount, afterRobot, progress } from './flow.js';
 import { BALLOT_CHOICES, BLANK_BALLOT, BLANK_BALLOT_SOURCE, FAKE_BALLOT, PARTY_NOTICES } from './parties.js';
 import { BRIDGE_DILEMMA, WEEKEND_DILEMMA, EMERGENCY_DILEMMA, DREAM_QUESTION } from './dilemmas.js';
-import { BURDEN_GROUPS, BURDEN_TIMELINE, THREAT_DILEMMA, normalizeBurdenAnswer } from './policy-questions.js';
+import { BURDEN_GROUPS, BURDEN_TIMELINE, THREAT_DILEMMA, normalizeBurdenAnswer, burdenLevel } from './policy-questions.js';
 import { BASIS_LABELS } from './scoring.js';
 import { scoreCurrentReligion, unscoredCurrentLists, UNMAPPED_HISTORY, MAPPING_CHECKED_ON } from './current-lists.js';
 
@@ -119,6 +119,40 @@ function burdenImpact() {
   ].filter(Boolean).join(' ');
 }
 
+function burdenMeterView() {
+  const level = burdenLevel(state.burdenAnswer, state.topics.includes('war-dream'));
+  return `<section class="burden-meter is-entering" aria-labelledby="burden-meter-title">
+    <h3 id="burden-meter-title">מד הנטל על המשרתים</h3>
+    <div class="burden-scale" aria-hidden="true"><span>פחות עומס</span><span>יותר עומס</span></div>
+    <div id="burden-gauge" class="burden-track" role="meter" aria-labelledby="burden-meter-title" aria-valuemin="0" aria-valuemax="4" aria-valuenow="${level.value}" aria-valuetext="${escape(burdenMeterLabel(level))}"><span class="burden-fill" style="width: ${level.value * 25}%"></span></div>
+    <p id="burden-meter-status" class="selection-note" role="status">${escape(burdenMeterLabel(level))}</p>
+    <div class="burden-scenes" aria-hidden="true"><span>עוד סבב. העסק מחכה.</span><span>עוד סבב. בבית מסתדרים בלעדיך.</span></div>
+    <p class="burden-disclaimer">המחשה לכיוון השינוי, לא תחזית לימי מילואים. הקטעים הם המחשה למחיר האישי.</p>
+  </section>`;
+}
+
+function burdenMeterLabel({ value, answered, total }) {
+  const direction = !answered ? 'בחרו עמדה כדי להזיז את המד' : value < 2 ? 'כיוון של הקלה בנטל' : value > 2 ? 'כיוון של הכבדה בנטל' : 'הבחירות מושכות לכיוונים מנוגדים';
+  return `${direction}. נבחרו ${answered} מתוך ${total} נושאים.`;
+}
+
+function updateBurdenMeter(previousValue) {
+  const level = burdenLevel(state.burdenAnswer, state.topics.includes('war-dream'));
+  const meter = app.querySelector('.burden-meter');
+  const gauge = app.querySelector('#burden-gauge');
+  gauge.setAttribute('aria-valuenow', level.value);
+  gauge.setAttribute('aria-valuetext', burdenMeterLabel(level));
+  gauge.querySelector('.burden-fill').style.width = `${level.value * 25}%`;
+  app.querySelector('#burden-meter-status').textContent = burdenMeterLabel(level);
+  meter.classList.remove('is-entering', 'is-rising', 'is-falling');
+  const scenes = meter.querySelector('.burden-scenes');
+  const lines = level.value < previousValue ? ['יותר כתפיים, או פחות משימות.', 'קצת יותר מקום לעסק ולבית.'] : ['עוד סבב. העסק מחכה.', 'עוד סבב. בבית מסתדרים בלעדיך.'];
+  [...scenes.children].forEach((scene, index) => { scene.textContent = lines[index]; });
+  // Restart the brief scene on each actual increase/decrease, including fast changes.
+  void meter.offsetWidth;
+  if (level.answered && level.value !== previousValue) meter.classList.add(level.value > previousValue ? 'is-rising' : 'is-falling');
+}
+
 function burdenView() {
   const expanded = state.topics.includes('war-dream');
   const selected = burdenAnswer();
@@ -127,9 +161,10 @@ function burdenView() {
     title: expanded ? 'הנטל ומי נושא בו' : 'גיוס חרדים — מי נושא בנטל?',
     body: `<p class="description">${expanded ? 'את הנטל אפשר לשנות גם דרך מי שמשרת וגם דרך המשימות שמטילים על צה״ל. מה נכון בעיניך?' : 'האם חובת השירות צריכה לחול גם על צעירים חרדים, או לשמר פטור לתלמידי ישיבות?'}</p>
       ${expanded ? '<p class="selection-note">אפשר לבחור עמדה בכל נושא, או רק באחד מהם. נושא שלא סומן אינו מקבל ניקוד.</p>' : ''}
+      ${burdenMeterView()}
       ${groups.map(group => `<fieldset class="burden-group"><legend>${escape(group.title)}</legend>${group.options.map(option => `<label class="choice dilemma-option"><input type="${expanded ? 'checkbox' : 'radio'}" name="burden-answer" data-burden-group="${group.id}" value="${option.id}" ${selected.includes(option.id) ? 'checked' : ''}><span class="choice-copy"><strong>${escape(option.label)}</strong><small>${escape(option.detail)}</small></span></label>`).join('')}</fieldset>`).join('')}
       <p class="selection-note" id="burden-impact" role="status">${burdenImpact()}</p>
-      <details class="dilemma-details"><summary>לפרטים נוספים</summary><div class="dilemma-background">${BURDEN_TIMELINE.slice(0, expanded ? 3 : 1).map(item => `<p>${escape(item.text)} <a href="${item.url}" target="_blank" rel="noopener noreferrer">${escape(item.source)}</a>.</p>`).join('')}</div></details>
+      <details class="dilemma-details"><summary>לפרטים נוספים</summary><div class="dilemma-background">${BURDEN_TIMELINE.slice(0, expanded ? BURDEN_TIMELINE.length : 1).map(item => `<p>${escape(item.text)} <a href="${item.url}" target="_blank" rel="noopener noreferrer">${escape(item.source)}</a>.</p>`).join('')}</div></details>
       ${actions('ממשיכים', !selected.length)}<button class="text-button" data-action="skip">לדלג על השאלה</button>`,
   });
 }
@@ -250,7 +285,7 @@ function dilemmaView(dilemma, answerKey, inputName, backgroundTitle, nextLabel) 
 }
 
 function currentContributionView(item) {
-  return `<p><b>${escape(item.question)}: ${item.points > 0 ? '+' : ''}${item.points} נקודות.</b></p>${item.evidence.map(evidence => `<p><strong>${escape(evidence.name)} ${evidence.basis === 'vision' ? 'בחזון המוצהר' : ['policy', 'interpretation'].includes(evidence.basis) ? 'בעמדה המתועדת' : 'במקור ההיסטורי'}:</strong> ${evidence.component ? `${escape(evidence.component)} (${evidence.points > 0 ? '+' : ''}${evidence.points}): ` : ''}${escape(evidence.reason)}</p><p>${BASIS_LABELS[evidence.basis]} · <a href="${evidence.source}" target="_blank" rel="noopener noreferrer">מקור</a>${evidence.followupSource ? ` · <a href="${evidence.followupSource}" target="_blank" rel="noopener noreferrer">${escape(evidence.followupLabel || 'חידוש העבודות')}</a>` : ''}</p>`).join('')}`;
+  return `<p><b>${escape(item.question)}: ${item.points > 0 ? '+' : ''}${item.points} נקודות.</b></p>${item.evidence.map(evidence => `<p><strong>${escape(evidence.name)} ${evidence.basis === 'vision' ? 'בחזון המוצהר' : ['action', 'partial-action'].includes(evidence.basis) ? 'במעשה המתועד' : ['policy', 'interpretation'].includes(evidence.basis) ? 'בעמדה המתועדת' : 'במקור ההיסטורי'}:</strong> ${evidence.component ? `${escape(evidence.component)} (${evidence.points > 0 ? '+' : ''}${evidence.points}): ` : ''}${escape(evidence.reason)}</p><p>${BASIS_LABELS[evidence.basis]} · <a href="${evidence.source}" target="_blank" rel="noopener noreferrer">מקור</a>${evidence.followupSource ? ` · <a href="${evidence.followupSource}" target="_blank" rel="noopener noreferrer">${escape(evidence.followupLabel || 'חידוש העבודות')}</a>` : ''}</p>`).join('')}`;
 }
 
 function dreamSummary() {
@@ -292,7 +327,7 @@ function bridgeResultView() {
     ${hasPositive ? '' : '<p class="result-status">אף רשימה שנבדקה לא קיבלה ציון חיובי. פירוט הפערים או ציוני האפס מופיע בהמשך.</p>'}
     <p class="score-context">הרשימות מוצגות בשמותיהן ובאותיות הפתק הנוכחיות, לפי מיפוי ההיסטוריה המפלגתית. הניקוד מבוסס על התנהלות בעבר, עמדות מתועדות וחזון מוצהר. ההתאמות, ציוני האפס והמחלוקות מוצגים בנפרד. בתוך כל קבוצה מוצגות תחילה רשימות עם יותר מידע על התשובות שלך.</p>
     ${scoreGroupsView(scores, answered)}
-    <details class="score-method"><summary>איך הניקוד עובד?</summary><p>בשאלת הגשר: משקל 2 לעמדה מתועדת ומשקל 1 להתנהלות מעורבת או להערכת אחריות קואליציונית. בנעים בסופ״ש: ציר של איסור, מצב קיים והרחבה. עמדה באותה קטגוריה מקבלת 2, קטגוריה סמוכה 0, והקצה ההפוך מינוס 2. בשאלת בוקר 7 באוקטובר, העדפת יוזמה מיידית מורידה נקודה אחת לליכוד כהערכת אחריות מיניסטריאלית להיערכות משרד התחבורה. בחלופה השנייה אין ניקוד; אין נקודת זכות לאף מפלגה או הערכה איך שר אחר היה פועל. שאלת החלום מוסיפה נקודת זיקה אחת לרשימות שעבורן נמצא חזון תואם. אין הפחתת נקודות לחלום האחר, ואין קביעה שרשימות שלא נבדקו אינן שותפות לאותו חלום. בשאלת הנטל כל רכיב שנענה תורם נקודה לחיוב או לשלילה, עד שתי נקודות כשנענו שני הרכיבים. שאלת חמאס והרשות מקבלת נקודה אחת כפרשנות לסדר העדיפויות המוצהר, ולא כספירת קורבנות. הקטגוריות והמשקלים הם פרשנות במודל.</p><p>אפס הוא ציון של מרחק בין החלופות במודל, לא קביעה שהמפלגה נייטרלית. דילוג או היעדר מקור אינם מוסיפים ציון כלל. ההשוואה בנעים בסופ״ש עוסקת בכיוון המדיניות, ולא בהסכמה נפרדת לכל פרט כמו תעריף או סוג רכבת. באיחוד רשימות מחושב ממוצע הציונים ההיסטוריים לכל שאלה, כדי לא להכפיל את משקלה. המקורות והשיוך ההיסטורי מפורטים תחת ״למה?״.</p></details>
+    <details class="score-method"><summary>איך הניקוד עובד?</summary><p>בשאלת הגשר: משקל 2 לעמדה מתועדת ומשקל 1 להתנהלות מעורבת או להערכת אחריות קואליציונית. בנעים בסופ״ש: ציר של איסור, מצב קיים והרחבה. עמדה באותה קטגוריה מקבלת 2, קטגוריה סמוכה 0, והקצה ההפוך מינוס 2. בשאלת בוקר 7 באוקטובר, העדפת יוזמה מיידית מורידה נקודה אחת לליכוד כהערכת אחריות מיניסטריאלית להיערכות משרד התחבורה. בחלופה השנייה אין ניקוד; אין נקודת זכות לאף מפלגה או הערכה איך שר אחר היה פועל. שאלת החלום מוסיפה נקודת זיקה אחת לרשימות שעבורן נמצא חזון תואם. אין הפחתת נקודות לחלום האחר, ואין קביעה שרשימות שלא נבדקו אינן שותפות לאותו חלום. בשאלת הנטל כל רכיב שנענה תורם נקודה לחיוב או לשלילה, עד שתי נקודות כשנענו שני הרכיבים. שאלת חמאס והרשות נשענת על מעשים: משקל 2 להחלטת ממשלת נתניהו להכניס כסף קטארי, ומשקל 1 לקיזוז כספי הרשות בידי סמוטריץ׳ ולפרישת ליברמן במחאה על המדיניות. שתי האחרונות משקפות רכיב אחד של הדילמה; אין ניקוד על הבטחה או הבהרה. השיוך לכיוון המדיניות הוא פרשנות למעשים המתועדים. הקטגוריות והמשקלים הם פרשנות במודל.</p><p>אפס הוא ציון של מרחק בין החלופות במודל, לא קביעה שהמפלגה נייטרלית. דילוג או היעדר מקור אינם מוסיפים ציון כלל. ההשוואה בנעים בסופ״ש עוסקת בכיוון המדיניות, ולא בהסכמה נפרדת לכל פרט כמו תעריף או סוג רכבת. באיחוד רשימות מחושב ממוצע הציונים ההיסטוריים לכל שאלה, כדי לא להכפיל את משקלה. המקורות והשיוך ההיסטורי מפורטים תחת ״למה?״.</p></details>
     <details class="score-method"><summary>מי עדיין לא נכלל בהשוואה?</summary><p>לרשימות הבאות אין כרגע ניקוד לתשובות שלך; היעדר מידע אינו עמדה נייטרלית:</p><p>${unscoredCurrentLists(scores).map(([letters, name]) => `${escape(name)} (${escape(letters)})`).join(' · ')}</p>${UNMAPPED_HISTORY.map(item => `<p>${escape(item.reason)}</p>`).join('')}<p>המיפוי נבדק ב־${MAPPING_CHECKED_ON}. רשימות שהודיעו על פרישה אינן נכללות בתוצאות.</p></details>
     ${state.topics.includes('todo-2') ? '<p class="todo"><span class="todo-label">TODO</span> · הנושא הנוסף שבחרת עדיין לא נכלל בחישוב.</p>' : ''}
     <div class="actions"><button class="primary" data-action="review-questions">לעבור שוב על השאלות <span aria-hidden="true">↻</span></button><button class="back" data-action="back">חזרה</button></div><button class="text-button" data-action="restart">להתחיל מחדש</button>` }, { stage: 'התוצאות שלך' });
@@ -348,11 +383,13 @@ app.addEventListener('change', event => {
   } else if (Object.values(QUESTIONS).some(question => question.inputName === input.name)) {
     const question = Object.values(QUESTIONS).find(question => question.inputName === input.name);
     if (input.name === 'burden-answer') {
+      const previousValue = burdenLevel(state.burdenAnswer, state.topics.includes('war-dream')).value;
       if (input.checked) app.querySelectorAll('[name="burden-answer"]').forEach(peer => {
         if (peer !== input && peer.dataset.burdenGroup === input.dataset.burdenGroup) peer.checked = false;
       });
       state.burdenAnswer = normalizeBurdenAnswer([...app.querySelectorAll('[name="burden-answer"]:checked')].map(item => item.value), state.topics.includes('war-dream'));
       app.querySelector('#burden-impact').textContent = burdenImpact();
+      updateBurdenMeter(previousValue);
     } else state[question.answerKey] = input.value;
     document.querySelector('[data-action="next"]').disabled = !hasAnswer(state.step);
   }

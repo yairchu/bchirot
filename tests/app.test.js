@@ -876,7 +876,7 @@ test('expanded burden pairs are independent, undoable, optional and scored once'
   assert.equal(window.history.state.bchirot.threatAnswer, null);
 });
 
-test('threat question explains the quote context, restores its answer and allows skipping other dimensions', async t => {
+test('threat question cites actions, restores its answer and allows skipping other dimensions', async t => {
   const { $, click, choose, traverse } = await setup(t);
   click('start');
   choose('[value="war-dream"]');
@@ -884,7 +884,8 @@ test('threat question explains the quote context, restores its answer and allows
   click('skip'); // Dream
   assert.equal($('.step-label').textContent, 'שאלה 3 מתוך 5');
   assert.equal(document.querySelectorAll('[name="threat-answer"]').length, 2);
-  assert.match($('.description').textContent, /2015/);
+  assert.match($('.description').textContent, /2018/);
+  assert.doesNotMatch($('.description').textContent, /הבהיר/);
   assert.match($('.description').textContent, /2023/);
   choose('[name="threat-answer"][value="pa"]');
   await traverse('back');
@@ -896,7 +897,49 @@ test('threat question explains the quote context, restores its answer and allows
   click('next');
   click('skip'); // Emergency
   assert.equal($('[data-party-id="shas"]'), null, 'unanswered conscription must not create a party score');
-  assert.equal($('[data-party-id="democrats"] .score').textContent, '0');
-  assert.match($('[data-party-id="democrats"] details').textContent, /פרשנות/);
+  assert.equal($('[data-party-id="democrats"] .score').textContent, '+1');
+  assert.equal($('[data-party-id="likud"] .score').textContent, '+2');
+  assert.match($('[data-party-id="likud"] details').textContent, /החלטה שבוצעה/);
   assert.match($('.description').textContent, /2 מתוך 4/);
+});
+
+
+test('burden meter animates real direction changes and browser history restores its level on mobile', async t => {
+  const { $, click, choose, traverse } = await setup(t, false);
+  click('start');
+  choose('[value="war-dream"]');
+  click('next');
+  click('skip'); // Dream
+  click('skip'); // Threat
+  const value = () => Number($('#burden-gauge').getAttribute('aria-valuenow'));
+  assert.equal(value(), 2);
+  assert.ok($('.burden-meter.is-entering'));
+  assert.match($('.burden-disclaimer').textContent, /לא תחזית/);
+  choose('[name="burden-answer"][value="exempt"]');
+  assert.equal(value(), 3);
+  assert.ok($('.burden-meter.is-rising'));
+  assert.match($('.burden-scenes').textContent, /העסק מחכה/);
+  choose('[name="burden-answer"][value="protect-outposts"]');
+  assert.equal(value(), 4);
+  choose('[name="burden-answer"][value="draft"]');
+  assert.equal(value(), 2);
+  assert.ok($('.burden-meter.is-falling'));
+  assert.match($('.burden-scenes').textContent, /מקום לעסק ולבית/);
+  await traverse('back');
+  assert.equal(value(), 4);
+  await traverse('forward');
+  assert.equal(value(), 2);
+  choose('[name="burden-answer"][value="protect-outposts"]', false);
+  assert.equal(value(), 1);
+  choose('[name="burden-answer"][value="draft"]', false);
+  assert.equal(value(), 2);
+  assert.match($('#burden-gauge').getAttribute('aria-valuetext'), /נבחרו 0 מתוך 2/);
+  assert.equal($('.burden-meter.is-rising'), null);
+  assert.equal($('[data-action="next"]').disabled, true);
+  choose('[name="burden-answer"][value="exempt"]');
+  click('skip');
+  await traverse('back');
+  assert.equal(value(), 3);
+  t.mock.timers.tick(10000);
+  assert.equal(value(), 3, 'scene never changes an answer or auto-advances');
 });

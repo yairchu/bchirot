@@ -168,3 +168,19 @@ p { margin: 0 0 28px; }
   .todo { font-size: 18px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+
+.burden-meter { width: 100%; padding: 20px clamp(16px, 3vw, 28px); border: 2px solid var(--border); border-radius: 12px; background: #fffef9; }
+.burden-meter h3 { font-size: clamp(23px, 3vw, 30px); margin: 0 0 16px; }
+.burden-scale { display: flex; justify-content: space-between; direction: ltr; font-size: 17px; margin-bottom: 8px; }
+.burden-track { height: 22px; direction: ltr; background: #e0e4d8; border-radius: 12px; overflow: hidden; }
+.burden-fill { display: block; height: 100%; background: var(--green); border-radius: inherit; transition: width .65s ease; }
+.burden-meter.is-rising .burden-fill { background: #b6603e; }
+.burden-scenes { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; opacity: 0; font-size: clamp(18px, 2.2vw, 25px); font-weight: 600; }
+.burden-meter:is(.is-entering, .is-rising, .is-falling) .burden-scenes { opacity: 1; animation: burden-scene 3s ease both; }
+.burden-meter.is-rising .burden-track { animation: burden-nudge .45s ease; }
+.burden-disclaimer { margin: 10px 0 0; color: var(--muted); font-size: 15px; line-height: 1.6; }
+@keyframes burden-scene { 0% { opacity: 0; transform: translateY(6px); } 15%, 80% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-4px); } }
+@keyframes burden-nudge { 25% { transform: translateX(3px); } 75% { transform: translateX(-3px); } }
+@media (prefers-reduced-motion: reduce) {
+  .burden-meter *, .burden-meter { animation: none !important; transition: none !important; }
+}
