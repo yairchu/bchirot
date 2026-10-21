@@ -7,7 +7,8 @@
 - [ ] Write follow-up questions for each topic, including their branching rules and question counts.
 - [x] Extend religion/transport to two sourced dilemmas, with skipping and combined scores. Unwritten topics still stop at an explicit TODO.
 - [x] Add a first sourced, explained scoring model for historical parties in the Yehudit Bridge case. See [the scoring model](docs/bridge-scoring.md).
-- [ ] Define how to map historical parties onto current electoral lists and combine scores across further dilemmas.
+- [x] Map sourced historical evidence to current electoral lists, average predecessors per question, and disclose partial membership and unmapped history. See [current-list mapping](docs/current-lists.md).
+- [ ] Expand evidence to unscored current lists and their current positions, and combine scores across further dilemmas.
 - [x] Allow continuing without topic selections; show a brief joke, then enter the two dilemmas without inventing selections.
 - [x] Exclude skips from scoring, show per-party evidence coverage, and show no ranking when all dilemmas are skipped.
 - [ ] Develop humor and useful insights for the other branches together.
@@ -22,7 +23,7 @@
 - [x] Add the Na'im Busofash dilemma with expansion, ban and current-arrangement choices. See [source notes](docs/naim-busofash.md).
 - [x] Finish the current religion/transport route at question 3 of 3 with sourced party scores.
 
-The welcome line is “השאלון שמבוסס על דילמות פוליטיות אמיתיות שקרו”. Two sourced dilemmas and combined party scoring work; further topics and current-list mapping remain TODOs.
+The welcome line is “השאלון שמבוסס על דילמות פוליטיות אמיתיות שקרו”. Two sourced dilemmas and combined party scoring work; current-list mapping is implemented; further topics and broader source coverage remain TODOs.
 
 ## Ballot data
 

@@ -142,11 +142,11 @@ test('weekend transit offers all three policies and scores an answer after skipp
   choose('[name="weekend-answer"][value="expand"]');
   click('next');
   assert.ok($('.description').textContent.includes('1 מתוך 2'));
-  assert.equal($('[data-party-id="meretz"] .score').textContent, '+2');
+  assert.equal($('[data-party-id="democrats"] .score').textContent, '+2');
   assert.equal($('[data-party-id="shas"] .score').textContent, '−2');
   assert.equal($('[data-party-id="likud"]'), null);
-  assert.ok($('[data-party-id="meretz"] details').textContent.includes('נעים בסופ״ש'));
-  assert.equal($('[data-party-id="meretz"] details').textContent.includes('גשר יהודית'), false);
+  assert.ok($('[data-party-id="democrats"] details').textContent.includes('נעים בסופ״ש'));
+  assert.equal($('[data-party-id="democrats"] details').textContent.includes('גשר יהודית'), false);
 });
 
 test('skipping a selected answer clears its points while browser Back restores the earlier selection', async t => {
@@ -158,13 +158,20 @@ test('skipping a selected answer clears its points while browser Back restores t
   click('next');
   choose('[name="weekend-answer"][value="expand"]');
   click('skip');
-  assert.equal($('[data-party-id="meretz"] .score').textContent, '+2');
+  assert.equal($('[data-party-id="democrats"] .score').textContent, '+2');
   assert.equal(window.history.state.bchirot.weekendAnswer, null);
   await traverse('back');
   assert.equal($('[name="weekend-answer"]:checked').value, 'expand');
   click('next');
-  assert.equal($('[data-party-id="meretz"] .score').textContent, '+4');
-  assert.ok($('[data-party-id="meretz"] .score-coverage').textContent.includes('2 מתוך 2'));
+  assert.equal($('[data-party-id="democrats"] .score').textContent, '+4');
+  assert.ok($('[data-party-id="democrats"] .score-coverage').textContent.includes('2 מתוך 2'));
+  assert.match($('[data-party-id="democrats"] th > strong').textContent, /הדמוקרטים · אמת/);
+  assert.match($('[data-party-id="democrats"] details').textContent, /מרצ במקור ההיסטורי/);
+  assert.match($('[data-party-id="democrats"] details').textContent, /העבודה \/ המחנה הציוני במקור ההיסטורי/);
+  assert.match($('[data-party-id="beyachad"] details').textContent, /יש עתיד בלבד/);
+  assert.equal($('[data-party-id="meretz"]'), null);
+  assert.equal($('[data-party-id="kulanu"]'), null);
+  assert.ok([...document.querySelectorAll('.score-method')].some(item => item.textContent.includes('ישר! עם איזנקוט')));
   click('restart');
   choose('[value="religion-transport"]');
   click('next');
@@ -274,15 +281,15 @@ test('changing a bridge answer through browser history recalculates the visible 
   click('skip');
   assert.equal($('[data-party-id="shas"] .score').textContent, '+2');
   assert.equal($('[data-party-id="likud"] .score').textContent, '+1');
-  assert.equal($('[data-party-id="meretz"] .score').textContent, '−2');
-  assert.ok($('.score-context').textContent.includes('מקורות מתקופות שונות'));
+  assert.equal($('[data-party-id="democrats"] .score').textContent, '−2');
+  assert.ok($('.score-context').textContent.includes('הניקוד מבוסס על התנהלות בעבר'));
   await traverse('back');
   await traverse('back');
   choose('[name="bridge-answer"][value="shabbat"]');
   click('next');
   click('skip');
   assert.equal($('[data-party-id="shas"] .score').textContent, '−2');
-  assert.equal($('[data-party-id="meretz"] .score').textContent, '+2');
+  assert.equal($('[data-party-id="democrats"] .score').textContent, '+2');
   assert.equal($('.todo'), null);
 });
 
