@@ -1,13 +1,14 @@
 import { CUTSCENE_DURATION, MOBILE_CONFIRM_DELAY, EASTER_EGG_DURATION, NO_TOPICS_DURATION, TOPIC_CHOICES, QUESTIONS, questionRoute, questionnaireQuestions, additionalQuestionCount, afterRobot, progress } from './flow.js';
 import { BALLOT_CHOICES, BLANK_BALLOT, BLANK_BALLOT_SOURCE, FAKE_BALLOT, PARTY_NOTICES } from './parties.js';
 import { BRIDGE_DILEMMA, WEEKEND_DILEMMA, EMERGENCY_DILEMMA, DREAM_QUESTION } from './dilemmas.js';
+import { BURDEN_GROUPS, BURDEN_TIMELINE, THREAT_DILEMMA, normalizeBurdenAnswer } from './policy-questions.js';
 import { BASIS_LABELS } from './scoring.js';
 import { scoreCurrentReligion, unscoredCurrentLists, UNMAPPED_HISTORY, MAPPING_CHECKED_ON } from './current-lists.js';
 
 const app = document.querySelector('#app');
 const main = document.querySelector('#main');
 const mouseAvailable = matchMedia('(hover: hover) and (pointer: fine)').matches;
-const state = { step: 'welcome', topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null, emergencyAnswer: null, dreamAnswer: null };
+const state = { step: 'welcome', topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null, emergencyAnswer: null, dreamAnswer: null, burdenAnswer: null, threatAnswer: null };
 let timers = [];
 const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 
@@ -17,7 +18,7 @@ function clearTimers() {
 }
 
 function saveHistory(replace = false) {
-  const snapshot = { ...state, topics: [...state.topics], party: state.party ? [...state.party] : null };
+  const snapshot = { ...state, topics: [...state.topics], party: state.party ? [...state.party] : null, burdenAnswer: state.burdenAnswer ? [...state.burdenAnswer] : null };
   window.history[replace ? 'replaceState' : 'pushState']({ bchirot: snapshot }, '');
 }
 
@@ -40,7 +41,7 @@ function back() {
 
 function restart(step = 'topics') {
   clearTimers();
-  Object.assign(state, { step, topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null, emergencyAnswer: null, dreamAnswer: null });
+  Object.assign(state, { step, topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null, emergencyAnswer: null, dreamAnswer: null, burdenAnswer: null, threatAnswer: null });
   saveHistory();
   render();
   focusQuestion();
@@ -100,6 +101,41 @@ function currentQuestions() {
 function advanceQuestion() {
   const questions = currentQuestions();
   go(questions[questions.indexOf(state.step) + 1] || 'bridge-result');
+}
+
+function burdenAnswer() {
+  return normalizeBurdenAnswer(state.burdenAnswer, state.topics.includes('war-dream'));
+}
+
+function hasAnswer(id) {
+  return id === 'burden' ? burdenAnswer().length > 0 : Boolean(state[QUESTIONS[id].answerKey]);
+}
+
+function burdenImpact() {
+  const selected = burdenAnswer();
+  return [
+    selected.includes('draft') ? 'הרחבת מעגל המשרתים.' : selected.includes('exempt') ? 'שמירת פטור ללומדי תורה.' : '',
+    selected.includes('limit-outposts') ? 'צמצום משימות הגנה על נקודות מבודדות.' : selected.includes('protect-outposts') ? 'הקצאת משאבי הגנה להתיישבות מבודדת.' : '',
+  ].filter(Boolean).join(' ');
+}
+
+function burdenView() {
+  const expanded = state.topics.includes('war-dream');
+  const selected = burdenAnswer();
+  const groups = BURDEN_GROUPS.slice(0, expanded ? 2 : 1);
+  return frame({
+    title: expanded ? 'הנטל ומי נושא בו' : 'גיוס חרדים — מי נושא בנטל?',
+    body: `<p class="description">${expanded ? 'את הנטל אפשר לשנות גם דרך מי שמשרת וגם דרך המשימות שמטילים על צה״ל. מה נכון בעיניך?' : 'האם חובת השירות צריכה לחול גם על צעירים חרדים, או לשמר פטור לתלמידי ישיבות?'}</p>
+      ${expanded ? '<p class="selection-note">אפשר לבחור עמדה בכל נושא, או רק באחד מהם. נושא שלא סומן אינו מקבל ניקוד.</p>' : ''}
+      ${groups.map(group => `<fieldset class="burden-group"><legend>${escape(group.title)}</legend>${group.options.map(option => `<label class="choice dilemma-option"><input type="${expanded ? 'checkbox' : 'radio'}" name="burden-answer" data-burden-group="${group.id}" value="${option.id}" ${selected.includes(option.id) ? 'checked' : ''}><span class="choice-copy"><strong>${escape(option.label)}</strong><small>${escape(option.detail)}</small></span></label>`).join('')}</fieldset>`).join('')}
+      <p class="selection-note" id="burden-impact" role="status">${burdenImpact()}</p>
+      <details class="dilemma-details"><summary>לפרטים נוספים</summary><div class="dilemma-background">${BURDEN_TIMELINE.slice(0, expanded ? 3 : 1).map(item => `<p>${escape(item.text)} <a href="${item.url}" target="_blank" rel="noopener noreferrer">${escape(item.source)}</a>.</p>`).join('')}</div></details>
+      ${actions('ממשיכים', !selected.length)}<button class="text-button" data-action="skip">לדלג על השאלה</button>`,
+  });
+}
+
+function threatView() {
+  return dilemmaView(THREAT_DILEMMA, 'threatAnswer', 'threat-answer', 'חמאס, הרשות וסדרי העדיפויות', 'ממשיכים');
 }
 
 function dreamView() {
@@ -214,7 +250,7 @@ function dilemmaView(dilemma, answerKey, inputName, backgroundTitle, nextLabel) 
 }
 
 function currentContributionView(item) {
-  return `<p><b>${escape(item.question)}: ${item.points > 0 ? '+' : ''}${item.points} נקודות.</b></p>${item.evidence.map(evidence => `<p><strong>${escape(evidence.name)} ${evidence.basis === 'vision' ? 'בחזון המוצהר' : 'במקור ההיסטורי'}:</strong> ${escape(evidence.reason)}</p><p>${BASIS_LABELS[evidence.basis]} · <a href="${evidence.source}" target="_blank" rel="noopener noreferrer">מקור</a>${evidence.followupSource ? ` · <a href="${evidence.followupSource}" target="_blank" rel="noopener noreferrer">${escape(evidence.followupLabel || 'חידוש העבודות')}</a>` : ''}</p>`).join('')}`;
+  return `<p><b>${escape(item.question)}: ${item.points > 0 ? '+' : ''}${item.points} נקודות.</b></p>${item.evidence.map(evidence => `<p><strong>${escape(evidence.name)} ${evidence.basis === 'vision' ? 'בחזון המוצהר' : ['policy', 'interpretation'].includes(evidence.basis) ? 'בעמדה המתועדת' : 'במקור ההיסטורי'}:</strong> ${evidence.component ? `${escape(evidence.component)} (${evidence.points > 0 ? '+' : ''}${evidence.points}): ` : ''}${escape(evidence.reason)}</p><p>${BASIS_LABELS[evidence.basis]} · <a href="${evidence.source}" target="_blank" rel="noopener noreferrer">מקור</a>${evidence.followupSource ? ` · <a href="${evidence.followupSource}" target="_blank" rel="noopener noreferrer">${escape(evidence.followupLabel || 'חידוש העבודות')}</a>` : ''}</p>`).join('')}`;
 }
 
 function dreamSummary() {
@@ -242,8 +278,8 @@ function scoreGroupsView(scores, answered) {
 
 function bridgeResultView() {
   const questions = currentQuestions();
-  const activeAnswer = id => questions.includes(id) ? state[QUESTIONS[id].answerKey] : null;
-  const scores = scoreCurrentReligion(activeAnswer('bridge'), activeAnswer('weekend'), activeAnswer('emergency'), activeAnswer('dream'));
+  const activeAnswer = id => !questions.includes(id) ? null : id === 'burden' ? (burdenAnswer().length ? burdenAnswer() : null) : state[QUESTIONS[id].answerKey];
+  const scores = scoreCurrentReligion(activeAnswer('bridge'), activeAnswer('weekend'), activeAnswer('emergency'), activeAnswer('dream'), { burdenAnswer: activeAnswer('burden'), threatAnswer: activeAnswer('threat') });
   const scoredQuestions = questions.filter(id => QUESTIONS[id].scored);
   const answered = scoredQuestions.filter(id => Boolean(activeAnswer(id))).length;
   const dream = dreamSummary();
@@ -254,9 +290,9 @@ function bridgeResultView() {
     <p class="description">ענית על ${answered} מתוך ${scoredQuestions.length} דילמות. דילוגים לא נכללים בניקוד.${state.emergencyAnswer === 'central-request' ? ' לחלופה שבחרת בשאלת 7 באוקטובר אין ניקוד מפלגתי.' : ''}</p>
     ${dream}
     ${hasPositive ? '' : '<p class="result-status">אף רשימה שנבדקה לא קיבלה ציון חיובי. פירוט הפערים או ציוני האפס מופיע בהמשך.</p>'}
-    <p class="score-context">הרשימות מוצגות בשמותיהן ובאותיות הפתק הנוכחיות, לפי מיפוי ההיסטוריה המפלגתית. הניקוד מבוסס על התנהלות בעבר ועל חזון מוצהר. ההתאמות, ציוני האפס והמחלוקות מוצגים בנפרד. בתוך כל קבוצה מוצגות תחילה רשימות עם יותר מידע על התשובות שלך.</p>
+    <p class="score-context">הרשימות מוצגות בשמותיהן ובאותיות הפתק הנוכחיות, לפי מיפוי ההיסטוריה המפלגתית. הניקוד מבוסס על התנהלות בעבר, עמדות מתועדות וחזון מוצהר. ההתאמות, ציוני האפס והמחלוקות מוצגים בנפרד. בתוך כל קבוצה מוצגות תחילה רשימות עם יותר מידע על התשובות שלך.</p>
     ${scoreGroupsView(scores, answered)}
-    <details class="score-method"><summary>איך הניקוד עובד?</summary><p>בשאלת הגשר: משקל 2 לעמדה מתועדת ומשקל 1 להתנהלות מעורבת או להערכת אחריות קואליציונית. בנעים בסופ״ש: ציר של איסור, מצב קיים והרחבה. עמדה באותה קטגוריה מקבלת 2, קטגוריה סמוכה 0, והקצה ההפוך מינוס 2. בשאלת בוקר 7 באוקטובר, העדפת יוזמה מיידית מורידה נקודה אחת לליכוד כהערכת אחריות מיניסטריאלית להיערכות משרד התחבורה. בחלופה השנייה אין ניקוד; אין נקודת זכות לאף מפלגה או הערכה איך שר אחר היה פועל. שאלת החלום מוסיפה נקודת זיקה אחת לרשימות שעבורן נמצא חזון תואם. אין הפחתת נקודות לחלום האחר, ואין קביעה שרשימות שלא נבדקו אינן שותפות לאותו חלום. הקטגוריות והמשקלים הם פרשנות במודל.</p><p>אפס הוא ציון של מרחק בין החלופות במודל, לא קביעה שהמפלגה נייטרלית. דילוג או היעדר מקור אינם מוסיפים ציון כלל. ההשוואה בנעים בסופ״ש עוסקת בכיוון המדיניות, ולא בהסכמה נפרדת לכל פרט כמו תעריף או סוג רכבת. באיחוד רשימות מחושב ממוצע הציונים ההיסטוריים לכל שאלה, כדי לא להכפיל את משקלה. המקורות והשיוך ההיסטורי מפורטים תחת ״למה?״.</p></details>
+    <details class="score-method"><summary>איך הניקוד עובד?</summary><p>בשאלת הגשר: משקל 2 לעמדה מתועדת ומשקל 1 להתנהלות מעורבת או להערכת אחריות קואליציונית. בנעים בסופ״ש: ציר של איסור, מצב קיים והרחבה. עמדה באותה קטגוריה מקבלת 2, קטגוריה סמוכה 0, והקצה ההפוך מינוס 2. בשאלת בוקר 7 באוקטובר, העדפת יוזמה מיידית מורידה נקודה אחת לליכוד כהערכת אחריות מיניסטריאלית להיערכות משרד התחבורה. בחלופה השנייה אין ניקוד; אין נקודת זכות לאף מפלגה או הערכה איך שר אחר היה פועל. שאלת החלום מוסיפה נקודת זיקה אחת לרשימות שעבורן נמצא חזון תואם. אין הפחתת נקודות לחלום האחר, ואין קביעה שרשימות שלא נבדקו אינן שותפות לאותו חלום. בשאלת הנטל כל רכיב שנענה תורם נקודה לחיוב או לשלילה, עד שתי נקודות כשנענו שני הרכיבים. שאלת חמאס והרשות מקבלת נקודה אחת כפרשנות לסדר העדיפויות המוצהר, ולא כספירת קורבנות. הקטגוריות והמשקלים הם פרשנות במודל.</p><p>אפס הוא ציון של מרחק בין החלופות במודל, לא קביעה שהמפלגה נייטרלית. דילוג או היעדר מקור אינם מוסיפים ציון כלל. ההשוואה בנעים בסופ״ש עוסקת בכיוון המדיניות, ולא בהסכמה נפרדת לכל פרט כמו תעריף או סוג רכבת. באיחוד רשימות מחושב ממוצע הציונים ההיסטוריים לכל שאלה, כדי לא להכפיל את משקלה. המקורות והשיוך ההיסטורי מפורטים תחת ״למה?״.</p></details>
     <details class="score-method"><summary>מי עדיין לא נכלל בהשוואה?</summary><p>לרשימות הבאות אין כרגע ניקוד לתשובות שלך; היעדר מידע אינו עמדה נייטרלית:</p><p>${unscoredCurrentLists(scores).map(([letters, name]) => `${escape(name)} (${escape(letters)})`).join(' · ')}</p>${UNMAPPED_HISTORY.map(item => `<p>${escape(item.reason)}</p>`).join('')}<p>המיפוי נבדק ב־${MAPPING_CHECKED_ON}. רשימות שהודיעו על פרישה אינן נכללות בתוצאות.</p></details>
     ${state.topics.includes('todo-2') ? '<p class="todo"><span class="todo-label">TODO</span> · הנושא הנוסף שבחרת עדיין לא נכלל בחישוב.</p>' : ''}
     <div class="actions"><button class="primary" data-action="review-questions">לעבור שוב על השאלות <span aria-hidden="true">↻</span></button><button class="back" data-action="back">חזרה</button></div><button class="text-button" data-action="restart">להתחיל מחדש</button>` }, { stage: 'התוצאות שלך' });
@@ -265,11 +301,11 @@ function bridgeResultView() {
 function independentView() {
   // TODO: Continue the topic flow with more dilemmas and sourced comparisons.
   const religionTransport = state.topics.includes('religion-transport');
-  return frame({ title: religionTransport ? 'דת ותחבורה' : 'השאלות לפי העמדות שלך', body: `<p class="todo"><span class="todo-label">TODO</span> · ${religionTransport ? 'להוסיף את הדילמה הבאה ולבנות את המשך המסלול.' : 'לכתוב את השאלות ולבנות את המסלול.'}</p><button class="primary" data-action="topics">חזרה להתחלה <span aria-hidden="true">↻</span></button>` });
+  return frame({ title: religionTransport ? 'דת ומדינה' : 'השאלות לפי העמדות שלך', body: `<p class="todo"><span class="todo-label">TODO</span> · ${religionTransport ? 'להוסיף את הדילמה הבאה ולבנות את המשך המסלול.' : 'לכתוב את השאלות ולבנות את המסלול.'}</p><button class="primary" data-action="topics">חזרה להתחלה <span aria-hidden="true">↻</span></button>` });
 }
 
 function render() {
-  const views = { welcome: welcomeView, topics: topicsView, 'no-topics': noTopicsView, dream: dreamView, bridge: bridgeView, weekend: weekendView, emergency: emergencyView, 'bridge-result': bridgeResultView, party: partyView, 'fake-ballot': fakeBallotView, robot: robotView, 'robot-thanks': robotThanksView, sure: sureView, loading: loadingView, result: resultView, independent: independentView };
+  const views = { welcome: welcomeView, topics: topicsView, 'no-topics': noTopicsView, dream: dreamView, threat: threatView, burden: burdenView, bridge: bridgeView, weekend: weekendView, emergency: emergencyView, 'bridge-result': bridgeResultView, party: partyView, 'fake-ballot': fakeBallotView, robot: robotView, 'robot-thanks': robotThanksView, sure: sureView, loading: loadingView, result: resultView, independent: independentView };
   app.innerHTML = views[state.step]();
   if (state.step === 'no-topics') timers.push(setTimeout(() => go(currentQuestions()[0], true), NO_TOPICS_DURATION));
   if (state.step === 'fake-ballot') {
@@ -311,8 +347,14 @@ app.addEventListener('change', event => {
     document.querySelector('#blank-ballot-note').hidden = state.party[0] !== BLANK_BALLOT[0];
   } else if (Object.values(QUESTIONS).some(question => question.inputName === input.name)) {
     const question = Object.values(QUESTIONS).find(question => question.inputName === input.name);
-    state[question.answerKey] = input.value;
-    document.querySelector('[data-action="next"]').disabled = false;
+    if (input.name === 'burden-answer') {
+      if (input.checked) app.querySelectorAll('[name="burden-answer"]').forEach(peer => {
+        if (peer !== input && peer.dataset.burdenGroup === input.dataset.burdenGroup) peer.checked = false;
+      });
+      state.burdenAnswer = normalizeBurdenAnswer([...app.querySelectorAll('[name="burden-answer"]:checked')].map(item => item.value), state.topics.includes('war-dream'));
+      app.querySelector('#burden-impact').textContent = burdenImpact();
+    } else state[question.answerKey] = input.value;
+    document.querySelector('[data-action="next"]').disabled = !hasAnswer(state.step);
   }
   if (['authority', 'topic'].includes(input.name)) updateTopicSummary();
   if (['authority', 'topic', 'party', ...Object.values(QUESTIONS).map(question => question.inputName)].includes(input.name)) saveHistory();
@@ -339,7 +381,7 @@ app.addEventListener('click', event => {
   else if (action === 'next') {
     if (state.step === 'topics') go(state.authority ? 'party' : !state.topics.length ? 'no-topics' : currentQuestions()[0] || 'independent');
     else if (state.step === 'party' && state.party) go(state.party[0] === FAKE_BALLOT[0] ? 'fake-ballot' : 'robot');
-    else if (currentQuestions().includes(state.step) && state[QUESTIONS[state.step].answerKey]) advanceQuestion();
+    else if (currentQuestions().includes(state.step) && hasAnswer(state.step)) advanceQuestion();
   } else if (action === 'robot-no' || action === 'robot-yes') {
     state.robot = action === 'robot-no' ? 'no' : 'yes';
     go(afterRobot(state.robot));

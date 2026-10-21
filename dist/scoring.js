@@ -25,6 +25,8 @@ export const BASIS_LABELS = {
   coalition: 'הערכת אחריות קואליציונית',
   responsibility: 'הערכת אחריות מיניסטריאלית — משקל 1',
   vision: 'זיקה לחזון מוצהר — משקל 1',
+  policy: 'עמדה מתועדת — נקודה לכל רכיב שנענה',
+  interpretation: 'פרשנות לסדר עדיפויות מוצהר — משקל 1',
 };
 
 export function scoreBridge(answer) {

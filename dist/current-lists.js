@@ -1,6 +1,7 @@
 import { PARTIES, PARTY_NOTICES } from './parties.js';
 import { scoreReligion } from './scoring.js';
 import { scoreVision } from './visions.js';
+import { scoreBurden, scoreThreat } from './policy-questions.js';
 
 export const MAPPING_CHECKED_ON = '2026-10-22';
 const idi = 'https://www.idi.org.il/policy/parties-and-elections/parties/';
@@ -41,7 +42,7 @@ export function mapHistoricalScores(historicalScores) {
   }).sort((a, b) => b.contributions.length - a.contributions.length || b.points - a.points || a.name.localeCompare(b.name, 'he'));
 }
 
-export function scoreCurrentReligion(bridgeAnswer, weekendAnswer, emergencyAnswer = null, dreamAnswer = null) {
+export function scoreCurrentReligion(bridgeAnswer, weekendAnswer, emergencyAnswer = null, dreamAnswer = null, { burdenAnswer = null, threatAnswer = null } = {}) {
   const results = mapHistoricalScores(scoreReligion(bridgeAnswer, weekendAnswer, emergencyAnswer));
   for (const evidence of scoreVision(dreamAnswer)) {
     let party = results.find(party => party.id === evidence.id);
@@ -51,6 +52,23 @@ export function scoreCurrentReligion(bridgeAnswer, weekendAnswer, emergencyAnswe
     }
     party.contributions.push({ question: 'החלום שבחרת', points: evidence.points, evidence: [evidence] });
     party.points += evidence.points;
+  }
+  for (const [question, records] of [['הנטל ומי נושא בו', scoreBurden(burdenAnswer)], ['חמאס והרשות', scoreThreat(threatAnswer)]]) {
+    for (const evidence of records) {
+      let party = results.find(party => party.id === evidence.id);
+      if (!party) {
+        party = { id: evidence.id, name: evidence.name, letters: evidence.letters, points: 0, contributions: [], note: 'הניקוד מבוסס על העמדה והמקור המפורטים בכל רכיב שנענה.', source: evidence.source };
+        results.push(party);
+      }
+      let contribution = party.contributions.find(item => item.question === question);
+      if (!contribution) {
+        contribution = { question, points: 0, evidence: [] };
+        party.contributions.push(contribution);
+      }
+      contribution.evidence.push(evidence);
+      contribution.points += evidence.points;
+      party.points += evidence.points;
+    }
   }
   return results.sort((a, b) => b.contributions.length - a.contributions.length || b.points - a.points || a.name.localeCompare(b.name, 'he'));
 }

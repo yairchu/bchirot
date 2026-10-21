@@ -3,18 +3,18 @@
 ## Questionnaire content
 
 - [ ] Agree on the actual choices for “מה הכי חשוב לך?”. The invented sample topics have been removed.
-- [x] Support multiple selection; selecting authority disables the other choices, and deselecting authority restores earlier choices. The named topics are “דת ותחבורה” and “מלחמה וחלום”; one TODO choice remains.
+- [x] Support multiple selection; selecting authority disables the other choices, and deselecting authority restores earlier choices. The named topics are “דת ומדינה” and “מלחמה וחלום”; one TODO choice remains.
 - [x] Build category routes from a shared question catalog, deduplicate shared questions, and show incremental question costs and dynamic progress. See [question flow](docs/question-flow.md).
 - [ ] Write further sourced questions for each topic.
 - [x] Extend religion/transport to three sourced dilemmas, with skipping and combined scores. Unwritten topics still stop at an explicit TODO.
 - [x] Add a first sourced, explained scoring model for historical parties in the Yehudit Bridge case. See [the scoring model](docs/bridge-scoring.md).
 - [x] Map sourced historical evidence to current electoral lists, average predecessors per question, and disclose partial membership and unmapped history. See [current-list mapping](docs/current-lists.md).
 - [ ] Expand evidence to unscored current lists and their current positions, and combine scores across further dilemmas.
-- [x] Allow continuing without topic selections; show a brief joke, then enter the three dilemmas without inventing selections.
+- [x] Allow continuing without topic selections; show a brief joke, then enter the default category dilemmas without inventing selections.
 - [x] Exclude skips from scoring, show per-party evidence coverage, and show no ranking when all dilemmas are skipped.
 - [ ] Develop humor and useful insights for the other branches together.
 
-## Next topic: דת ותחבורה
+## Next topic: דת ומדינה
 
 - [x] Add the topic to the first question, replacing one TODO choice.
 - [x] Implement the first dilemma about the construction of Yehudit Bridge, with two answer choices and optional sourced background. See [the source notes](docs/yehudit-bridge.md).
@@ -24,14 +24,15 @@
 - [x] Add the Na'im Busofash dilemma with expansion, ban and current-arrangement choices. See [source notes](docs/naim-busofash.md).
 - [x] Add the October 7 morning preparedness dilemma as the final question shared by either active category, with sourced background and at most one negative ministerial responsibility point for Likud; no positive points or speculative scores for other parties. See [source notes](docs/emergency-transit.md).
 
-The welcome line is “השאלון שמבוסס על דילמות פוליטיות אמיתיות שקרו”. Three sourced dilemmas and combined party scoring work; current-list mapping is implemented; further topics and broader source coverage remain TODOs.
+The welcome line is “השאלון שמבוסס על דילמות פוליטיות אמיתיות שקרו”. Both active categories have sourced questions and combined party scoring; current-list mapping is implemented; further topics and broader source coverage remain TODOs.
 
 ## מלחמה וחלום
 
 - [x] Add the category and a two-choice dream question with skipping and sourced one-point vision affinities. See [vision mapping](docs/visions.md).
 - [x] Share the October 7 transport question with religion/transport, without duplicating it or its score.
 - [x] Separate positive, zero and negative totals so a single negative result cannot appear as a positive match.
-- [ ] Develop sourced dilemmas about the tradeoffs between aspirations and security, with explained scoring.
+- [x] Add the shared conscription question, expanded into independent conscription/outpost choices for security interest, and a sourced Hamas/PA priorities question with explicitly interpretive scoring. See [sources and model](docs/burden-and-threat.md).
+- [ ] Broaden the documented party coverage for the new policy questions.
 - [ ] Broaden vision coverage to more lists and prefer a current primary party source for Raam over the quoted 2025 chairman statement.
 
 ## Ballot data

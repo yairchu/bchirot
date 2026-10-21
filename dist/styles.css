@@ -74,6 +74,9 @@ p { margin: 0 0 28px; }
 .score-group h3 { font-size: 28px; margin: 0 0 12px; }
 .score-group .score-table { margin-top: 16px; }
 .result-status { font-size: 24px; font-weight: 600; }
+.burden-group { width: 100%; border: 0; padding: 0; margin: 24px 0 0; }
+.burden-group legend { font-size: 24px; font-weight: 600; margin-bottom: 12px; }
+.burden-group .choice + .choice { margin-top: 12px; }
 .choice-copy small { font-size: clamp(18px, 1.8vw, 23px); color: var(--muted); line-height: 1.6; }
 .authority { border: 2px solid #b7c9b8; border-radius: 12px; background: #eaf0e2; padding: 24px; margin-bottom: 12px; }
 .authority:has(input:checked) { border-color: var(--green); }
