@@ -21,7 +21,7 @@
 - [ ] Write the next questions and answer choices together, before implementing them.
 - [ ] Develop the humor and useful context for each answer.
 - [x] Add the Na'im Busofash dilemma with expansion, ban and current-arrangement choices. See [source notes](docs/naim-busofash.md).
-- [x] Add the wartime transit dilemma as question 4 of 4, with sourced background and one-point ministerial responsibility scoring for Likud only. See [source notes](docs/emergency-transit.md).
+- [x] Add the October 7 morning preparedness dilemma as question 4 of 4, with sourced background and at most one negative ministerial responsibility point for Likud; no positive points or speculative scores for other parties. See [source notes](docs/emergency-transit.md).
 
 The welcome line is “השאלון שמבוסס על דילמות פוליטיות אמיתיות שקרו”. Three sourced dilemmas and combined party scoring work; current-list mapping is implemented; further topics and broader source coverage remain TODOs.
 

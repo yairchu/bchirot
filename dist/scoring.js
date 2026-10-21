@@ -54,19 +54,19 @@ export function scoreWeekend(answer) {
 }
 
 export function scoreEmergency(answer) {
-  if (!['continue', 'on-demand'].includes(answer)) return [];
+  if (answer !== 'immediate') return [];
   return [{
-    id: 'likud', name: 'הליכוד', points: answer === 'on-demand' ? 1 : -1, basis: 'responsibility',
-    reason: 'משרד התחבורה בראשות מירי רגב מהליכוד הפסיק בנובמבר 2023 את מתכונת החירום בשבת, לאחר בדיקת הביקוש והצורך הביטחוני, והתחייב לחידושה לפי צורך חיוני. בג״ץ לא מצא עילה להתערבות. השיוך לליכוד הוא הערכת אחריות לשרת התחבורה, ולא קביעה על מניע דתי או על התנהלות מפלגות אחרות.',
-    source: 'https://www.gov.il/BlobFolder/news/news-28-11/he/23082230.Y05.pdf',
+    id: 'likud', name: 'הליכוד', points: -1, basis: 'responsibility',
+    reason: 'לפי תחקיר וואלה, לא תוכנן מערך תחבורה ציבורית לשבת במקרה של מלחמה, והגעת חיילים ב־7 באוקטובר התעכבה בשל בעיות תחבורה. מינוס נקודה לליכוד משקף הערכה עריכתית של אחריות משרד התחבורה בראשות מירי רגב להיערכות וליוזמה. אין כאן קביעה שהשרה אסרה נסיעות בשבת או מה שר אחר היה עושה.',
+    source: 'https://cars.walla.co.il/item/3622762',
     followupSource: 'https://img.haarets.co.il/bs/0000018c-11c0-d65f-a7dd-f1d7cc590000/2d/a3/1d17d3c7472693b9e5df0db8a30f/transportation.pdf',
-    followupLabel: 'עותק נוסף של פסק הדין',
+    followupLabel: 'תיאור תגובת המדינה בפסק הדין',
   }];
 }
 
 export function scoreReligion(bridgeAnswer, weekendAnswer, emergencyAnswer = null) {
   const totals = new Map();
-  for (const [question, scores] of [['גשר יהודית', scoreBridge(bridgeAnswer)], ['נעים בסופ״ש', scoreWeekend(weekendAnswer)], ['תחבורה בזמן מלחמה', scoreEmergency(emergencyAnswer)]]) {
+  for (const [question, scores] of [['גשר יהודית', scoreBridge(bridgeAnswer)], ['נעים בסופ״ש', scoreWeekend(weekendAnswer)], ['תחבורה בבוקר 7 באוקטובר', scoreEmergency(emergencyAnswer)]]) {
     for (const party of scores) {
       if (!totals.has(party.id)) totals.set(party.id, { id: party.id, name: party.name, points: 0, contributions: [] });
       const total = totals.get(party.id);

@@ -2,11 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { BRIDGE_POSITIONS, WEEKEND_POSITIONS, scoreBridge, scoreWeekend, scoreEmergency, scoreReligion } from '../dist/scoring.js';
 
-test('wartime transit affects only Likud by one point, with no invented opposition scores', () => {
-  const critical = scoreEmergency('continue');
-  const supportive = scoreEmergency('on-demand');
+test('October 7 preparedness gives at most one negative Likud point and no positive points', () => {
+  const critical = scoreEmergency('immediate');
+  const supportive = scoreEmergency('central-request');
   assert.deepEqual(critical.map(party => [party.id, party.points]), [['likud', -1]]);
-  assert.deepEqual(supportive.map(party => [party.id, party.points]), [['likud', 1]]);
+  assert.deepEqual(supportive, []);
+  assert.deepEqual(scoreEmergency('on-demand'), []); // Retired November policy must not reward Likud.
   assert.equal(critical[0].basis, 'responsibility');
   assert.deepEqual(scoreEmergency(null), []);
   assert.deepEqual(scoreEmergency('unknown'), []);

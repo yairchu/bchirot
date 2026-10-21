@@ -5,13 +5,14 @@ import { scoreReligion } from '../dist/scoring.js';
 import { CURRENT_LIST_MAPPINGS, mapHistoricalScores, scoreCurrentReligion, unscoredCurrentLists } from '../dist/current-lists.js';
 
 test('ministerial responsibility is preserved once through current-list mapping', () => {
-  const [only] = scoreCurrentReligion(null, null, 'continue');
+  const [only] = scoreCurrentReligion(null, null, 'immediate');
   assert.equal(only.id, 'likud');
   assert.equal(only.points, -1);
   assert.equal(only.contributions.length, 1);
   assert.equal(only.contributions[0].evidence.length, 1);
   const before = scoreCurrentReligion('shabbat', 'expand');
-  const after = scoreCurrentReligion('shabbat', 'expand', 'continue');
+  assert.deepEqual(scoreCurrentReligion('shabbat', 'expand', 'central-request'), before);
+  const after = scoreCurrentReligion('shabbat', 'expand', 'immediate');
   for (const party of after) {
     const previous = before.find(item => item.id === party.id);
     assert.equal(party.points, previous.points - (party.id === 'likud' ? 1 : 0));
