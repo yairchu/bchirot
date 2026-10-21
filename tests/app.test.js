@@ -418,6 +418,29 @@ test('mobile Back cancels the delayed reveal and Forward starts it afresh', asyn
 });
 
 for (const mouseAvailable of [true, false]) {
+  test(`withdrawn list gives a sourced update instead of a recommendation on ${mouseAvailable ? 'desktop' : 'mobile'}`, async t => {
+    const { $, click, choose, hover } = await setup(t, mouseAvailable);
+    click('start');
+    choose('[name="authority"]');
+    click('next');
+    choose('[name="party"][value="כן"]');
+    click('next');
+    click('robot-no');
+    if (mouseAvailable) hover();
+    else t.mock.timers.tick(MOBILE_CONFIRM_DELAY);
+    t.mock.timers.tick(CUTSCENE_DURATION);
+    t.mock.timers.tick(2500);
+    assert.equal($('h2').textContent, 'יש לנו משהו לספר לך');
+    assert.ok($('.withdrawn-result').textContent.includes('״כחול לבן״ הודיעה על פרישה'));
+    assert.ok($('.withdrawn-result').textContent.includes('להמלצה עדכנית'));
+    assert.equal($('.source-note a').href, 'https://www.ynet.co.il/news/elections2026/article/hj00o26m2zl');
+    assert.equal($('.result-ballot'), null);
+    assert.equal($('.score-table'), null);
+    click('independent');
+    assert.equal($('h2').textContent, 'מה הכי חשוב לך?');
+    assert.equal($('[name="authority"]').checked, false);
+  });
+
   test(`a robot answer acknowledges self-awareness on ${mouseAvailable ? 'desktop' : 'mobile'} before computing`, async t => {
     const { $, click, robotQuestion } = await setup(t, mouseAvailable);
     robotQuestion();
@@ -434,3 +457,32 @@ for (const mouseAvailable of [true, false]) {
     assert.equal($('.result-ballot strong').textContent, 'מחל');
   });
 }
+
+test('an updated recommendation clears the withdrawn choice and normal results still work', async t => {
+  const { $, click, choose, traverse } = await setup(t);
+  click('start');
+  choose('[name="authority"]');
+  click('next');
+  choose('[name="party"][value="כן"]');
+  click('next');
+  click('robot-yes');
+  t.mock.timers.tick(CUTSCENE_DURATION);
+  t.mock.timers.tick(2500);
+  assert.ok($('.withdrawn-result'));
+  click('update-recommendation');
+  assert.equal($('[name="party"]:checked'), null);
+  assert.equal($('[data-action="next"]').disabled, true);
+  choose('[name="party"][value="מחל"]');
+  click('next');
+  click('robot-yes');
+  t.mock.timers.tick(CUTSCENE_DURATION);
+  t.mock.timers.tick(2500);
+  assert.equal($('.result-ballot strong').textContent, 'מחל');
+  assert.equal($('.withdrawn-result'), null);
+  await traverse('back'); // Robot question.
+  await traverse('back'); // Updated recommendation.
+  await traverse('back'); // Empty ballot selection after requesting an update.
+  await traverse('back'); // The original withdrawal result.
+  assert.equal($('h2').textContent, 'יש לנו משהו לספר לך');
+  assert.equal($('.result-ballot'), null);
+});

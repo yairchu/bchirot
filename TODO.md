@@ -23,6 +23,7 @@ The welcome line is “השאלון שמבוסס על דילמות פוליטי�
 
 ## Ballot data
 
+- [x] Show a sourced result notice for announced withdrawals; Blue and White remains selectable to catch outdated recommendations. See [party notices](docs/party-notices.md).
 - [ ] Verify every party name, ballot letter, and eligibility against official Central Elections Committee publications. The current data is a secondary-source prototype snapshot.
 - [ ] Decide how ballot data will be updated for future elections.
 

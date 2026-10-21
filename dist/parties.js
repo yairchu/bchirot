@@ -25,3 +25,16 @@ export const BALLOT_CHOICES = [
   BLANK_BALLOT,
 ];
 export const BLANK_BALLOT_SOURCE = 'https://www.gov.il/he/departments/topics/faq-26';
+
+// Announced withdrawals, maintained separately from the original ballot snapshot.
+// This reports a campaign announcement, not a legal ruling on ballot validity.
+// See ../docs/party-notices.md before adding or changing a notice.
+export const PARTY_NOTICES = {
+  'כן': {
+    kind: 'withdrawn',
+    announcedOn: '2026-10-19',
+    checkedOn: '2026-10-21',
+    sourceUrl: 'https://www.ynet.co.il/news/elections2026/article/hj00o26m2zl',
+    sourceLabel: 'ynet, ‏19.10.2026',
+  },
+};

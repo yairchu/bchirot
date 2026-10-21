@@ -1,5 +1,5 @@
 import { CUTSCENE_DURATION, MOBILE_CONFIRM_DELAY, EASTER_EGG_DURATION, TOPIC_CHOICES, afterRobot, progress } from './flow.js';
-import { BALLOT_CHOICES, BLANK_BALLOT, BLANK_BALLOT_SOURCE, FAKE_BALLOT } from './parties.js';
+import { BALLOT_CHOICES, BLANK_BALLOT, BLANK_BALLOT_SOURCE, FAKE_BALLOT, PARTY_NOTICES } from './parties.js';
 import { BRIDGE_DILEMMA } from './dilemmas.js';
 import { BASIS_LABELS, scoreBridge } from './scoring.js';
 
@@ -128,12 +128,23 @@ function loadingView() {
 function resultView() {
   // This result repeats the user's input; it does not score or endorse a party.
   const [letters, name] = state.party;
+  const notice = PARTY_NOTICES[letters];
+  if (notice?.kind === 'withdrawn') return withdrawnResultView(name, notice);
   const blank = letters === BLANK_BALLOT[0];
   return frame({ title: `הפתק שלך: ${escape(name)}`, body: `
     <div class="result-ballot">${blank ? '<span class="sr-only">פתק לבן ריק</span>' : `<strong>${escape(letters)}</strong><span>${escape(name)}</span>`}</div>
     <p class="reason"><strong>השיקול שהוביל לתוצאה</strong>זו ההמלצה של האדם שבחרת לסמוך עליו.</p>
     ${blank ? blankBallotNote() : ''}
     <button class="primary" data-action="independent">בואו נבדוק גם לפי העמדות שלי <span aria-hidden="true">↻</span></button><button class="text-button" data-action="restart">להתחיל מחדש</button>` }, { stage: 'התוצאה שלך' });
+}
+
+function withdrawnResultView(name, notice) {
+  return frame({ title: 'יש לנו משהו לספר לך', body: `
+    <p class="description">״${escape(name)}״ הודיעה על פרישה מההתמודדות בבחירות.</p>
+    <p class="source-note"><a href="${notice.sourceUrl}" target="_blank" rel="noopener noreferrer">לפרטים נוספים (${escape(notice.sourceLabel)})</a></p>
+    <p class="description">מומלץ לשאול את האדם שבחרת לסמוך עליו להמלצה עדכנית.</p>
+    <button class="primary" data-action="independent">בואו נבדוק גם לפי העמדות שלי <span aria-hidden="true">↻</span></button>
+    <button class="text-button" data-action="update-recommendation">יש לי המלצה עדכנית</button>` }, { stage: 'עדכון על הרשימה שבחרת', className: 'withdrawn-result' });
 }
 
 function bridgeView() {
@@ -228,6 +239,12 @@ app.addEventListener('click', event => {
   else if (action === 'restart') restart();
   else if (action === 'independent') restart();
   else if (action === 'topics') restart('topics');
+  else if (action === 'update-recommendation') {
+    state.party = null;
+    state.robot = null;
+    state.cutscene = false;
+    go('party');
+  }
   else if (action === 'next') {
     if (state.step === 'topics' && (state.authority || state.topics.length)) go(state.authority ? 'party' : state.topics.includes('religion-transport') ? 'bridge' : 'independent');
     else if (state.step === 'party' && state.party) go(state.party[0] === FAKE_BALLOT[0] ? 'fake-ballot' : 'robot');
