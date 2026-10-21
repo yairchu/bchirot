@@ -47,7 +47,7 @@ export const WEEKEND_POSITIONS = [
 
 export function scoreWeekend(answer) {
   const positions = { ban: 0, keep: 1, expand: 2 };
-  if (!Object.hasOwn(positions, answer)) return [];
+  if (!Object.prototype.hasOwnProperty.call(positions, answer)) return [];
   return WEEKEND_POSITIONS.map(party => ({ ...party, points: 2 - 2 * Math.abs(positions[answer] - party.position) }))
     .sort((a, b) => b.points - a.points || a.name.localeCompare(b.name, 'he'));
 }

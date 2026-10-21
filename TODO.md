@@ -32,6 +32,7 @@ The welcome line is “השאלון שמבוסס על דילמות פוליטי�
 
 ## Verification
 
+- [ ] Reproduce the reported Safari failure on the welcome screen against the deployed URL. The `Object.hasOwn` dependency in scoring and `instant` scroll behavior have been removed, but neither explains an initial blank screen. Local WebKit exits before opening a page, so Safari verification remains pending.
 - [ ] Visually review the full-page layout on desktop and mobile, including large text, zoom, and long party names.
 - [ ] Review the hover cutscene with a real mouse and the focus-triggered equivalent with a keyboard, including reduced-motion settings.
 

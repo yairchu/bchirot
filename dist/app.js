@@ -22,7 +22,7 @@ function saveHistory(replace = false) {
 
 function focusQuestion() {
   main.focus({ preventScroll: true });
-  if (main.getBoundingClientRect().top < 0) main.scrollIntoView({ behavior: 'instant', block: 'start' });
+  if (main.getBoundingClientRect().top < 0) main.scrollIntoView({ behavior: 'auto', block: 'start' });
 }
 
 function go(step, replace = false) {

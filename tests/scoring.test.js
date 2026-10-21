@@ -39,6 +39,15 @@ test('skipped answers add no contributions and do not invent scores for unresear
   assert.equal(bridgeOnly.find(party => party.id === 'meretz').points, 2);
 });
 
+test('results work without Object.hasOwn, including skipped and invalid answers', t => {
+  const descriptor = Object.getOwnPropertyDescriptor(Object, 'hasOwn');
+  Object.defineProperty(Object, 'hasOwn', { ...descriptor, value: undefined });
+  t.after(() => Object.defineProperty(Object, 'hasOwn', descriptor));
+  assert.equal(scoreReligion('shabbat', 'expand').find(party => party.id === 'meretz').points, 4);
+  assert.equal(scoreReligion('shabbat', null).length, BRIDGE_POSITIONS.length);
+  assert.deepEqual(scoreWeekend('toString'), []);
+});
+
 test('combined results sum both answers and distinguish full from partial evidence', () => {
   const results = scoreReligion('shabbat', 'expand');
   assert.equal(results.find(party => party.id === 'meretz').points, 4);

@@ -68,6 +68,17 @@ test('welcome starts the questionnaire; unfinished choices are explicit TODOs', 
   assert.equal($('[data-action="next"]').disabled, false);
 });
 
+test('navigating from a scrolled page uses widely supported scroll behavior', async t => {
+  const { $, click } = await setup(t);
+  const main = $('#main');
+  main.getBoundingClientRect = () => ({ top: -100 });
+  const calls = [];
+  main.scrollIntoView = options => calls.push(options);
+  click('start');
+  assert.deepEqual(calls, [{ behavior: 'auto', block: 'start' }]);
+  assert.equal($('h2').textContent, 'מה הכי חשוב לך?');
+});
+
 test('authority disables both topic choices and restores their selections when unchecked', async t => {
   const { $, click, choose } = await setup(t);
   click('start');
