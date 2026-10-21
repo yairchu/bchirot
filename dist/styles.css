@@ -69,6 +69,7 @@ p { margin: 0 0 28px; }
 .choice input:checked::after { content: '✓'; display: block; color: white; text-align: center; font: 24px/28px Arial, sans-serif; }
 .choice-copy { display: flex; flex-direction: column; gap: 8px; }
 .choice-copy strong { font-size: clamp(23px, 2.7vw, 36px); font-weight: 600; line-height: 1.5; }
+.topic-count { white-space: nowrap; font-size: .65em; font-weight: 500; color: var(--muted); }
 .choice-copy small { font-size: clamp(18px, 1.8vw, 23px); color: var(--muted); line-height: 1.6; }
 .authority { border: 2px solid #b7c9b8; border-radius: 12px; background: #eaf0e2; padding: 24px; margin-bottom: 12px; }
 .authority:has(input:checked) { border-color: var(--green); }

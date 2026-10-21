@@ -1,3 +1,15 @@
+export const DREAM_QUESTION = {
+  title: 'איזה חלום מדבר אליך?',
+  context: 'נשים לרגע בצד את השאלה מה אפשרי ומה המחיר. איזה עתיד היית הכי רוצה לראות כאן?',
+  options: [
+    { id: 'whole-land', label: 'ארץ ישראל השלמה', detail: 'ריבונות יהודית בכל הארץ, מתוך זיקה היסטורית, לאומית או אמונית.' },
+    { id: 'peace', label: 'שלום בר־קיימא עם שכנינו', detail: 'הכרה הדדית, גבולות מוסכמים וחיים ללא מלחמות.' },
+    { id: 'both', label: 'שניהם. אמרתם שלא צריך להתחשב בהיתכנות.', detail: '' },
+    { id: 'other', label: 'יש לי חלום אחר, או שעוד לא החלטתי', detail: '' },
+  ],
+  timeline: [],
+};
+
 // Historical background and editorial decisions: ../docs/yehudit-bridge.md
 export const BRIDGE_DILEMMA = {
   title: 'מתי בונים את הגשר?',

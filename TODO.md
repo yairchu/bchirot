@@ -3,8 +3,9 @@
 ## Questionnaire content
 
 - [ ] Agree on the actual choices for “מה הכי חשוב לך?”. The invented sample topics have been removed.
-- [x] Support multiple selection; selecting authority disables the other choices, and deselecting authority restores earlier choices. The first named topic is “דת ותחבורה”; one TODO choice remains.
-- [ ] Write follow-up questions for each topic, including their branching rules and question counts.
+- [x] Support multiple selection; selecting authority disables the other choices, and deselecting authority restores earlier choices. The named topics are “דת ותחבורה” and “מלחמה וחלום”; one TODO choice remains.
+- [x] Build category routes from a shared question catalog, deduplicate shared questions, and show incremental question costs and dynamic progress. See [question flow](docs/question-flow.md).
+- [ ] Write further sourced questions for each topic.
 - [x] Extend religion/transport to three sourced dilemmas, with skipping and combined scores. Unwritten topics still stop at an explicit TODO.
 - [x] Add a first sourced, explained scoring model for historical parties in the Yehudit Bridge case. See [the scoring model](docs/bridge-scoring.md).
 - [x] Map sourced historical evidence to current electoral lists, average predecessors per question, and disclose partial membership and unmapped history. See [current-list mapping](docs/current-lists.md).
@@ -21,9 +22,15 @@
 - [ ] Write the next questions and answer choices together, before implementing them.
 - [ ] Develop the humor and useful context for each answer.
 - [x] Add the Na'im Busofash dilemma with expansion, ban and current-arrangement choices. See [source notes](docs/naim-busofash.md).
-- [x] Add the October 7 morning preparedness dilemma as question 4 of 4, with sourced background and at most one negative ministerial responsibility point for Likud; no positive points or speculative scores for other parties. See [source notes](docs/emergency-transit.md).
+- [x] Add the October 7 morning preparedness dilemma as the final question shared by either active category, with sourced background and at most one negative ministerial responsibility point for Likud; no positive points or speculative scores for other parties. See [source notes](docs/emergency-transit.md).
 
 The welcome line is “השאלון שמבוסס על דילמות פוליטיות אמיתיות שקרו”. Three sourced dilemmas and combined party scoring work; current-list mapping is implemented; further topics and broader source coverage remain TODOs.
+
+## מלחמה וחלום
+
+- [x] Add the category and its unscored dream question, including both dreams and undecided alternatives.
+- [x] Share the October 7 transport question with religion/transport, without duplicating it or its score.
+- [ ] Develop sourced dilemmas about the tradeoffs between aspirations and security, with explained scoring.
 
 ## Ballot data
 

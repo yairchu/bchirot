@@ -1,13 +1,13 @@
-import { CUTSCENE_DURATION, MOBILE_CONFIRM_DELAY, EASTER_EGG_DURATION, NO_TOPICS_DURATION, TOPIC_CHOICES, afterRobot, progress } from './flow.js';
+import { CUTSCENE_DURATION, MOBILE_CONFIRM_DELAY, EASTER_EGG_DURATION, NO_TOPICS_DURATION, TOPIC_CHOICES, QUESTIONS, questionRoute, questionnaireQuestions, additionalQuestionCount, afterRobot, progress } from './flow.js';
 import { BALLOT_CHOICES, BLANK_BALLOT, BLANK_BALLOT_SOURCE, FAKE_BALLOT, PARTY_NOTICES } from './parties.js';
-import { BRIDGE_DILEMMA, WEEKEND_DILEMMA, EMERGENCY_DILEMMA } from './dilemmas.js';
+import { BRIDGE_DILEMMA, WEEKEND_DILEMMA, EMERGENCY_DILEMMA, DREAM_QUESTION } from './dilemmas.js';
 import { BASIS_LABELS } from './scoring.js';
 import { scoreCurrentReligion, unscoredCurrentLists, UNMAPPED_HISTORY, MAPPING_CHECKED_ON } from './current-lists.js';
 
 const app = document.querySelector('#app');
 const main = document.querySelector('#main');
 const mouseAvailable = matchMedia('(hover: hover) and (pointer: fine)').matches;
-const state = { step: 'welcome', topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null, emergencyAnswer: null };
+const state = { step: 'welcome', topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null, emergencyAnswer: null, dreamAnswer: null };
 let timers = [];
 const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 
@@ -40,14 +40,14 @@ function back() {
 
 function restart(step = 'topics') {
   clearTimers();
-  Object.assign(state, { step, topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null, emergencyAnswer: null });
+  Object.assign(state, { step, topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null, emergencyAnswer: null, dreamAnswer: null });
   saveHistory();
   render();
   focusQuestion();
 }
 
 function frame(content, { stage = '', heading = 'h2', className = '' } = {}) {
-  const { current, total } = progress(state.step);
+  const { current, total } = progress(state.step, state);
   const label = current ? `שאלה ${current} ${total ? `מתוך ${total}` : 'מתוך כמה שצריך'}` : stage;
   return `<section class="screen ${className}" aria-labelledby="question-title">
     ${label ? `<div class="step-label">${label}</div>` : ''}
@@ -64,13 +64,46 @@ function welcomeView() {
 }
 
 function topicsView() {
-  // TODO: Add more religion/transport dilemmas and define the remaining topics in TODO.md.
+  // Topic costs and navigation both use the question catalog in flow.js.
   return frame({ title: 'מה הכי חשוב לך?', body: `
     <label class="choice authority"><input type="checkbox" name="authority" ${state.authority ? 'checked' : ''}><span class="choice-copy"><strong>כבר אמרו לי למי להצביע</strong><small>רב, משפחה, ראש קהילה, עיתונאי או אדם אחר</small><small class="authority-joke">יש לנו קיצור דרך בשבילך.</small></span></label>
     <div role="group" aria-label="נושאים לבחירה">
-      ${TOPIC_CHOICES.map(({ id, label }) => `<label class="choice"><input type="checkbox" name="topic" value="${id}" ${state.topics.includes(id) ? 'checked' : ''} ${state.authority ? 'disabled' : ''}><span class="choice-copy"><strong><bdi>${escape(label)}</bdi></strong></span></label>`).join('')}
+      ${TOPIC_CHOICES.map(({ id, label }) => `<label class="choice"><input type="checkbox" name="topic" value="${id}" ${state.topics.includes(id) ? 'checked' : ''} ${state.authority ? 'disabled' : ''}><span class="choice-copy"><strong><bdi>${escape(label)}</bdi> <span class="topic-count" data-topic-count="${id}">${topicCountLabel(id)}</span></strong></span></label>`).join('')}
     </div>
+    <p class="selection-note" id="question-budget" role="status">${questionBudgetLabel()}</p>
     ${actions('ממשיכים')}` });
+}
+
+function topicCountLabel(id) {
+  if (id === 'todo-2') return '(בפיתוח)';
+  const count = additionalQuestionCount(id, state.topics);
+  return `(<bdi dir="ltr">+${count}</bdi> ${count === 1 ? 'שאלה' : 'שאלות'})`;
+}
+
+function questionBudgetLabel() {
+  if (state.authority) return 'מסלול קצר של 4 שאלות.';
+  const count = questionRoute(state.topics).length;
+  return count ? `בסך הכול: ${count + 1} שאלות, כולל השאלה הזו. שאלות משותפות מופיעות פעם אחת.` : 'אפשר לבחור כמה נושאים. המספר מציין כמה שאלות כל נושא מוסיף.';
+}
+
+function updateTopicSummary() {
+  for (const { id } of TOPIC_CHOICES) app.querySelector(`[data-topic-count="${id}"]`).innerHTML = topicCountLabel(id);
+  app.querySelector('#question-budget').textContent = questionBudgetLabel();
+  const { current, total } = progress(state.step, state);
+  app.querySelector('.step-label').textContent = `שאלה ${current} ${total ? `מתוך ${total}` : 'מתוך כמה שצריך'}`;
+}
+
+function currentQuestions() {
+  return questionnaireQuestions(state.topics);
+}
+
+function advanceQuestion() {
+  const questions = currentQuestions();
+  go(questions[questions.indexOf(state.step) + 1] || 'bridge-result');
+}
+
+function dreamView() {
+  return dilemmaView(DREAM_QUESTION, 'dreamAnswer', 'dream-answer', '', 'ממשיכים');
 }
 
 function noTopicsView() {
@@ -167,14 +200,15 @@ function emergencyView() {
 function dilemmaView(dilemma, answerKey, inputName, backgroundTitle, nextLabel) {
   return frame({ title: dilemma.title, body: `
     <p class="description">${escape(dilemma.context)}</p>
+    ${QUESTIONS[state.step].scored === false ? '<p class="selection-note">שאלת פתיחה ללא ניקוד מפלגתי.</p>' : ''}
     <div class="dilemma-options" role="radiogroup" aria-label="${escape(dilemma.title)}">
-      ${dilemma.options.map(option => `<label class="choice dilemma-option"><input type="radio" name="${inputName}" value="${option.id}" ${state[answerKey] === option.id ? 'checked' : ''}><span class="choice-copy"><strong>${escape(option.label)}</strong><small>${escape(option.detail)}</small></span></label>`).join('')}
+      ${dilemma.options.map(option => `<label class="choice dilemma-option"><input type="radio" name="${inputName}" value="${option.id}" ${state[answerKey] === option.id ? 'checked' : ''}><span class="choice-copy"><strong>${escape(option.label)}</strong>${option.detail ? `<small>${escape(option.detail)}</small>` : ''}</span></label>`).join('')}
     </div>
-    <details class="dilemma-details"><summary>לפרטים נוספים</summary>
+    ${dilemma.timeline.length ? `<details class="dilemma-details"><summary>לפרטים נוספים</summary>
       <div class="dilemma-background"><h3>${escape(backgroundTitle)}</h3>
         ${dilemma.timeline.map(item => `<p>${escape(item.text)} <a href="${item.url}" target="_blank" rel="noopener noreferrer">${escape(item.source)}</a>.</p>`).join('')}
       </div>
-    </details>
+    </details>` : ''}
     ${actions(nextLabel, !state[answerKey])}
     <button class="text-button" data-action="skip">לדלג על השאלה</button>` });
 }
@@ -183,22 +217,33 @@ function currentContributionView(item) {
   return `<p><b>${escape(item.question)}: ${item.points > 0 ? '+' : ''}${item.points} נקודות.</b></p>${item.evidence.map(evidence => `<p><strong>${escape(evidence.name)} במקור ההיסטורי:</strong> ${escape(evidence.reason)}</p><p>${BASIS_LABELS[evidence.basis]} · <a href="${evidence.source}" target="_blank" rel="noopener noreferrer">מקור</a>${evidence.followupSource ? ` · <a href="${evidence.followupSource}" target="_blank" rel="noopener noreferrer">${escape(evidence.followupLabel || 'חידוש העבודות')}</a>` : ''}</p>`).join('')}`;
 }
 
+function dreamSummary() {
+  if (!currentQuestions().includes('dream') || !state.dreamAnswer) return '';
+  const option = DREAM_QUESTION.options.find(option => option.id === state.dreamAnswer);
+  return `<p class="dream-summary selection-note">החלום שבחרת: ${escape(option.label)}. שאלת הפתיחה אינה משפיעה על הניקוד.</p>`;
+}
+
 function bridgeResultView() {
-  const scores = scoreCurrentReligion(state.bridgeAnswer, state.weekendAnswer, state.emergencyAnswer);
-  const answered = Number(Boolean(state.bridgeAnswer)) + Number(Boolean(state.weekendAnswer)) + Number(Boolean(state.emergencyAnswer));
-  if (!answered) return frame({ title: 'עוד אין לנו מספיק חומר.', body: '<p class="description">דילגת על כל הדילמות. נשאיר את האפשרויות פתוחות.</p><button class="primary" data-action="review-questions">בחזרה לשאלות <span aria-hidden="true">↻</span></button><button class="text-button" data-action="restart">להתחיל מחדש</button>' });
-  if (!scores.length) return frame({ title: 'לתשובה הזו אין ניקוד מפלגתי.', body: '<p class="description">התשובה שלך נשמרה. לחלופה של ריכוז הדרישות בידי מערכת הביטחון לא ייחסנו עמדה של מפלגה או נקודות זכות. אפשר לחזור לשאלות האחרות כדי לקבל השוואה.</p><button class="primary" data-action="review-questions">בחזרה לשאלות</button><button class="text-button" data-action="restart">להתחיל מחדש</button>' });
+  const questions = currentQuestions();
+  const activeAnswer = id => questions.includes(id) ? state[QUESTIONS[id].answerKey] : null;
+  const scores = scoreCurrentReligion(activeAnswer('bridge'), activeAnswer('weekend'), activeAnswer('emergency'));
+  const scoredQuestions = questions.filter(id => QUESTIONS[id].scored);
+  const answered = scoredQuestions.filter(id => Boolean(activeAnswer(id))).length;
+  const dream = dreamSummary();
+  if (!answered) return frame({ title: 'עוד אין לנו מספיק חומר.', body: `${dream}<p class="description">דילגת על כל הדילמות שניתן לנקד. נשאיר את האפשרויות פתוחות.</p><button class="primary" data-action="review-questions">בחזרה לשאלות <span aria-hidden="true">↻</span></button><button class="text-button" data-action="restart">להתחיל מחדש</button>` });
+  if (!scores.length) return frame({ title: 'לתשובה הזו אין ניקוד מפלגתי.', body: `${dream}<p class="description">התשובה שלך נשמרה. לחלופה של ריכוז הדרישות בידי מערכת הביטחון לא ייחסנו עמדה של מפלגה או נקודות זכות. אפשר לחזור לשאלות האחרות כדי לקבל השוואה.</p><button class="primary" data-action="review-questions">בחזרה לשאלות</button><button class="text-button" data-action="restart">להתחיל מחדש</button>` });
   return frame({ title: 'איפה התשובה שלך פוגשת את המפלגות?', body: `
-    <p class="description">ענית על ${answered} מתוך 3 דילמות. דילוגים לא נכללים בניקוד.${state.emergencyAnswer === 'central-request' ? ' לחלופה שבחרת בשאלת 7 באוקטובר אין ניקוד מפלגתי.' : ''}</p>
+    <p class="description">ענית על ${answered} מתוך ${scoredQuestions.length} דילמות. דילוגים לא נכללים בניקוד.${state.emergencyAnswer === 'central-request' ? ' לחלופה שבחרת בשאלת 7 באוקטובר אין ניקוד מפלגתי.' : ''}</p>
+    ${dream}
     <p class="score-context">הרשימות מוצגות בשמותיהן ובאותיות הפתק הנוכחיות, לפי מיפוי ההיסטוריה המפלגתית. הניקוד מבוסס על התנהלות בעבר, ולא בהכרח על עמדת הרשימה כיום. תחילה מוצגות מפלגות שיש להן מקורות לכל התשובות שלך, ואחריהן אלה עם מידע חלקי.</p>
-    <table class="score-table"><caption class="sr-only">ניקוד המפלגות לפי התשובות בדת ותחבורה</caption>
+    <table class="score-table"><caption class="sr-only">ניקוד המפלגות לפי התשובות שלך</caption>
       <thead><tr><th scope="col">מפלגה</th><th scope="col">נקודות</th></tr></thead>
       <tbody>${scores.map(party => `<tr data-party-id="${party.id}"><th scope="row"><strong>${escape(party.name)} · ${escape(party.letters)}</strong><small class="score-coverage">מקורות ל־${party.contributions.length} מתוך ${answered} תשובות</small><details><summary>למה?</summary><p>${escape(party.note)} <a href="${party.source}" target="_blank" rel="noopener noreferrer">מקור המיפוי</a>.</p>${party.contributions.map(currentContributionView).join('')}</details></th><td><bdi class="score ${party.points > 0 ? 'score-positive' : party.points < 0 ? 'score-negative' : ''}">${party.points > 0 ? '+' : party.points < 0 ? '−' : ''}${Math.abs(party.points)}</bdi></td></tr>`).join('')}</tbody>
     </table>
     <details class="score-method"><summary>איך הניקוד עובד?</summary><p>בשאלת הגשר: משקל 2 לעמדה מתועדת ומשקל 1 להתנהלות מעורבת או להערכת אחריות קואליציונית. בנעים בסופ״ש: ציר של איסור, מצב קיים והרחבה. עמדה באותה קטגוריה מקבלת 2, קטגוריה סמוכה 0, והקצה ההפוך מינוס 2. בשאלת בוקר 7 באוקטובר, העדפת יוזמה מיידית מורידה נקודה אחת לליכוד כהערכת אחריות מיניסטריאלית להיערכות משרד התחבורה. בחלופה השנייה אין ניקוד; אין נקודת זכות לאף מפלגה או הערכה איך שר אחר היה פועל. הקטגוריות והמשקלים הם פרשנות במודל.</p><p>אפס הוא ציון של מרחק בין החלופות במודל, לא קביעה שהמפלגה נייטרלית. דילוג או היעדר מקור אינם מוסיפים ציון כלל. ההשוואה בנעים בסופ״ש עוסקת בכיוון המדיניות, ולא בהסכמה נפרדת לכל פרט כמו תעריף או סוג רכבת. באיחוד רשימות מחושב ממוצע הציונים ההיסטוריים לכל שאלה, כדי לא להכפיל את משקלה. המקורות והשיוך ההיסטורי מפורטים תחת ״למה?״.</p></details>
     <details class="score-method"><summary>מי עדיין לא נכלל בהשוואה?</summary><p>לרשימות הבאות אין כרגע ניקוד לתשובות שלך; היעדר מידע אינו עמדה נייטרלית:</p><p>${unscoredCurrentLists(scores).map(([letters, name]) => `${escape(name)} (${escape(letters)})`).join(' · ')}</p>${UNMAPPED_HISTORY.map(item => `<p>${escape(item.reason)}</p>`).join('')}<p>המיפוי נבדק ב־${MAPPING_CHECKED_ON}. רשימות שהודיעו על פרישה אינן נכללות בתוצאות.</p></details>
     ${state.topics.includes('todo-2') ? '<p class="todo"><span class="todo-label">TODO</span> · הנושא הנוסף שבחרת עדיין לא נכלל בחישוב.</p>' : ''}
-    <div class="actions"><button class="primary" data-action="review-questions">לעבור שוב על השאלות <span aria-hidden="true">↻</span></button><button class="back" data-action="back">חזרה</button></div><button class="text-button" data-action="restart">להתחיל מחדש</button>` }, { stage: 'דת ותחבורה · תוצאות' });
+    <div class="actions"><button class="primary" data-action="review-questions">לעבור שוב על השאלות <span aria-hidden="true">↻</span></button><button class="back" data-action="back">חזרה</button></div><button class="text-button" data-action="restart">להתחיל מחדש</button>` }, { stage: 'התוצאות שלך' });
 }
 
 function independentView() {
@@ -208,9 +253,9 @@ function independentView() {
 }
 
 function render() {
-  const views = { welcome: welcomeView, topics: topicsView, 'no-topics': noTopicsView, bridge: bridgeView, weekend: weekendView, emergency: emergencyView, 'bridge-result': bridgeResultView, party: partyView, 'fake-ballot': fakeBallotView, robot: robotView, 'robot-thanks': robotThanksView, sure: sureView, loading: loadingView, result: resultView, independent: independentView };
+  const views = { welcome: welcomeView, topics: topicsView, 'no-topics': noTopicsView, dream: dreamView, bridge: bridgeView, weekend: weekendView, emergency: emergencyView, 'bridge-result': bridgeResultView, party: partyView, 'fake-ballot': fakeBallotView, robot: robotView, 'robot-thanks': robotThanksView, sure: sureView, loading: loadingView, result: resultView, independent: independentView };
   app.innerHTML = views[state.step]();
-  if (state.step === 'no-topics') timers.push(setTimeout(() => go('bridge', true), NO_TOPICS_DURATION));
+  if (state.step === 'no-topics') timers.push(setTimeout(() => go(currentQuestions()[0], true), NO_TOPICS_DURATION));
   if (state.step === 'fake-ballot') {
     timers.push(setTimeout(() => {
       state.party = null;
@@ -242,17 +287,19 @@ app.addEventListener('change', event => {
     state.authority = input.checked;
     app.querySelectorAll('[name="topic"]').forEach(topic => { topic.disabled = state.authority; });
   } else if (input.name === 'topic') {
-    state.topics = [...app.querySelectorAll('[name="topic"]:checked')].map(topic => topic.value);
+    state.topics = input.checked ? [...state.topics.filter(id => id !== input.value), input.value] : state.topics.filter(id => id !== input.value);
   } else if (input.name === 'party') {
     state.party = BALLOT_CHOICES.find(party => party[0] === input.value);
     document.querySelector('[data-action="next"]').disabled = false;
     document.querySelector('#party-selection').textContent = `הפתק שבחרת: ${state.party[1]}${state.party[0] === BLANK_BALLOT[0] ? '' : ` (${state.party[0]})`}`;
     document.querySelector('#blank-ballot-note').hidden = state.party[0] !== BLANK_BALLOT[0];
-  } else if (['bridge-answer', 'weekend-answer', 'emergency-answer'].includes(input.name)) {
-    state[{ 'bridge-answer': 'bridgeAnswer', 'weekend-answer': 'weekendAnswer', 'emergency-answer': 'emergencyAnswer' }[input.name]] = input.value;
+  } else if (Object.values(QUESTIONS).some(question => question.inputName === input.name)) {
+    const question = Object.values(QUESTIONS).find(question => question.inputName === input.name);
+    state[question.answerKey] = input.value;
     document.querySelector('[data-action="next"]').disabled = false;
   }
-  if (['authority', 'topic', 'party', 'bridge-answer', 'weekend-answer', 'emergency-answer'].includes(input.name)) saveHistory();
+  if (['authority', 'topic'].includes(input.name)) updateTopicSummary();
+  if (['authority', 'topic', 'party', ...Object.values(QUESTIONS).map(question => question.inputName)].includes(input.name)) saveHistory();
 });
 
 app.addEventListener('click', event => {
@@ -262,12 +309,10 @@ app.addEventListener('click', event => {
   else if (action === 'restart') restart();
   else if (action === 'independent') restart();
   else if (action === 'topics') restart('topics');
-  else if (action === 'review-questions') go('bridge');
-  else if (action === 'skip' && ['bridge', 'weekend', 'emergency'].includes(state.step)) {
-    const steps = { bridge: ['bridgeAnswer', 'weekend'], weekend: ['weekendAnswer', 'emergency'], emergency: ['emergencyAnswer', 'bridge-result'] };
-    const [answer, next] = steps[state.step];
-    state[answer] = null;
-    go(next);
+  else if (action === 'review-questions') go(currentQuestions()[0]);
+  else if (action === 'skip' && currentQuestions().includes(state.step)) {
+    state[QUESTIONS[state.step].answerKey] = null;
+    advanceQuestion();
   }
   else if (action === 'update-recommendation') {
     state.party = null;
@@ -276,11 +321,9 @@ app.addEventListener('click', event => {
     go('party');
   }
   else if (action === 'next') {
-    if (state.step === 'topics') go(state.authority ? 'party' : !state.topics.length ? 'no-topics' : state.topics.includes('religion-transport') ? 'bridge' : 'independent');
+    if (state.step === 'topics') go(state.authority ? 'party' : !state.topics.length ? 'no-topics' : currentQuestions()[0] || 'independent');
     else if (state.step === 'party' && state.party) go(state.party[0] === FAKE_BALLOT[0] ? 'fake-ballot' : 'robot');
-    else if (state.step === 'bridge' && state.bridgeAnswer) go('weekend');
-    else if (state.step === 'weekend' && state.weekendAnswer) go('emergency');
-    else if (state.step === 'emergency' && state.emergencyAnswer) go('bridge-result');
+    else if (currentQuestions().includes(state.step) && state[QUESTIONS[state.step].answerKey]) advanceQuestion();
   } else if (action === 'robot-no' || action === 'robot-yes') {
     state.robot = action === 'robot-no' ? 'no' : 'yes';
     go(afterRobot(state.robot));

@@ -61,7 +61,7 @@ test('welcome starts the questionnaire; unfinished choices are explicit TODOs', 
   assert.equal($('[name="authority"]'), null);
   click('start');
   assert.equal($('h2').textContent, 'מה הכי חשוב לך?');
-  assert.equal(document.querySelectorAll('[name="topic"]').length, 2);
+  assert.equal(document.querySelectorAll('[name="topic"]').length, 3);
   assert.equal(document.querySelector('.choice input').name, 'authority');
   assert.ok($('[value="religion-transport"]').closest('label').textContent.includes('דת ותחבורה'));
   assert.ok($('[value="todo-2"]').closest('label').textContent.includes('TODO'));
@@ -79,14 +79,14 @@ test('navigating from a scrolled page uses widely supported scroll behavior', as
   assert.equal($('h2').textContent, 'מה הכי חשוב לך?');
 });
 
-test('authority disables both topic choices and restores their selections when unchecked', async t => {
+test('authority disables all topic choices and restores their selections when unchecked', async t => {
   const { $, click, choose } = await setup(t);
   click('start');
   choose('[value="religion-transport"]');
   choose('[value="todo-2"]');
   assert.equal($('[data-action="next"]').disabled, false);
   choose('[name="authority"]');
-  assert.equal(document.querySelectorAll('[name="topic"]:disabled').length, 2);
+  assert.equal(document.querySelectorAll('[name="topic"]:disabled').length, 3);
   click('next');
   assert.ok($('.party-grid'), 'authority takes precedence over stored TODO selections');
   click('back');
@@ -107,6 +107,117 @@ test('a TODO selection leads to the unfinished branch rather than party results'
   assert.ok($('.todo').textContent.includes('TODO'));
   assert.equal($('.party-grid'), null);
   assert.equal($('.result-ballot'), null);
+});
+
+test('topic costs, total, and overlap update in place and are restored by browser history', async t => {
+  const { $, click, choose, traverse } = await setup(t);
+  click('start');
+  const cost = id => $(`[data-topic-count="${id}"]`).textContent;
+  assert.equal(cost('religion-transport'), '(+3 שאלות)');
+  assert.equal(cost('war-dream'), '(+2 שאלות)');
+  const transport = $('[value="religion-transport"]');
+  transport.focus();
+  choose('[value="religion-transport"]');
+  assert.equal(document.activeElement, transport);
+  assert.equal(cost('war-dream'), '(+1 שאלה)');
+  assert.match($('#question-budget').textContent, /4 שאלות/);
+  choose('[value="war-dream"]');
+  assert.equal(cost('religion-transport'), '(+3 שאלות)');
+  assert.equal(cost('war-dream'), '(+1 שאלה)');
+  assert.match($('#question-budget').textContent, /5 שאלות/);
+  assert.equal($('.step-label').textContent, 'שאלה 1 מתוך 5');
+  choose('[value="religion-transport"]', false);
+  assert.equal(cost('war-dream'), '(+2 שאלות)');
+  assert.equal(cost('religion-transport'), '(+2 שאלות)');
+  assert.match($('#question-budget').textContent, /3 שאלות/);
+  await traverse('back');
+  assert.deepEqual(window.history.state.bchirot.topics, ['religion-transport', 'war-dream']);
+  assert.equal(cost('war-dream'), '(+1 שאלה)');
+  assert.match($('#question-budget').textContent, /5 שאלות/);
+  await traverse('forward');
+  assert.equal(cost('war-dream'), '(+2 שאלות)');
+  choose('[name="authority"]');
+  assert.equal(document.querySelectorAll('[name="topic"]:disabled').length, 3);
+  assert.match($('#question-budget').textContent, /4 שאלות/);
+  choose('[name="authority"]', false);
+  assert.equal($('[value="war-dream"]').checked, true);
+  assert.match($('#question-budget').textContent, /3 שאלות/);
+});
+
+test('war and dream alone opens the unscored dream and reaches the shared question without transport', async t => {
+  const { $, click, choose, traverse } = await setup(t);
+  click('start');
+  choose('[value="war-dream"]');
+  click('next');
+  assert.equal($('h2').textContent, 'איזה חלום מדבר אליך?');
+  assert.equal($('.step-label').textContent, 'שאלה 2 מתוך 3');
+  assert.equal(document.querySelectorAll('[name="dream-answer"]').length, 4);
+  assert.equal($('.dilemma-details'), null);
+  assert.match($('.selection-note').textContent, /ללא ניקוד/);
+  choose('[name="dream-answer"][value="both"]');
+  await traverse('back');
+  assert.equal($('[name="dream-answer"]:checked'), null);
+  await traverse('forward');
+  assert.equal($('[name="dream-answer"]:checked').value, 'both');
+  click('next');
+  assert.equal(window.history.state.bchirot.step, 'emergency');
+  assert.equal($('.step-label').textContent, 'שאלה 3 מתוך 3');
+  choose('[name="emergency-answer"][value="immediate"]');
+  click('next');
+  assert.match($('.description').textContent, /1 מתוך 1/);
+  assert.match($('.dream-summary').textContent, /שניהם/);
+  assert.equal(document.querySelectorAll('.score-table tbody tr').length, 1);
+  assert.equal($('[data-party-id="likud"] .score').textContent, '−1');
+  assert.equal($('[data-party-id="likud"] details').textContent.includes('גשר יהודית'), false);
+  click('review-questions');
+  assert.equal(window.history.state.bchirot.step, 'dream');
+  choose('[name="dream-answer"][value="peace"]');
+  click('next');
+  click('next');
+  assert.equal($('[data-party-id="likud"] .score').textContent, '−1');
+  assert.match($('.dream-summary').textContent, /שלום בר־קיימא/);
+  click('restart');
+  assert.equal(window.history.state.bchirot.dreamAnswer, null);
+});
+
+test('a dream answer alone is acknowledged without inventing a party score', async t => {
+  const { $, click, choose } = await setup(t);
+  click('start');
+  choose('[value="war-dream"]');
+  click('next');
+  choose('[name="dream-answer"][value="whole-land"]');
+  click('next');
+  click('skip');
+  assert.equal($('.score-table'), null);
+  assert.match($('.dream-summary').textContent, /ארץ ישראל השלמה/);
+  assert.match($('.dream-summary').textContent, /אינה משפיעה על הניקוד/);
+});
+
+test('both topics ask the shared question once and count its score once', async t => {
+  const { $, click, choose } = await setup(t);
+  click('start');
+  choose('[value="war-dream"]');
+  choose('[value="religion-transport"]');
+  assert.equal($('[data-topic-count="war-dream"]').textContent, '(+2 שאלות)');
+  assert.equal($('[data-topic-count="religion-transport"]').textContent, '(+2 שאלות)');
+  click('next');
+  assert.equal(window.history.state.bchirot.step, 'dream');
+  click('skip');
+  assert.equal($('.step-label').textContent, 'שאלה 3 מתוך 5');
+  choose('[name="bridge-answer"][value="shabbat"]');
+  click('next');
+  assert.equal($('.step-label').textContent, 'שאלה 4 מתוך 5');
+  choose('[name="weekend-answer"][value="expand"]');
+  click('next');
+  assert.equal($('.step-label').textContent, 'שאלה 5 מתוך 5');
+  choose('[name="emergency-answer"][value="immediate"]');
+  click('next');
+  assert.ok($('.score-table'));
+  assert.equal($('[data-party-id="likud"] .score').textContent, '−2');
+  assert.equal($('[data-party-id="democrats"] .score').textContent, '+4');
+  assert.equal($('[data-party-id="likud"] details').querySelectorAll('b').length, 2);
+  assert.match($('.description').textContent, /3 מתוך 3/);
+  assert.equal($('.dream-summary'), null);
 });
 
 test('continuing without topics plays a short joke without silently selecting a topic', async t => {
@@ -327,7 +438,7 @@ test('browser Back and Forward undo and redo individual selections and exclusivi
   assert.equal($('[value="todo-2"]').checked, true);
   await traverse('forward');
   assert.equal($('[name="authority"]').checked, true);
-  assert.equal(document.querySelectorAll('[name="topic"]:disabled').length, 2);
+  assert.equal(document.querySelectorAll('[name="topic"]:disabled').length, 3);
 });
 
 test('changing a bridge answer through browser history recalculates the visible ranking', async t => {

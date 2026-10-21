@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { afterRobot, progress } from '../dist/flow.js';
+import { afterRobot, progress, questionRoute, questionnaireQuestions, additionalQuestionCount } from '../dist/flow.js';
 import { PARTIES, BALLOT_CHOICES, BLANK_BALLOT, FAKE_BALLOT } from '../dist/parties.js';
 
 test('no gets the confirmation scene on all devices; yes gets the acknowledgement', () => {
@@ -9,13 +9,45 @@ test('no gets the confirmation scene on all devices; yes gets the acknowledgemen
 });
 
 test('the counter uses four authority questions and four religion/transport questions', () => {
-  assert.deepEqual(progress('topics', true), { current: 1, total: null });
+  assert.deepEqual(progress('topics'), { current: 1, total: null });
   assert.deepEqual(progress('bridge'), { current: 2, total: 4 });
   assert.deepEqual(progress('weekend'), { current: 3, total: 4 });
   assert.deepEqual(progress('emergency'), { current: 4, total: 4 });
-  assert.deepEqual(progress('party', true), { current: 2, total: 4 });
-  assert.deepEqual(progress('robot', false), { current: 3, total: 4 });
-  assert.deepEqual(progress('sure', true), { current: 4, total: 4 });
+  assert.deepEqual(progress('party', { authority: true }), { current: 2, total: 4 });
+  assert.deepEqual(progress('robot', { authority: true }), { current: 3, total: 4 });
+  assert.deepEqual(progress('sure', { authority: true }), { current: 4, total: 4 });
+});
+
+test('the shared question appears once for either topic or both and routes have a stable order', () => {
+  assert.deepEqual(questionRoute(['religion-transport']), ['bridge', 'weekend', 'emergency']);
+  assert.deepEqual(questionRoute(['war-dream']), ['dream', 'emergency']);
+  const both = ['dream', 'bridge', 'weekend', 'emergency'];
+  assert.deepEqual(questionRoute(['war-dream', 'religion-transport']), both);
+  assert.deepEqual(questionRoute(['religion-transport', 'war-dream']), both);
+  assert.deepEqual(questionRoute([]), []);
+  assert.deepEqual(questionnaireQuestions([]), ['bridge', 'weekend', 'emergency']);
+  assert.deepEqual(questionnaireQuestions(['todo-2']), []);
+});
+
+test('incremental costs reflect overlap and selected contributions sum to the actual length', () => {
+  assert.equal(additionalQuestionCount('religion-transport'), 3);
+  assert.equal(additionalQuestionCount('war-dream'), 2);
+  assert.equal(additionalQuestionCount('war-dream', ['religion-transport']), 1);
+  assert.equal(additionalQuestionCount('religion-transport', ['war-dream']), 2);
+  for (const selected of [['religion-transport', 'war-dream'], ['war-dream', 'religion-transport'], ['todo-2', 'war-dream']]) {
+    assert.equal(selected.reduce((sum, topic) => sum + additionalQuestionCount(topic, selected), 0), questionRoute(selected).length);
+  }
+});
+
+test('progress follows the selected union and updates the topic screen total', () => {
+  const topics = ['war-dream'];
+  assert.deepEqual(progress('dream', { topics }), { current: 2, total: 3 });
+  assert.deepEqual(progress('emergency', { topics }), { current: 3, total: 3 });
+  assert.deepEqual(progress('topics', { topics }), { current: 1, total: 3 });
+  assert.deepEqual(progress('topics', { topics, authority: true }), { current: 1, total: 4 });
+  const both = { topics: [...topics, 'religion-transport'] };
+  assert.deepEqual(progress('bridge', both), { current: 3, total: 5 });
+  assert.deepEqual(progress('emergency', both), { current: 5, total: 5 });
 });
 
 test('blank ballot is a separate answer and not one of the official party choices', () => {
