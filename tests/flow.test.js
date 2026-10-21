@@ -3,19 +3,17 @@ import assert from 'node:assert/strict';
 import { afterRobot, progress } from '../dist/flow.js';
 import { PARTIES, BALLOT_CHOICES, BLANK_BALLOT, FAKE_BALLOT } from '../dist/parties.js';
 
-test('no gets the desktop hover scene or mobile loading; yes gets the acknowledgement', () => {
-  assert.equal(afterRobot('no', true), 'sure');
-  assert.equal(afterRobot('no', false), 'loading');
-  assert.equal(afterRobot('yes', true), 'robot-thanks');
-  assert.equal(afterRobot('yes', false), 'robot-thanks');
+test('no gets the confirmation scene on all devices; yes gets the acknowledgement', () => {
+  assert.equal(afterRobot('no'), 'sure');
+  assert.equal(afterRobot('yes'), 'robot-thanks');
 });
 
-test('the counter adapts to the device and starts without an invented total', () => {
+test('the counter uses four authority questions and two bridge questions', () => {
   assert.deepEqual(progress('topics', true), { current: 1, total: null });
   assert.deepEqual(progress('bridge', true), { current: 2, total: 2 });
   assert.deepEqual(progress('bridge', false), { current: 2, total: 2 });
   assert.deepEqual(progress('party', true), { current: 2, total: 4 });
-  assert.deepEqual(progress('robot', false), { current: 3, total: 3 });
+  assert.deepEqual(progress('robot', false), { current: 3, total: 4 });
   assert.deepEqual(progress('sure', true), { current: 4, total: 4 });
 });
 

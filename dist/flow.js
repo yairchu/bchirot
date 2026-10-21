@@ -1,4 +1,5 @@
 export const CUTSCENE_DURATION = 1000;
+export const MOBILE_CONFIRM_DELAY = 700;
 export const EASTER_EGG_DURATION = 7000;
 
 export const TOPIC_CHOICES = [
@@ -6,14 +7,14 @@ export const TOPIC_CHOICES = [
   { id: 'todo-2', label: 'TODO' },
 ];
 
-export function afterRobot(answer, mouseAvailable) {
+export function afterRobot(answer) {
   if (answer === 'yes') return 'robot-thanks';
-  return mouseAvailable ? 'sure' : 'loading';
+  return 'sure';
 }
 
-export function progress(step, mouseAvailable) {
+export function progress(step) {
   if (step === 'bridge') return { current: 2, total: 2 };
-  const total = mouseAvailable ? 4 : 3;
+  const total = 4;
   const current = { topics: 1, party: 2, robot: 3, sure: 4 }[step];
   return { current, total: step === 'topics' ? null : total };
 }

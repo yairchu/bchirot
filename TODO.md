@@ -31,4 +31,4 @@ The welcome line is “השאלון שמבוסס על דילמות פוליטי�
 - [ ] Visually review the full-page layout on desktop and mobile, including large text, zoom, and long party names.
 - [ ] Review the hover cutscene with a real mouse and the focus-triggered equivalent with a keyboard, including reduced-motion settings.
 
-DOM tests cover the welcome screen, exclusive authority selection, browser Back/Forward with restored choices and canceled timers, desktop hover and keyboard cutscenes, robot self-awareness acknowledgement on desktop and mobile, automatic continuation, mobile skipping, results, and restart. Visual browser checks remain outstanding because the current execution environment blocks browser preview infrastructure.
+DOM tests cover the welcome screen, exclusive authority selection, browser Back/Forward with restored choices and canceled timers, desktop hover and keyboard cutscenes, the timed mobile confirmation, robot self-awareness acknowledgement, automatic continuation, results, and restart. Visual browser checks remain outstanding because the current execution environment blocks browser preview infrastructure.

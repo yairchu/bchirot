@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
-import { CUTSCENE_DURATION, EASTER_EGG_DURATION } from '../dist/flow.js';
+import { CUTSCENE_DURATION, MOBILE_CONFIRM_DELAY, EASTER_EGG_DURATION } from '../dist/flow.js';
 
 const html = readFileSync(new URL('../dist/index.html', import.meta.url), 'utf8');
 let run = 0;
@@ -376,18 +376,45 @@ test('keyboard focus triggers the same automatic scene without a click', async t
   assert.ok($('.result-ballot'));
 });
 
-test('mobile skips the sure step and restart returns to the first question', async t => {
+test('mobile automatically plays the same confirmation scene after a short delay', async t => {
   const { $, click, robotQuestion } = await setup(t, false);
   robotQuestion();
-  assert.equal($('.step-label').textContent, 'שאלה 3 מתוך 3');
+  assert.equal($('.step-label').textContent, 'שאלה 3 מתוך 4');
   click('robot-no');
-  assert.equal($('#sure-button'), null);
+  assert.equal($('.step-label').textContent, 'שאלה 4 מתוך 4');
+  assert.equal($('#sure-label').textContent, 'אני בטוח');
+  // A quick tap or touch focus does not skip the timed reveal.
+  $('#sure-button').focus();
+  $('#sure-button').click();
+  t.mock.timers.tick(MOBILE_CONFIRM_DELAY - 1);
+  assert.equal($('#sure-label').textContent, 'אני בטוח');
+  t.mock.timers.tick(1);
+  assert.equal($('#sure-label').textContent, 'עזוב, לא משנה');
+  t.mock.timers.tick(CUTSCENE_DURATION);
   assert.ok($('.loading-ballot'));
   t.mock.timers.tick(2500);
   assert.equal($('.result-ballot strong').textContent, 'מחל');
   click('restart');
   assert.equal($('h2').textContent, 'מה הכי חשוב לך?');
   assert.equal($('[name="authority"]').checked, false);
+});
+
+test('mobile Back cancels the delayed reveal and Forward starts it afresh', async t => {
+  const { $, click, robotQuestion, traverse } = await setup(t, false);
+  robotQuestion();
+  click('robot-no');
+  t.mock.timers.tick(MOBILE_CONFIRM_DELAY - 1);
+  await traverse('back');
+  t.mock.timers.tick(10000);
+  assert.equal($('h2').textContent, 'האם אתה רובוט?');
+  await traverse('forward');
+  assert.equal($('#sure-label').textContent, 'אני בטוח');
+  t.mock.timers.tick(MOBILE_CONFIRM_DELAY);
+  assert.equal($('#sure-label').textContent, 'עזוב, לא משנה');
+  await traverse('back');
+  t.mock.timers.tick(10000);
+  assert.equal($('.loading-ballot'), null);
+  assert.equal($('h2').textContent, 'האם אתה רובוט?');
 });
 
 for (const mouseAvailable of [true, false]) {

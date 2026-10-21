@@ -1,4 +1,4 @@
-import { CUTSCENE_DURATION, EASTER_EGG_DURATION, TOPIC_CHOICES, afterRobot, progress } from './flow.js';
+import { CUTSCENE_DURATION, MOBILE_CONFIRM_DELAY, EASTER_EGG_DURATION, TOPIC_CHOICES, afterRobot, progress } from './flow.js';
 import { BALLOT_CHOICES, BLANK_BALLOT, BLANK_BALLOT_SOURCE, FAKE_BALLOT } from './parties.js';
 import { BRIDGE_DILEMMA } from './dilemmas.js';
 import { BASIS_LABELS, scoreBridge } from './scoring.js';
@@ -46,7 +46,7 @@ function restart(step = 'topics') {
 }
 
 function frame(content, { stage = '', heading = 'h2', className = '' } = {}) {
-  const { current, total } = progress(state.step, mouseAvailable);
+  const { current, total } = progress(state.step);
   const label = current ? `שאלה ${current} ${total ? `מתוך ${total}` : 'מתוך כמה שצריך'}` : stage;
   return `<section class="screen ${className}" aria-labelledby="question-title">
     ${label ? `<div class="step-label">${label}</div>` : ''}
@@ -106,7 +106,7 @@ function fakeBallotView() {
 function sureView() {
   return frame({ title: 'האם אתה בטוח?', body: `
     <div class="answer-options"><button type="button" class="answer cutscene-option" id="sure-button" aria-describedby="cutscene-help"><span id="sure-label">אני בטוח</span></button></div>
-    <span class="sr-only" id="cutscene-help">מעבר עכבר או מיקוד מקלדת יפעילו קטע קצר שימשיך אוטומטית.</span>
+    <span class="sr-only" id="cutscene-help">${mouseAvailable ? 'מעבר עכבר או מיקוד מקלדת יפעילו קטע קצר שימשיך אוטומטית.' : 'הקטע ימשיך אוטומטית בעוד רגע.'}</span>
     <span class="sr-only" id="cutscene-status" role="status"></span>` });
 }
 
@@ -189,7 +189,8 @@ function render() {
     option.addEventListener('pointerenter', event => {
       if (event.pointerType === 'mouse') startCutscene();
     });
-    option.addEventListener('focus', startCutscene);
+    if (mouseAvailable) option.addEventListener('focus', startCutscene);
+    else timers.push(setTimeout(startCutscene, MOBILE_CONFIRM_DELAY));
   }
   if (state.step === 'loading') {
     timers.push(setTimeout(() => {
@@ -233,7 +234,7 @@ app.addEventListener('click', event => {
     else if (state.step === 'bridge' && state.bridgeAnswer) go('bridge-result');
   } else if (action === 'robot-no' || action === 'robot-yes') {
     state.robot = action === 'robot-no' ? 'no' : 'yes';
-    go(afterRobot(state.robot, mouseAvailable));
+    go(afterRobot(state.robot));
   }
 });
 
