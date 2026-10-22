@@ -857,7 +857,7 @@ test('threat question cites actions, restores its answer and allows skipping oth
 
 
 
-test('service starts empty with a warning, shows a meter after selection and hides it when cleared', async t => {
+test('service is a short standalone choice with no burden meter or warning, even after selection', async t => {
   const { $, click, choose } = await setup(t, false);
   click('start');
   choose('[value="war-dream"]');
@@ -867,20 +867,16 @@ test('service starts empty with a warning, shows a meter after selection and hid
   assert.equal($('h2').textContent, 'מי צריך לשרת בצבא?');
   assert.equal(document.querySelectorAll('[name="burden-answer"]:checked').length, 0);
   assert.equal($('[name="burden-tasks-answer"]'), null);
-  assert.equal($('#burden-gauge'), null);
-  assert.match($('.no-army-warning').textContent, /אף אחד לא בתורנות/);
+  assert.equal($('.burden-meter'), null);
+  assert.equal($('.no-army-warning'), null);
   assert.equal($('.button-label').textContent, 'ממשיכים');
   choose('[value="serve-other-men"]');
-  assert.ok($('#burden-gauge'));
-  assert.equal($('.no-army-warning'), null);
-  assert.match($('#burden-meter-status').textContent, /1 מתוך 1/);
-  const narrow = Number($('#burden-gauge').getAttribute('aria-valuenow'));
   choose('[value="serve-women"]');
-  assert.ok(Number($('#burden-gauge').getAttribute('aria-valuenow')) < narrow);
+  assert.equal(document.querySelectorAll('[name="burden-answer"]:checked').length, 2);
+  assert.equal($('.burden-meter'), null);
   choose('[value="serve-other-men"]', false);
   choose('[value="serve-women"]', false);
-  assert.equal($('#burden-gauge'), null);
-  assert.ok($('.no-army-warning'));
+  assert.equal($('.burden-meter'), null);
   t.mock.timers.tick(10000);
   assert.equal(window.history.state.bchirot.step, 'burden');
 });
@@ -902,9 +898,17 @@ test('service and missions have separate pages, answers, histories and score cov
   click('next');
   assert.equal($('h2').textContent, 'אילו משימות הצבא צריך לשאת?');
   assert.equal($('.step-label').textContent, 'שאלה 7 מתוך 8');
+  assert.equal($('#burden-gauge').getAttribute('aria-valuenow'), '4');
+  await traverse('back');
+  assert.equal($('h2').textContent, 'מי צריך לשרת בצבא?');
+  assert.equal($('[value="serve-women"]').checked, true);
+  assert.equal($('.burden-meter'), null);
+  await traverse('forward');
+  assert.equal($('#burden-gauge').getAttribute('aria-valuenow'), '4');
   assert.equal($('[name="burden-answer"]'), null);
   assert.equal($('.button-label').textContent, 'דלג');
   choose('[value="limit-outposts"]');
+  assert.equal($('#burden-gauge').getAttribute('aria-valuenow'), '3');
   const tasksSnapshot = window.history.state.bchirot.burdenTasksAnswer;
   choose('[value="seek-partners"]');
   assert.deepEqual(serviceSnapshot, ['serve-haredim', 'serve-women']);

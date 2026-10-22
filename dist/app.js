@@ -122,7 +122,7 @@ function hasAnswer(id) {
 }
 
 function burdenImpact() {
-  const selected = state.step === 'burden' ? serviceAnswer() : burdenAnswer();
+  const selected = burdenAnswer();
   const serving = SERVICE_CHOICES.filter(choice => selected.includes(choice.id)).map(choice => choice.label);
   return [
     serving.length ? `חובת השירות שבחרת: ${serving.join(', ')}.` : '',
@@ -132,7 +132,7 @@ function burdenImpact() {
 }
 
 function currentBurdenLevel() {
-  return burdenLevel(state.step === 'burden' ? serviceAnswer() : burdenAnswer(), state.step === 'burden-tasks');
+  return burdenLevel(burdenAnswer(), true);
 }
 
 function burdenMeterView() {
@@ -153,12 +153,6 @@ function burdenMeterLabel({ value, baseline, answered, total }) {
 }
 
 function updateBurdenMeter(previousValue) {
-  const host = app.querySelector('#burden-meter-slot');
-  if (host && !serviceAnswer().length) {
-    host.innerHTML = noArmyWarning();
-    return;
-  }
-  if (host && !host.querySelector('.burden-meter')) host.innerHTML = burdenMeterView();
   const level = currentBurdenLevel();
   const meter = app.querySelector('.burden-meter');
   const gauge = app.querySelector('#burden-gauge');
@@ -179,10 +173,6 @@ function burdenDetails(expanded) {
   return `<details class="dilemma-details"><summary>לפרטים נוספים</summary><div class="dilemma-background">${BURDEN_TIMELINE.filter((item, index) => expanded || index === 0 || index === 4 || index === 5).map(item => `<p>${escape(item.text)} <a href="${item.url}" target="_blank" rel="noopener noreferrer">${escape(item.source)}</a>.</p>`).join('')}</div></details>`;
 }
 
-function noArmyWarning() {
-  return '<p class="no-army-warning" role="status">כרגע אף אחד לא בתורנות. זה משאיר אותנו קצת חשופים.</p>';
-}
-
 function burdenView() {
   const selected = serviceAnswer();
   return frame({ title: 'מי צריך לשרת בצבא?', body: `
@@ -190,8 +180,6 @@ function burdenView() {
       <div class="service-options">${SERVICE_CHOICES.map(choice => `<label class="choice burden-choice"><input type="checkbox" name="burden-answer" data-burden-group="service" value="${choice.id}" ${selected.includes(choice.id) ? 'checked' : ''}><span class="choice-copy"><strong>${escape(choice.label)}</strong></span></label>`).join('')}</div>
       <p class="selection-note">בתרחיש שלך ישרתו הקבוצות שסומנו, לפי התאמה לתפקיד. המשך בלי סימון מוביל לתרחיש ללא צבא.</p>
     </fieldset>
-    <div id="burden-meter-slot">${selected.length ? burdenMeterView() : noArmyWarning()}</div>
-    <p class="sr-only" id="burden-impact" role="status">${burdenImpact()}</p>
     ${burdenDetails(false)}${actions('ממשיכים')}` }, { className: 'burden-screen' });
 }
 
@@ -440,8 +428,10 @@ app.addEventListener('change', event => {
         const { current, total } = progress(state.step, state);
         app.querySelector('.step-label').textContent = `שאלה ${current} מתוך ${total}`;
       }
-      app.querySelector('#burden-impact').textContent = burdenImpact();
-      updateBurdenMeter(previousValue);
+      if (input.name === 'burden-tasks-answer') {
+        app.querySelector('#burden-impact').textContent = burdenImpact();
+        updateBurdenMeter(previousValue);
+      }
     } else state[question.answerKey] = input.value;
     const next = document.querySelector('[data-action="next"]');
     next.disabled = !['burden', 'burden-tasks'].includes(state.step) && !hasAnswer(state.step);
