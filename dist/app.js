@@ -79,7 +79,7 @@ function updateQuestionAction() {
 }
 
 function welcomeView() {
-  return frame({ title: 'תכלס, בחירות.', body: '<p class="description">השאלון שמבוסס על דילמות פוליטיות אמיתיות שקרו</p><button class="primary" data-action="start">מתחילים <span aria-hidden="true">←</span></button>' }, { heading: 'h1' });
+  return frame({ title: 'תכלס, בחירות.', body: '<p class="description">השאלון שמבוסס על מעשים, לא על הצהרות</p><button class="primary" data-action="start">מתחילים <span aria-hidden="true">←</span></button>' }, { heading: 'h1' });
 }
 
 function topicsView() {

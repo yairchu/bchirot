@@ -75,7 +75,7 @@ async function setup(t, mouseAvailable = true) {
 test('welcome starts the questionnaire; modesty and partnership shows four available questions', async t => {
   const { $, click } = await setup(t);
   assert.equal($('h1').textContent, 'תכלס, בחירות.');
-  assert.equal($('.description').textContent, 'השאלון שמבוסס על דילמות פוליטיות אמיתיות שקרו');
+  assert.equal($('.description').textContent, 'השאלון שמבוסס על מעשים, לא על הצהרות');
   assert.equal($('[name="authority"]'), null);
   click('start');
   assert.equal($('h2').textContent, 'מה הכי חשוב לך?');
