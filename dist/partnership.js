@@ -140,6 +140,7 @@ const minorsLawPassageSource = 'https://main.knesset.gov.il/News/PressReleases/P
 const minorsLawOppositionSource = 'https://main.knesset.gov.il/News/PressReleases/Pages/press260613p.aspx';
 const minorsCommitteeSource = 'https://main.knesset.gov.il/News/PressReleases/Pages/press01072026v.aspx';
 const minorsReportSource = 'https://www.ynet.co.il/judaism/article/s1b00k00xnfl';
+const minorsPoliceRetaliationSource = 'https://www.ynet.co.il/news/article/bymtumd00fe';
 const minorsPodcastSource = 'https://omny.fm/shows/ad-hakaze/15';
 const minorsDocumentarySource = 'https://www.kan.org.il/content/kan/kan-11/p-11454/';
 const minorsTestimonySource = 'https://www.mako.co.il/news-politics/2026_q3/Article-55b17c44bedc0a1027.htm';
@@ -157,6 +158,7 @@ export const MINORS_PROTECTION_DILEMMA = {
   timeline: [
     { text: 'בסדרה התיעודית ״בשם האב״ של כאן 11 מרואיינת אישה המעידה שנאנסה כשהייתה ילדה בגן, ומתארת פגיעות בילדות נוספות. העדות עוסקת בפגיעה בגיל הרך, בנפרד מעדויות על השאת נערות קטינות בכפייה.', url: minorsDocumentarySource, source: 'בשם האב, כאן 11, ‏2023' },
     { text: 'בפרק ״בת 15 מתחתנת וכולם שותקים״ בהסכת ״עד הקצה״ של כאן, אורן אהרוני פוגש את שרה מימוני, שנישאה בגיל 15. הפרק עוסק בהמשך התופעה ובאחריות להגנה על הנערות, על רקע תלונות ועדויות שהצטברו לאורך השנים.', url: minorsPodcastSource, source: 'להאזנה: עד הקצה, כאן — בת 15 מתחתנת וכולם שותקים' },
+    { text: 'שרה מימוני, שפעלה לחשיפת נישואי קטינות, נחקרה בעצמה וטענה שהמשטרה מנסה להשתיקה בגלל ביקורתה הפומבית. היא הכחישה שארגנה חתונת קטינה; המשטרה טענה שיש בידיה ראיות לחשד. זו טענה להתנכלות לחושפת, מעבר לביקורת על היעדר אכיפה, ולא ממצא שהשר הורה על כך.', url: minorsPoliceRetaliationSource, source: 'טענת מימוני ותגובת המשטרה, ynet' },
     { text: 'בדיון בכנסת בספטמבר 2026 נשמעו עדויות של הורים ויוצאות הקהילה על נישואים בכפייה ופגיעות מיניות בילדים. אלו עדויות המחייבות בדיקה והגנה, ולא פסקי דין נגד כל חברי הקהילה. השאלה אינה מייחסת מעשים לכל חסידי ברסלב או לכל תושבי יבנאל.', url: minorsTestimonySource, source: 'העדויות בוועדה, N12, ‏23.9.2026' },
     { text: 'לפי סיכום ועדה בין־משרדית שפורסם באוקטובר 2026, בשנים 2024–2025 לא נפתחו ביבנאל תיקים בגין נישואי קטינים, וב־2026 נפתחו תשעה תיקים שהיו בחקירה בעת הכנת הדוח. המשטרה גם עצרה טקסים חשודים. פעולות נקודתיות אינן מעידות שהתופעה נעצרה; הביקורת בשאלה היא על היעדר אכיפה מספקת שמגינה על הילדות.', url: minorsReportSource, source: 'ממצאי הוועדה והחקירות, ynet, ‏19.10.2026' },
     { text: 'מירב כהן מיש עתיד כינסה דיונים ודיוני מעקב, דרשה נתונים ופעלה לקידום טיפול מערכתי. שתי הנקודות לביחד נשענות על פעילותה המתמשכת ברכיב יש עתיד, ולא על פעולה אישית של בנט. נקודות המחלוקת לעוצמה יהודית ולליכוד הן הערכת אחריות של השרים לביטחון לאומי ולחינוך, ולא קביעה שהם הורו למנוע אכיפה.', url: minorsCommitteeSource, source: 'דיון המעקב בכנסת, 1.7.2026' },
@@ -182,7 +184,7 @@ export function scoreMinorsProtection(answer) {
   if (answer === 'enforce') result.push(...records([
     { id: 'shas', letters: 'שס', position: -2, basis: 'legislative-opposition', reason: 'ש״ס הגישה ערעור נגד קידום העלאת גיל הנישואים ב־2013. זו התנגדות פרלמנטרית להגנה רחבה יותר, לא הוכחה לתמיכה בפגיעות מיניות. הקשרים המתועדים להנהגת הקהילה מובאים כרקע, ללא קביעה על חסימת חקירות.', source: minorsLawOppositionSource, followupSource: minorsConnectionsSource, followupLabel: 'תחקיר הקשרים להנהגת הקהילה', component },
     { id: 'utj', letters: 'ג', position: -2, basis: 'legislative-opposition', reason: 'יהדות התורה ערערה נגד קידום העלאת גיל הנישואים ב־2013. זו עדות חלקית להתנגדות להגבלה חוקית, ולא ראיה לתמיכה בפגיעה מינית בילדים.', source: minorsLawOppositionSource, component },
-    { id: 'otzma-yehudit', letters: 'ב', position: -1, basis: 'responsibility', reason: 'מינוס נקודה לעוצמה יהודית כהערכת אחריות מיניסטריאלית של בן גביר למדיניות ולפיקוח על המשטרה מול כשל האכיפה המתמשך. חקירות ופעולות נקודתיות ב־2026 אינן פוטרות מאחריות לטיפול שלא עצר את התופעה. זו הערכת אחריות, ולא קביעה שהשר חסם חקירה.', source: minorsReportSource, followupSource: sidewalkResponsibilitySource, followupLabel: 'סמכות השר וגבולותיה', component },
+    { id: 'otzma-yehudit', letters: 'ב', position: -1, basis: 'responsibility', reason: 'מינוס נקודה לעוצמה יהודית כהערכת אחריות מיניסטריאלית של בן גביר למדיניות ולפיקוח על המשטרה מול כשלי האכיפה. לכך מצטרפת טענת שרה מימוני לניסיון להשתיקה בעקבות חשיפת הכשלים, שהמשטרה מציגה כחקירה מבוססת חשד. זו אחריות מיניסטריאלית, ולא ראיה להוראה אישית של השר להתנכל לה.', source: minorsReportSource, followupSource: minorsPoliceRetaliationSource, followupLabel: 'טענת מימוני ותגובת המשטרה', component },
     { id: 'likud', letters: 'מחל', position: -1, basis: 'responsibility', reason: 'הערכת אחריות מיניסטריאלית של יואב קיש לפיקוח על מוסדות החינוך, לאחר התרעות בנושא נישואי קטינות והפנייה אליו באוגוסט 2026. הניקוד אינו מבוסס על התפקדות לליכוד ואינו קביעה שהשר הגן על עבריינים.', source: minorsEducationSource, component },
   ], 1));
   return result;
