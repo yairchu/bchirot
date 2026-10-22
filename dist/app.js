@@ -60,13 +60,20 @@ function actions(nextLabel = 'ממשיכים', disabled = false, continuation = 
   return `<div class="actions"><button class="primary" data-action="next" data-continuation="${escape(continuation)}" ${disabled ? 'disabled' : ''}><span class="button-label">${nextLabel}</span><span aria-hidden="true">←</span></button><button class="back" data-action="back">חזרה</button></div>`;
 }
 
-function questionActions(nextLabel = 'ממשיכים') {
+function questionContinuation() {
+  const questions = currentQuestions();
+  return questions[questions.length - 1] === state.step ? 'לתוצאות' : 'ממשיכים';
+}
+
+function questionActions() {
+  const nextLabel = questionContinuation();
   return actions(hasAnswer(state.step) ? nextLabel : 'דלג', false, nextLabel);
 }
 
 function updateQuestionAction() {
   const next = app.querySelector('[data-action="next"]');
   next.disabled = false;
+  next.dataset.continuation = questionContinuation();
   next.querySelector('.button-label').textContent = hasAnswer(state.step) ? next.dataset.continuation : 'דלג';
 }
 
@@ -226,11 +233,11 @@ function noArmyView() {
 }
 
 function threatView() {
-  return dilemmaView(THREAT_DILEMMA, 'threatAnswer', 'threat-answer', 'חמאס, הרשות וסדרי העדיפויות', 'ממשיכים');
+  return dilemmaView(THREAT_DILEMMA, 'threatAnswer', 'threat-answer', 'חמאס, הרשות וסדרי העדיפויות');
 }
 
 function dreamView() {
-  return dilemmaView(DREAM_QUESTION, 'dreamAnswer', 'dream-answer', '', 'ממשיכים');
+  return dilemmaView(DREAM_QUESTION, 'dreamAnswer', 'dream-answer', '');
 }
 
 function noTopicsView() {
@@ -313,18 +320,18 @@ function withdrawnResultView(name, notice) {
 }
 
 function bridgeView() {
-  return dilemmaView(BRIDGE_DILEMMA, 'bridgeAnswer', 'bridge-answer', 'זה קרה בגשר יהודית', 'ממשיכים');
+  return dilemmaView(BRIDGE_DILEMMA, 'bridgeAnswer', 'bridge-answer', 'זה קרה בגשר יהודית');
 }
 
 function weekendView() {
-  return dilemmaView(WEEKEND_DILEMMA, 'weekendAnswer', 'weekend-answer', 'נעים בסופ״ש: הרקע והאפשרויות', 'ממשיכים');
+  return dilemmaView(WEEKEND_DILEMMA, 'weekendAnswer', 'weekend-answer', 'נעים בסופ״ש: הרקע והאפשרויות');
 }
 
 function emergencyView() {
-  return dilemmaView(EMERGENCY_DILEMMA, 'emergencyAnswer', 'emergency-answer', 'ההגעה ללחימה ולחילוץ ב־7 באוקטובר', 'לתוצאות');
+  return dilemmaView(EMERGENCY_DILEMMA, 'emergencyAnswer', 'emergency-answer', 'ההגעה ללחימה ולחילוץ ב־7 באוקטובר');
 }
 
-function dilemmaView(dilemma, answerKey, inputName, backgroundTitle, nextLabel) {
+function dilemmaView(dilemma, answerKey, inputName, backgroundTitle) {
   return frame({ title: dilemma.title, body: `
     <p class="description">${escape(dilemma.context)}</p>
     ${dilemma.note ? `<p class="selection-note">${escape(dilemma.note)}</p>` : ''}
@@ -336,7 +343,7 @@ function dilemmaView(dilemma, answerKey, inputName, backgroundTitle, nextLabel) 
         ${dilemma.timeline.map(item => `<p>${escape(item.text)} <a href="${item.url}" target="_blank" rel="noopener noreferrer">${escape(item.source)}</a>.</p>`).join('')}
       </div>
     </details>` : ''}
-    ${questionActions(nextLabel)}` });
+    ${questionActions()}` });
 }
 
 function currentContributionView(item) {

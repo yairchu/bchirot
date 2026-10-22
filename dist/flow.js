@@ -22,7 +22,12 @@ export const QUESTIONS = {
 };
 
 export function questionRoute(topics, { noArmy = false } = {}) {
-  return Object.keys(QUESTIONS).filter(id => QUESTIONS[id].topics.some(topic => topics.includes(topic)) && (QUESTIONS[id].condition !== 'no-army' || noArmy) && (QUESTIONS[id].condition !== 'army' || !noArmy));
+  const route = Object.keys(QUESTIONS).filter(id => QUESTIONS[id].topics.some(topic => topics.includes(topic)) && (QUESTIONS[id].condition !== 'no-army' || noArmy) && (QUESTIONS[id].condition !== 'army' || !noArmy));
+  // Without the security topic, introduce religion through the transport dilemmas
+  // before widening the discussion to military service. Keep the security route.
+  if (topics.includes('war-dream')) return route;
+  const transport = ['bridge', 'weekend', 'emergency'];
+  return [...route.filter(id => transport.includes(id)), ...route.filter(id => !transport.includes(id))];
 }
 
 export function questionnaireQuestions(topics = [], options = {}) {
