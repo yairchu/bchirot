@@ -22,7 +22,7 @@ Future coverage should include more current sourced commitments, conditional agr
 
 ## Score-vector transformation
 
-For candidate i and scored party j, use W[i,j] = 1 for the party itself, 0.5 for documented bloc coordination, 0.25 for historical co-membership, and 0 otherwise. A sourced veto in either direction takes precedence, under the current leadership assumption; it is not a blanket prediction about a different Likud leader. Coordination takes precedence over history rather than counting both. These are editorial model weights, not empirical probabilities.
+For candidate i and scored party j, use W[i,j] = 1 for the party itself, 0.5 for documented bloc coordination, 0.25 for historical co-membership, 0.125 for documented historical negotiations that did not produce a coalition, and 0 otherwise. A sourced veto in either direction takes precedence, under the current leadership assumption; it is not a blanket prediction about a different Likud leader. Coordination takes precedence over historical membership, which takes precedence over historical negotiations; evidence categories are not added together. These are editorial model weights, not empirical probabilities.
 
 The output is t[i] = sum(W[i,j] * s[j]) / sum(W[i,j]), restricting both candidates and terms to parties with observed direct scores and covered ballot mappings. Missing scores are excluded, not filled with zero. This is multiplication by a row-normalized matrix for the given coverage mask. Positive and negative scores both propagate. Normalization avoids rewarding a party merely because it has more mapped connections, and ensures a vector with no positive entries cannot generate a positive result. It does not correct the underlying quiz's differing evidence coverage across parties.
 
@@ -43,3 +43,14 @@ A compact table displays the same normalized coefficients used in the score-vect
 Positive weights are green. A documented veto is displayed as red zero; an unmapped connection is gray zero. These are distinct evidence states with the same zero propagation coefficient. No negative coefficients are invented for visualization: negative result scores still originate in the signed input vector. Headers have full accessible party names plus a visible ballot-letter key; a keyboard-focusable scrolling region contains the wide table on mobile.
 
 A question directly precedes the plain “פשוט.” punchline, which carries no special color or emphasis.
+
+
+## Raam connection corrections (2026-10-22)
+
+The initial map omitted explicit refusals and treated the 2021 coalition as a positive proxy in cases where later statements contradicted it. The following corrections apply to both the displayed matrix and transformed scores, while preserving the historical records:
+
+- [N12, 2026-10-15](https://www.mako.co.il/news-israel-elections/2026/Article-5b0d6cc444f31a1026.htm): Liberman explicitly ruled out Raam, the Joint List, Shas and UTJ, as well as minority-government support. Record four directed refusals; a refusal blocks propagation in both directions. In particular, Israel Beitenu–Raam no longer receives a positive coefficient from 2021 membership.
+- [N12, 2026-02-02](https://www.mako.co.il/news-israel-elections/2026_q1/Article-75a42e70dcf1c91026.htm): Bennett ruled out a government relying on Arab parties. Apply the leader-specific veto to Raam and the Joint List under the explicit assumption of a Bennett-led proposed government. The statement predates today's merged Beyachad list; it is not presented as a joint declaration by all current components. Preserve the historical 2021 record separately.
+- [ynet interview with Abbas, 2022-09-02](https://www.ynet.co.il/news/article/rkez4110ks): Abbas described negotiations in 2021, coalition-agreement offers and meetings with Netanyahu. He also described Likud's account that the talks concerned direct prime-ministerial elections, disputing that this was their sole purpose. Record this as attributed historical negotiation evidence, not co-membership or proof of present willingness. The model assigns a base weight of 1/8, below the 1/4 used for actual historical co-membership. This is an editorial weight, not an estimated probability. A sourced current refusal would take precedence over it.
+
+These changes correct the specified connections and a directly related Bennett omission. They do not establish exhaustive coverage of every current commitment, veto or condition. No score is propagated indirectly through a third party to bypass a veto; the model remains one matrix multiplication rather than a feasibility check for an entire coalition.

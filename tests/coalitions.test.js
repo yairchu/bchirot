@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { COALITION_PARTIES, COALITION_RELATIONS, coalitionRelation, coalitionHistory, coalitionWeight, scoreCoalitions } from '../dist/coalitions.js';
+import { COALITION_PARTIES, COALITION_RELATIONS, COALITION_NEGOTIATIONS, coalitionRelation, coalitionHistory, coalitionWeight, scoreCoalitions } from '../dist/coalitions.js';
 
 test('a leader-specific veto is directional; missing reverse evidence stays unknown', () => {
   assert.equal(coalitionRelation('רק', 'מחל').label, 'לא עם נתניהו');
@@ -64,4 +64,35 @@ test('normalization preserves constant scores regardless of number of mapped par
   const base = scoreCoalitions(scores.map(party => ({ ...party, points: party.letters === 'מחל' ? -2 : 1 })));
   const doubled = scoreCoalitions(scores.map(party => ({ ...party, points: party.letters === 'מחל' ? -4 : 2 })));
   for (const party of base) assert.equal(doubled.find(other => other.letters === party.letters).points, party.points * 2);
+});
+
+
+test('Liberman veto overrides the actual 2021 coalition with Raam in both directions', () => {
+  assert.equal(coalitionHistory('ל', 'עם').length, 1);
+  for (const letters of ['עם', 'ודם', 'שס', 'ג']) {
+    assert.equal(coalitionRelation('ל', letters).date, '2026-10-15');
+    assert.equal(coalitionWeight('ל', letters).weight, 0);
+    assert.equal(coalitionWeight(letters, 'ל').weight, 0);
+  }
+  const scores = scoreCoalitions([{ letters: 'ל', points: 2 }, { letters: 'עם', points: -8 }]);
+  assert.equal(scores.find(party => party.letters === 'ל').points, 2);
+  assert.equal(scores.find(party => party.letters === 'עם').points, -8);
+});
+
+test('Bennett refusal overrides historical component co-membership, without reversing the declaration', () => {
+  assert.equal(coalitionWeight('רק', 'עם').weight, 0);
+  assert.equal(coalitionWeight('עם', 'רק').weight, 0);
+  assert.equal(coalitionRelation('עם', 'רק'), null);
+});
+
+test('Likud and Raam negotiations are sourced and weaker than actual coalition membership', () => {
+  assert.equal(coalitionHistory('מחל', 'עם').length, 0);
+  assert.equal(COALITION_NEGOTIATIONS[0].reportedOn, '2022-09-02');
+  assert.match(COALITION_NEGOTIATIONS[0].detail, /הליכוד טען/);
+  assert.match(COALITION_NEGOTIATIONS[0].source, /^https:\/\//);
+  assert.equal(coalitionWeight('מחל', 'עם').weight, 0.125);
+  assert.equal(coalitionWeight('עם', 'מחל').weight, 0.125);
+  assert.ok(coalitionWeight('מחל', 'עם').weight < coalitionWeight('מחל', 'שס').weight);
+  const scores = scoreCoalitions([{ letters: 'מחל', points: 1 }, { letters: 'עם', points: -8 }]);
+  assert.equal(scores.find(party => party.letters === 'מחל').points, 0);
 });

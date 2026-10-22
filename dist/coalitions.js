@@ -13,6 +13,16 @@ export const COALITION_PARTIES = coveredLetters.flatMap(letters => {
 // A declaration about Netanyahu must not become a veto of every future Likud leader.
 const opposition = ['רק', 'דרך', 'אמת', 'ל'];
 export const COALITION_RELATIONS = [
+  ...['עם', 'ודם', 'שס', 'ג'].map(to => ({
+    from: 'ל', to, kind: 'veto', label: 'סירוב מפורש של ליברמן', date: '2026-10-15',
+    detail: 'ליברמן שלל קואליציה עם רע״ם, המשותפת, ש״ס ויהדות התורה, וכן תמיכה בממשלת מיעוט. ההצהרה המאוחרת גוברת במודל על שותפות היסטורית.',
+    source: 'https://www.mako.co.il/news-israel-elections/2026/Article-5b0d6cc444f31a1026.htm',
+  })),
+  ...['עם', 'ודם'].map(to => ({
+    from: 'רק', to, kind: 'veto', label: 'סירוב מוצהר של בנט', date: '2026-02-02',
+    detail: 'בנט הצהיר שלא יקים ממשלה הנשענת על מפלגות ערביות. זו הצהרתו מלפני איחוד הרשימות, ולא הצהרה משותפת של כל רכיבי ביחד; החסימה במודל מניחה שהוא עומד בראש הממשלה המוצעת.',
+    source: 'https://www.mako.co.il/news-israel-elections/2026_q1/Article-75a42e70dcf1c91026.htm',
+  })),
   ...['רק', 'אמת', 'ל'].map(from => ({
     from, to: 'מחל', kind: 'veto', label: 'לא עם נתניהו', date: '2026-10-11',
     detail: 'הצהרת ראש הרשימה נגד ישיבה בממשלה עם נתניהו. אין כאן קביעה על הליכוד בהנהגה אחרת.', source: report,
@@ -44,6 +54,14 @@ export function coalitionHistory(from, to) {
   return historicalGroups.filter(group => group.letters.includes(from) && group.letters.includes(to));
 }
 
+// Negotiations are weaker historical evidence than coalition membership.
+// The account is attributed to Abbas; Likud disputed the purpose of the talks.
+export const COALITION_NEGOTIATIONS = [{
+  letters: ['מחל', 'עם'], date: '2021', reportedOn: '2022-09-02',
+  detail: 'עבאס תיאר מו״מ עם הליכוד והצעות להסכם קואליציוני ב־2021, כולל פגישות עם נתניהו. הליכוד טען שהמגעים נועדו לבחירה ישירה. אין כאן קביעה שהוקמה קואליציה או שקיימת הסכמה עדכנית.',
+  source: 'https://www.ynet.co.il/news/article/rkez4110ks',
+}];
+
 // Explicit modeling assumptions, not estimated probabilities. Unknown links carry
 // no weight. A veto in either direction blocks the link under today's leadership.
 export function coalitionWeight(from, to) {
@@ -54,6 +72,8 @@ export function coalitionWeight(from, to) {
   const history = coalitionHistory(from, to);
   if (coordination.length) return { weight: 0.5, basis: 'תיאום בגוש', sources: [...new Set(coordination.map(item => item.source))] };
   if (history.length) return { weight: 0.25, basis: 'שותפות בעבר', sources: [...new Set(history.map(item => item.source))] };
+  const negotiations = COALITION_NEGOTIATIONS.filter(item => item.letters.includes(from) && item.letters.includes(to));
+  if (negotiations.length) return { weight: 0.125, basis: 'מגעים בעבר — לפי עדות עבאס; ללא קואליציה', sources: negotiations.map(item => item.source) };
   return { weight: 0, basis: 'טרם מופה', sources: [] };
 }
 
