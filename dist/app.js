@@ -336,7 +336,7 @@ function resultView() {
     <div class="result-ballot">${blank ? '<span class="sr-only">פתק לבן ריק</span>' : `<strong>${escape(letters)}</strong><span>${escape(name)}</span>`}</div>
     <p class="reason"><strong>השיקול שהוביל לתוצאה</strong>זו ההמלצה של האדם שבחרת לסמוך עליו.</p>
     ${blank ? blankBallotNote() : ''}
-    <button class="primary" data-action="independent">בואו נבדוק גם לפי העמדות שלי <span aria-hidden="true">↻</span></button>${coalitionsButton()}<button class="text-button" data-action="restart">להתחיל מחדש</button>` }, { stage: 'התוצאה שלך' });
+    <button class="primary" data-action="independent">בואו נבדוק גם לפי העמדות שלי <span aria-hidden="true">↻</span></button><button class="text-button" data-action="restart">להתחיל מחדש</button>` }, { stage: 'התוצאה שלך' });
 }
 
 function withdrawnResultView(name, notice) {
@@ -588,7 +588,8 @@ app.addEventListener('click', event => {
   }
   const action = event.target.closest('[data-action]')?.dataset.action;
   if (action === 'back') back();
-  else if (action === 'coalitions' && ['result', 'bridge-result'].includes(state.step)) {
+  // The coalition map weighs the user's own position scores, so the recommendation route has nothing to propagate.
+  else if (action === 'coalitions' && state.step === 'bridge-result') {
     go('coalitions');
   }
   else if (action === 'start') go('topics');

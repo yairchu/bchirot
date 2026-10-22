@@ -1246,12 +1246,21 @@ for (const mouseAvailable of [true, false]) {
   });
 }
 
-test('authority results also link to the coalition map', async t => {
+test('authority results do not offer the coalition map', async t => {
   const { $, click, robotQuestion } = await setup(t);
   robotQuestion(); click('robot-yes');
   t.mock.timers.tick(CUTSCENE_DURATION);
   t.mock.timers.tick(2500);
   assert.equal(window.history.state.bchirot.step, 'result');
+  assert.equal($('[data-action="coalitions"]'), null);
+});
+
+test('the coalition map blocks vetoed links', async t => {
+  const { $, click, choose } = await setup(t);
+  click('start'); choose('[value="modesty-partnership"]');
+  click('next');
+  choose('[name="representation-answer"][value="men-only"]');
+  for (let i = 0; i < 5; i++) click('next');
   click('coalitions');
   assert.ok($('.coalition-matrix'));
   assert.equal($('.coalitions-screen details'), null);
