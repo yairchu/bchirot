@@ -5,6 +5,8 @@ const representationHistorySource = 'https://www.zman.co.il/727367/';
 const lawSource = 'https://m.knesset.gov.il/EN/News/PressReleases/Pages/press16726w.aspx';
 const concernsSource = 'https://www.academy.ac.il/News/NewsItem.aspx?id=3386&nodeId=658';
 const democratsVoteSource = 'https://democrats.org.il/content/exclusion-of-women';
+const academicChoiceSource = 'https://law.tau.ac.il/sites/law.tau.ac.il/files/media_server/law_heb/Law_Society_Culture/books/Haredim/11_Noya%20Rimlat.pdf#page=44';
+const academicPreferencesSource = 'https://lawjournal.huji.ac.il/article/12/1667';
 
 export const REPRESENTATION_DILEMMA = {
   title: 'מי יושב סביב שולחן ההחלטות?',
@@ -25,15 +27,18 @@ export const REPRESENTATION_DILEMMA = {
 export const ACADEMIA_DILEMMA = {
   title: 'תואר שני, כיתה נפרדת?',
   context: 'ביולי 2026 הכנסת הרחיבה את האפשרות ללימודים בהפרדה בין נשים לגברים גם לתואר שני ושלישי. התומכים ביקשו לפתוח דלת למי שאינם לומדים בכיתות מעורבות. המתנגדים הזהירו מפגיעה בשוויון ובהזדמנויות למרצות. מה היה נכון לעשות?',
-  note: 'השאלה עוסקת במסלולים נפרדים לבחירה, לצד לימודים משותפים.',
+  note: 'גם כשאין חובה רשמית ללמוד בהפרדה, לחץ חברתי עשוי להשפיע על הבחירה במסלול.',
   options: [
     { id: 'expand', label: 'לאפשר הפרדה גם בתואר שני ושלישי' },
     { id: 'limit', label: 'להשאיר את ההפרדה לתואר ראשון בלבד' },
+    { id: 'ban', label: 'לא לאפשר מסלולי לימודים בהפרדה', detail: 'הפרדה עלולה להדיר נשים ולצמצם את חופש הבחירה גם לחרדים.' },
   ],
   timeline: [
     { text: 'ב־16 ביולי 2026 אושר תיקון מס׳ 12 לחוק זכויות הסטודנט, ביוזמת לימור סון הר מלך מעוצמה יהודית, ברוב של 52 מול 43. במוסדות מעורבים הוגבלה ההפרדה לכיתות הלימוד ולסטודנטים שבחרו במסלול.', url: lawSource, source: 'אישור החוק, הכנסת, 16.7.2026' },
     { text: 'האקדמיה הלאומית למדעים התנגדה להרחבה והזהירה מפגיעה במחקר, בסטודנטים ובאפשרויות ההוראה של מרצות. זו הערכת הסיכונים של האקדמיה, ולא תוצאה שנמדדה אחרי החקיקה.', url: concernsSource, source: 'עמדת האקדמיה הלאומית למדעים, 7.7.2026' },
-    { text: 'הדמוקרטים פרסמו תיעוד שלפיו חברי סיעת העבודה הצביעו נגד החוק. הניקוד הראשוני מתייחס לקידום החוק בידי סון הר מלך ולהצבעה המתועדת בפרסום המפלגה; לשאר הרשימות לא יוחסה כאן עמדה ללא בדיקה נוספת.', url: democratsVoteSource, source: 'תיעוד ההצבעה בפרסום הדמוקרטים' },
+    { text: 'כשמסלול נפרד הופך לציפייה חברתית, לימודים במסלול רגיל עלולים להיתפס כחריגה מנורמות הקהילה. פרופ׳ נויה רימלט מתארת כיצד התבססות ההפרדה מצמצמת כך את חופש הבחירה של חרדים וחרדיות, גם כשהמסלולים מוצגים כרצוניים.', url: academicChoiceSource, source: 'נויה רימלט, תוכניות אקדמיות נפרדות לחרדים, עמ׳ 406–407' },
+    { text: 'מחקרה של נטע ברק־קורן מבחין בין הפרדה בכיתה, הפרדה בקמפוס ומגדר המרצה, ומוצא שהחשיבות המיוחסת להם שונה. העמדות בציבור החרדי אינן אחידות, ולכן אין להניח שכולם זקוקים לאותו סוג של מסלול.', url: academicPreferencesSource, source: 'נטע ברק־קורן, מחקר עמדות, משפטים, 2019' },
+    { text: 'הדמוקרטים פרסמו תיעוד שלפיו חברי סיעת העבודה הצביעו נגד ההרחבה. הצבעה זו אינה מעידה כשלעצמה על תמיכה בביטול כל המסלולים הנפרדים, ולכן אינה מעניקה להם נקודות בבחירה הזו. קידום ההרחבה בידי סון הר מלך נחשב נקודת מחלוקת עם הבחירה בביטול.', url: democratsVoteSource, source: 'תיעוד ההצבעה וגבולות הניקוד' },
   ],
 };
 
@@ -60,9 +65,12 @@ export function scoreRepresentation(answer) {
 }
 
 export function scoreAcademia(answer) {
-  if (!['expand', 'limit'].includes(answer)) return [];
-  return records([
+  if (!['expand', 'limit', 'ban'].includes(answer)) return [];
+  const positions = [
     { id: 'otzma-yehudit', letters: 'ב', position: 1, basis: 'action', reason: 'לימור סון הר מלך מעוצמה יהודית יזמה את החוק שאושר להרחבת ההפרדה לתארים מתקדמים.', source: lawSource, component: 'הפרדה בתארים מתקדמים' },
     { id: 'democrats', letters: 'אמת', position: -1, basis: 'partial-action', reason: 'לפי תיעוד ההצבעה שפרסמו הדמוקרטים, חברי סיעת העבודה הצביעו נגד ההרחבה. המקור כאן הוא פרסום המפלגה על הצבעה בפועל.', source: democratsVoteSource, component: 'הפרדה בתארים מתקדמים' },
-  ], answer === 'expand' ? 1 : -1);
+  ];
+  // Opposition to extending segregation does not establish support for a full ban.
+  const supported = answer === 'ban' ? positions.filter(position => position.id === 'otzma-yehudit') : positions;
+  return records(supported, answer === 'expand' ? 1 : -1);
 }

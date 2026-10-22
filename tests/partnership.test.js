@@ -34,6 +34,16 @@ test('academia scores only the researched legislative actions and preserve limit
   assert.equal(representation.find(item => item.id === 'democrats').basis, 'action');
 });
 
+test('opposing all separated tracks does not infer full opposition from a vote against expansion', () => {
+  const ban = scoreAcademia('ban');
+  assert.deepEqual(ban.map(({ id, points }) => ({ id, points })), [{ id: 'otzma-yehudit', points: -1 }]);
+  assert.equal(scoreAcademia('limit').find(item => item.id === 'democrats').points, 1);
+  const results = scoreCurrentReligion(null, null, null, null, { academiaAnswer: 'ban' });
+  assert.equal(results.length, 1);
+  assert.equal(results[0].points, -1);
+  assert.equal(results[0].contributions.length, 1);
+});
+
 test('equal representation distinguishes near-balanced lists, limited participation and men-only lists', () => {
   const equal = scoreRepresentation('equal');
   assert.deepEqual(equal.filter(item => item.points > 0).map(item => item.id).sort(), ['beyachad', 'democrats', 'yashar']);

@@ -122,6 +122,7 @@ for (const mouseAvailable of [true, false]) {
     assert.ok($('.dilemma-background a'));
     choose('[name="representation-answer"][value="inclusive"]'); click('next');
     assert.equal($('h2').textContent, 'תואר שני, כיתה נפרדת?');
+    assert.deepEqual([...document.querySelectorAll('[name="academia-answer"]')].map(input => input.value), ['expand', 'limit', 'ban']);
     assert.equal($('.step-label').textContent, 'שאלה 3 מתוך 3');
     choose('[name="academia-answer"][value="limit"]');
     assert.equal($('.button-label').textContent, 'לתוצאות'); click('next');
@@ -139,6 +140,31 @@ for (const mouseAvailable of [true, false]) {
     assert.equal(window.history.state.bchirot.academiaAnswer, null);
   });
 }
+
+test('opposing all separated academic tracks retains sources and shows only evidenced disagreement', async t => {
+  const { $, click, choose, traverse } = await setup(t);
+  click('start'); choose('[value="modesty-partnership"]'); click('next'); click('next');
+  assert.equal($('.step-label').textContent, 'שאלה 3 מתוך 3');
+  const links = [...document.querySelectorAll('.dilemma-background a')].map(link => link.href);
+  assert.ok(links.some(link => link.includes('11_Noya%20Rimlat.pdf#page=44')));
+  assert.ok(links.some(link => link === 'https://lawjournal.huji.ac.il/article/12/1667'));
+  const ban = $('[name="academia-answer"][value="ban"]');
+  assert.match(ban.closest('label').textContent, /חופש הבחירה גם לחרדים/);
+  ban.click();
+  assert.equal($('.button-label').textContent, 'לתוצאות'); click('next');
+  assert.equal($('h2').textContent, 'עדיין לא נמצאה התאמה חיובית');
+  assert.equal($('[data-score-group="positive"]'), null);
+  assert.equal($('[data-party-id="otzma-yehudit"] .score').textContent, '−1');
+  assert.equal($('[data-party-id="democrats"]'), null);
+  await traverse('back');
+  assert.equal($('[name="academia-answer"]:checked').value, 'ban');
+  choose('[name="academia-answer"][value="limit"]'); click('next');
+  assert.equal($('[data-party-id="democrats"] .score').textContent, '+1');
+  await traverse('back');
+  $('[name="academia-answer"]:checked').click();
+  assert.equal($('.button-label').textContent, 'דלג'); click('next');
+  assert.equal($('.score-table'), null);
+});
 
 test('equal representation yields distinct positive and neutral results and can be undone or cleared', async t => {
   const { $, click, choose, traverse } = await setup(t);
