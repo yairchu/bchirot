@@ -150,14 +150,13 @@ test('topic costs, total, and overlap update in place and are restored by browse
   assert.match($('#question-budget').textContent, /6 שאלות/);
 });
 
-test('war route asks service first, then permits undoing and revising the dream affinity', async t => {
+test('war route opens with the dream and permits undoing and revising the dream affinity', async t => {
   const { $, click, choose, traverse, declineArmy } = await setup(t);
   click('start');
   choose('[value="war-dream"]');
   click('next');
-  declineArmy();
   assert.equal($('h2').textContent, 'איזה חלום מדבר אליך?');
-  assert.equal($('.step-label').textContent, 'שאלה 4 מתוך 6');
+  assert.equal($('.step-label').textContent, 'שאלה 2 מתוך 6');
   assert.equal(document.querySelectorAll('[name="dream-answer"]').length, 2);
   choose('[name="dream-answer"][value="whole-land"]');
   await traverse('back');
@@ -165,6 +164,7 @@ test('war route asks service first, then permits undoing and revising the dream 
   await traverse('forward');
   assert.equal($('[name="dream-answer"]:checked').value, 'whole-land');
   click('next');
+  declineArmy();
   click('next'); // Threat: skip.
   choose('[name="emergency-answer"][value="immediate"]');
   click('next');
@@ -173,9 +173,9 @@ test('war route asks service first, then permits undoing and revising the dream 
   assert.equal($('[data-score-group="positive"] [data-party-id="likud"]'), null);
   assert.equal($('[data-party-id="likud"] .score').textContent, '−1');
   click('review-questions');
-  declineArmy();
   choose('[name="dream-answer"][value="peace"]');
   click('next');
+  declineArmy();
   click('next');
   click('next'); // Saved emergency answer.
   assert.equal($('[data-party-id="democrats"] .score').textContent, '+1');
@@ -187,8 +187,8 @@ test('war route asks service first, then permits undoing and revising the dream 
 
 test('a dream answer alone adds a weak sourced affinity to current ballots', async t => {
   const { $, click, choose, declineArmy } = await setup(t);
-  click('start'); choose('[value="war-dream"]'); click('next'); declineArmy();
-  choose('[name="dream-answer"][value="whole-land"]'); click('next');
+  click('start'); choose('[value="war-dream"]'); click('next');
+  choose('[name="dream-answer"][value="whole-land"]'); click('next'); declineArmy();
   click('next'); click('next');
   assert.equal(document.querySelectorAll('[data-score-group="positive"] tbody tr').length, 2);
   assert.equal($('[data-party-id="religious-zionism"] .score').textContent, '+1');
@@ -201,8 +201,10 @@ test('both topics ask service once, then follow the shared route without double 
   const { $, click, choose, declineArmy } = await setup(t);
   click('start'); choose('[value="war-dream"]'); choose('[value="religion-transport"]'); click('next');
   assert.equal($('.step-label').textContent, 'שאלה 2 מתוך 8');
+  assert.equal($('h2').textContent, 'איזה חלום מדבר אליך?');
+  click('next'); // Dream.
   declineArmy();
-  click('next'); click('next'); // Dream and threat.
+  click('next'); // Threat.
   assert.equal($('.step-label').textContent, 'שאלה 6 מתוך 8');
   choose('[name="bridge-answer"][value="shabbat"]'); click('next');
   assert.equal($('.step-label').textContent, 'שאלה 7 מתוך 8');
@@ -672,9 +674,9 @@ test('an updated recommendation clears the withdrawn choice and normal results s
 test('threat question retains its sourced actions after the service and missions introduction', async t => {
   const { $, click, choose, traverse } = await setup(t);
   click('start'); choose('[value="war-dream"]'); click('next');
+  click('next'); // Dream.
   choose('[value="serve-haredim"]'); click('next');
   choose('[value="limit-outposts"]'); click('next');
-  click('next'); // Dream.
   assert.equal($('.step-label').textContent, 'שאלה 5 מתוך 6');
   assert.match($('.description').textContent, /2018/);
   assert.match($('.description').textContent, /2023/);
@@ -690,14 +692,16 @@ test('threat question retains its sourced actions after the service and missions
   assert.match($('.description').textContent, /3 מתוך 5/);
 });
 
-test('service opens first with the requested option order, a live meter and a single skip/continue action', async t => {
+test('service follows the opening dream with the requested option order, a live meter and a single skip/continue action', async t => {
   const { $, click, choose } = await setup(t, false);
   click('start');
   assert.equal($('.button-label').textContent, 'דלג');
   choose('[value="war-dream"]');
   assert.equal($('.button-label').textContent, 'ממשיכים'); click('next');
+  assert.equal($('h2').textContent, 'איזה חלום מדבר אליך?');
+  click('next');
   assert.equal($('h2').textContent, 'מי צריך לשרת בצבא?');
-  assert.equal($('.step-label').textContent, 'שאלה 2 מתוך 6');
+  assert.equal($('.step-label').textContent, 'שאלה 3 מתוך 6');
   assert.deepEqual([...document.querySelectorAll('[name="burden-answer"]')].map(input => input.closest('label').textContent), ['גברים לא חרדים', 'נשים', 'חרדים']);
   assert.equal(document.querySelectorAll('input:checked').length, 0);
   assert.equal($('[name="burden-tasks-answer"]'), null);
@@ -719,13 +723,15 @@ test('service opens first with the requested option order, a live meter and a si
 test('missions immediately follow service and continue its meter, with separate history and score coverage', async t => {
   const { $, click, choose, traverse } = await setup(t);
   click('start'); choose('[value="war-dream"]'); choose('[value="religion-transport"]'); click('next');
-  assert.equal($('.step-label').textContent, 'שאלה 2 מתוך 8');
+  assert.equal($('h2').textContent, 'איזה חלום מדבר אליך?');
+  click('next');
+  assert.equal($('.step-label').textContent, 'שאלה 3 מתוך 8');
   choose('[value="serve-haredim"]'); choose('[value="serve-women"]');
   const serviceSnapshot = window.history.state.bchirot.burdenAnswer;
   const level = $('#burden-gauge').getAttribute('aria-valuenow');
   click('next');
   assert.equal($('h2').textContent, 'אילו משימות הצבא צריך לשאת?');
-  assert.equal($('.step-label').textContent, 'שאלה 3 מתוך 8');
+  assert.equal($('.step-label').textContent, 'שאלה 4 מתוך 8');
   assert.equal($('#burden-gauge').getAttribute('aria-valuenow'), level);
   await traverse('back');
   assert.equal($('h2').textContent, 'מי צריך לשרת בצבא?');
@@ -740,7 +746,6 @@ test('missions immediately follow service and continue its meter, with separate 
   assert.deepEqual(tasksSnapshot, ['limit-outposts']);
   await traverse('back'); assert.equal($('[value="seek-partners"]').checked, false);
   await traverse('forward'); assert.equal($('[value="seek-partners"]').checked, true);
-  click('next'); // To dream.
   click('next'); // To threat.
   click('next'); // To bridge.
   click('next'); // To weekend.
@@ -760,15 +765,16 @@ for (const mouseAvailable of [true, false]) {
     test(`empty-service ${answer} branch is unscored and undoable on ${mouseAvailable ? 'desktop' : 'mobile'}`, async t => {
       const { $, click, choose, traverse } = await setup(t, mouseAvailable);
       click('start'); choose('[value="war-dream"]'); click('next');
+      click('next'); // Dream.
       assert.equal($('.button-label').textContent, 'דלג'); click('next');
       assert.equal($('h2').textContent, 'בחרת שלא יהיה צבא. איך נישאר מוגנים?');
-      assert.equal($('.step-label').textContent, 'שאלה 3 מתוך 6');
+      assert.equal($('.step-label').textContent, 'שאלה 4 מתוך 6');
       click(`no-army-${answer}`);
-      assert.equal(window.history.state.bchirot.step, 'dream');
+      assert.equal(window.history.state.bchirot.step, 'threat');
       assert.equal(window.history.state.bchirot.noArmyAnswer, answer);
       await traverse('back'); assert.equal(window.history.state.bchirot.step, 'no-army');
       await traverse('forward'); assert.equal(window.history.state.bchirot.noArmyAnswer, answer);
-      click('next'); click('next'); click('next');
+      click('next'); click('next');
       assert.equal($('.score-table'), null);
       assert.match(document.querySelector('#app').textContent, /אינו מקבל ניקוד/);
     });
@@ -792,14 +798,16 @@ test('return from no-army permits a new service choice and restores the normal r
 test('switching to no-army excludes previously saved mission answers from the results', async t => {
   const { $, click, choose } = await setup(t);
   click('start'); choose('[value="war-dream"]'); click('next');
+  click('next'); // Dream.
   choose('[value="serve-haredim"]'); click('next');
   choose('[value="limit-outposts"]'); click('next');
-  click('next'); click('next'); click('next');
+  click('next'); click('next');
   assert.equal($('[data-party-id="democrats"] .score').textContent, '+2');
   click('review-questions');
+  click('next'); // Dream.
   choose('[value="serve-haredim"]', false); click('next'); click('no-army-faith');
   assert.deepEqual(window.history.state.bchirot.burdenTasksAnswer, ['limit-outposts']);
-  click('next'); click('next'); click('next');
+  click('next'); click('next');
   assert.equal($('.score-table'), null);
 });
 

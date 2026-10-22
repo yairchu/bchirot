@@ -20,8 +20,8 @@ test('the counter uses four authority questions and five religion/state question
 
 test('the shared question appears once for either topic or both and routes have a stable order', () => {
   assert.deepEqual(questionRoute(['religion-transport']), ['burden', 'bridge', 'weekend', 'emergency']);
-  assert.deepEqual(questionRoute(['war-dream']), ['burden', 'burden-tasks', 'dream', 'threat', 'emergency']);
-  const both = ['burden', 'burden-tasks', 'dream', 'threat', 'bridge', 'weekend', 'emergency'];
+  assert.deepEqual(questionRoute(['war-dream']), ['dream', 'burden', 'burden-tasks', 'threat', 'emergency']);
+  const both = ['dream', 'burden', 'burden-tasks', 'threat', 'bridge', 'weekend', 'emergency'];
   assert.deepEqual(questionRoute(['war-dream', 'religion-transport']), both);
   assert.deepEqual(questionRoute(['religion-transport', 'war-dream']), both);
   assert.deepEqual(questionRoute([]), []);
@@ -41,7 +41,7 @@ test('incremental costs reflect overlap and selected contributions sum to the ac
 
 test('progress follows the selected union and updates the topic screen total', () => {
   const topics = ['war-dream'];
-  assert.deepEqual(progress('dream', { topics }), { current: 4, total: 6 });
+  assert.deepEqual(progress('dream', { topics }), { current: 2, total: 6 });
   assert.deepEqual(progress('emergency', { topics }), { current: 6, total: 6 });
   assert.deepEqual(progress('topics', { topics }), { current: 1, total: 6 });
   assert.deepEqual(progress('topics', { topics, authority: true }), { current: 1, total: 4 });
@@ -71,7 +71,7 @@ test('all 38 ballot choices have unique letters and usable names', () => {
 
 
 test('no-army adds a follow-up and replaces tasks, with accurate progress for each category', () => {
-  assert.deepEqual(questionnaireQuestions(['war-dream'], { noArmy: true }), ['burden', 'no-army', 'dream', 'threat', 'emergency']);
+  assert.deepEqual(questionnaireQuestions(['war-dream'], { noArmy: true }), ['dream', 'burden', 'no-army', 'threat', 'emergency']);
   assert.deepEqual(questionnaireQuestions(['religion-transport'], { noArmy: true }), ['burden', 'no-army', 'bridge', 'weekend', 'emergency']);
   assert.deepEqual(progress('no-army', { topics: ['religion-transport'], noArmy: true }), { current: 3, total: 6 });
   assert.deepEqual(progress('emergency', { topics: ['war-dream'], noArmy: true }), { current: 6, total: 6 });
