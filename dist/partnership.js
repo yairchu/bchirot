@@ -1,19 +1,21 @@
 import { PARTIES, PARTY_NOTICES } from './parties.js';
 
 const representationSource = 'https://www.idi.org.il/articles/53253';
+const representationHistorySource = 'https://www.zman.co.il/727367/';
 const lawSource = 'https://m.knesset.gov.il/EN/News/PressReleases/Pages/press16726w.aspx';
 const concernsSource = 'https://www.academy.ac.il/News/NewsItem.aspx?id=3386&nodeId=658';
 const democratsVoteSource = 'https://democrats.org.il/content/exclusion-of-women';
 
 export const REPRESENTATION_DILEMMA = {
   title: 'מי יושב סביב שולחן ההחלטות?',
-  context: 'במרץ 2024 כיהנו בש״ס וביהדות התורה רק גברים, בעוד שבסיעות אחרות כיהנו גם נשים. איזו רשימה היית רוצה שתייצג אותך?',
+  context: 'ש״ס ויהדות התורה מעולם לא הציבו נשים ברשימותיהן לכנסת, בעוד שבמפלגות אחרות נשים מכהנות כחברות כנסת וכשרות. איזו רשימה היית רוצה שתייצג אותך?',
   note: 'זו שאלה על הרשימה המועדפת עליך, ולא על איסור התמודדות של רשימות אחרות.',
   options: [
     { id: 'inclusive', label: 'רשימה שמשלבת נשים וגברים' },
     { id: 'men-only', label: 'רשימה של גברים בלבד' },
   ],
   timeline: [
+    { text: 'רשימות ש״ס ויהדות התורה לכנסת מורכבות מגברים בלבד לאורך השנים, ללא מועמדות גם במקומות שאינם ריאליים.', url: representationHistorySource, source: 'הרשימות לאורך השנים, זמן ישראל, 27.9.2026' },
     { text: 'סקירת המכון הישראלי לדמוקרטיה מ־2024 תיעדה נשים בסיעות הליכוד, יש עתיד והעבודה, ולעומתן סיעות ללא נשים ובהן ש״ס ויהדות התורה. מדובר בהרכב בפועל בנקודת זמן מוגדרת.', url: representationSource, source: 'ייצוג נשים בכנסת, מרץ 2024' },
     { text: 'הניקוד בוחן השתתפות בפועל, ולא שוויון מספרי או מדיניות בנושאים אחרים. לביחד נלקח כאן הרכיב של יש עתיד, ולדמוקרטים הרכיב של העבודה. אין מכאן מסקנה על כל מרכיבי הרשימות הנוכחיות.', url: representationSource, source: 'הנתונים לפי סיעה' },
   ],
@@ -48,9 +50,9 @@ export function scoreRepresentation(answer) {
     { id: 'likud', letters: 'מחל', position: 1, basis: 'action', reason: 'במרץ 2024 כיהנו נשים בסיעת הליכוד.' },
     { id: 'beyachad', letters: 'רק', position: 1, basis: 'partial-action', reason: 'נשים כיהנו ביש עתיד; העדות נוגעת לרכיב זה בביחד בלבד.' },
     { id: 'democrats', letters: 'אמת', position: 1, basis: 'partial-action', reason: 'נשים כיהנו בסיעת העבודה, מרכיב בדמוקרטים.' },
-    { id: 'shas', letters: 'שס', position: -1, basis: 'action', reason: 'במרץ 2024 כיהנו בסיעת ש״ס גברים בלבד.' },
-    { id: 'utj', letters: 'ג', position: -1, basis: 'action', reason: 'במרץ 2024 כיהנו בסיעת יהדות התורה גברים בלבד.' },
-  ].map(position => ({ ...position, source: representationSource, component: 'ייצוג נשים בכנסת' }));
+    { id: 'shas', letters: 'שס', position: -1, basis: 'action', reason: 'ש״ס לא הציבה מעולם נשים ברשימותיה לכנסת.', source: representationHistorySource },
+    { id: 'utj', letters: 'ג', position: -1, basis: 'action', reason: 'יהדות התורה לא הציבה מעולם נשים ברשימותיה לכנסת.', source: representationHistorySource },
+  ].map(position => ({ ...position, source: position.source || representationSource, component: 'ייצוג נשים בכנסת' }));
   return records(positions, answer === 'inclusive' ? 1 : -1);
 }
 
