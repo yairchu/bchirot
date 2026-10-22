@@ -3,7 +3,7 @@
 ## Questionnaire content
 
 - [ ] Agree on the actual choices for “מה הכי חשוב לך?”. The invented sample topics have been removed.
-- [x] Support multiple selection; selecting authority disables the other choices, and deselecting authority restores earlier choices. The named topics are “דת ומדינה” and “מלחמה וחלום”; one TODO choice remains.
+- [x] Support multiple selection; selecting authority disables the other choices, and deselecting authority restores earlier choices. The named topics are “דת ותחבורה” and “מלחמה וחלום”; one TODO choice remains.
 - [x] Build category routes from a shared question catalog, deduplicate shared questions, and show incremental question costs and dynamic progress. See [question flow](docs/question-flow.md).
 - [ ] Write further sourced questions for each topic.
 - [x] Extend religion/transport to three sourced dilemmas, with skipping and combined scores. Unwritten topics still stop at an explicit TODO.
@@ -14,7 +14,7 @@
 - [x] Exclude skips from scoring, show per-party evidence coverage, and show no ranking when all dilemmas are skipped.
 - [ ] Develop humor and useful insights for the other branches together.
 
-## Next topic: דת ומדינה
+## Next topic: דת ותחבורה
 
 - [x] Add the topic to the first question, replacing one TODO choice.
 - [x] Implement the first dilemma about the construction of Yehudit Bridge, with two answer choices and optional sourced background. See [the source notes](docs/yehudit-bridge.md).

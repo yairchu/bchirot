@@ -69,7 +69,7 @@ test('welcome starts the questionnaire; unfinished choices are explicit TODOs', 
   assert.equal($('h2').textContent, 'מה הכי חשוב לך?');
   assert.equal(document.querySelectorAll('[name="topic"]').length, 3);
   assert.equal(document.querySelector('.choice input').name, 'authority');
-  assert.ok($('[value="religion-transport"]').closest('label').textContent.includes('דת ומדינה'));
+  assert.ok($('[value="religion-transport"]').closest('label').textContent.includes('דת ותחבורה'));
   assert.ok($('[value="todo-2"]').closest('label').textContent.includes('TODO'));
   assert.equal($('[data-action="next"]').disabled, false);
 });

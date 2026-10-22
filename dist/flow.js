@@ -4,7 +4,7 @@ export const EASTER_EGG_DURATION = 7000;
 export const NO_TOPICS_DURATION = 1800;
 
 export const TOPIC_CHOICES = [
-  { id: 'religion-transport', label: 'דת ומדינה' },
+  { id: 'religion-transport', label: 'דת ותחבורה' },
   { id: 'war-dream', label: 'מלחמה וחלום' },
   { id: 'todo-2', label: 'TODO' },
 ];

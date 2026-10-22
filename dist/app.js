@@ -396,7 +396,7 @@ function bridgeResultView() {
 function independentView() {
   // TODO: Continue the topic flow with more dilemmas and sourced comparisons.
   const religionTransport = state.topics.includes('religion-transport');
-  return frame({ title: religionTransport ? 'דת ומדינה' : 'השאלות לפי העמדות שלך', body: `<p class="todo"><span class="todo-label">TODO</span> · ${religionTransport ? 'להוסיף את הדילמה הבאה ולבנות את המשך המסלול.' : 'לכתוב את השאלות ולבנות את המסלול.'}</p><button class="primary" data-action="topics">חזרה להתחלה <span aria-hidden="true">↻</span></button>` });
+  return frame({ title: religionTransport ? 'דת ותחבורה' : 'השאלות לפי העמדות שלך', body: `<p class="todo"><span class="todo-label">TODO</span> · ${religionTransport ? 'להוסיף את הדילמה הבאה ולבנות את המשך המסלול.' : 'לכתוב את השאלות ולבנות את המסלול.'}</p><button class="primary" data-action="topics">חזרה להתחלה <span aria-hidden="true">↻</span></button>` });
 }
 
 function render() {
