@@ -1,7 +1,7 @@
 import { PARTIES, PARTY_NOTICES } from './parties.js';
 import { scoreReligion } from './scoring.js';
 import { scoreVision } from './visions.js';
-import { scoreBurden, scoreThreat } from './policy-questions.js';
+import { scoreBurden, scoreThreat, normalizeBurdenAnswer, SERVICE_CHOICES } from './policy-questions.js';
 
 export const MAPPING_CHECKED_ON = '2026-10-22';
 const idi = 'https://www.idi.org.il/policy/parties-and-elections/parties/';
@@ -42,7 +42,7 @@ export function mapHistoricalScores(historicalScores) {
   }).sort((a, b) => b.contributions.length - a.contributions.length || b.points - a.points || a.name.localeCompare(b.name, 'he'));
 }
 
-export function scoreCurrentReligion(bridgeAnswer, weekendAnswer, emergencyAnswer = null, dreamAnswer = null, { burdenAnswer = null, threatAnswer = null } = {}) {
+export function scoreCurrentReligion(bridgeAnswer, weekendAnswer, emergencyAnswer = null, dreamAnswer = null, { burdenAnswer = null, burdenTasksAnswer = null, threatAnswer = null } = {}) {
   const results = mapHistoricalScores(scoreReligion(bridgeAnswer, weekendAnswer, emergencyAnswer));
   for (const evidence of scoreVision(dreamAnswer)) {
     let party = results.find(party => party.id === evidence.id);
@@ -53,7 +53,7 @@ export function scoreCurrentReligion(bridgeAnswer, weekendAnswer, emergencyAnswe
     party.contributions.push({ question: 'החלום שבחרת', points: evidence.points, evidence: [evidence] });
     party.points += evidence.points;
   }
-  for (const [question, records] of [['הנטל ומי נושא בו', scoreBurden(burdenAnswer)], ['חמאס והרשות', scoreThreat(threatAnswer)]]) {
+  for (const [question, records] of [['מי צריך לשרת בצבא?', scoreBurden(normalizeBurdenAnswer(burdenAnswer, false))], ['אילו משימות צה״ל צריך לשאת?', scoreBurden(normalizeBurdenAnswer(burdenTasksAnswer).filter(id => !SERVICE_CHOICES.some(choice => choice.id === id)))], ['חמאס והרשות', scoreThreat(threatAnswer)]]) {
     for (const evidence of records) {
       let party = results.find(party => party.id === evidence.id);
       if (!party) {

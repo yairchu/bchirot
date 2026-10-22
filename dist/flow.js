@@ -16,16 +16,18 @@ export const QUESTIONS = {
   bridge: { topics: ['religion-transport'], answerKey: 'bridgeAnswer', inputName: 'bridge-answer', scored: true },
   weekend: { topics: ['religion-transport'], answerKey: 'weekendAnswer', inputName: 'weekend-answer', scored: true },
   burden: { topics: ['religion-transport', 'war-dream'], answerKey: 'burdenAnswer', inputName: 'burden-answer', scored: true },
+  'no-army': { topics: ['religion-transport', 'war-dream'], answerKey: 'noArmyAnswer', inputName: 'no-army-answer', condition: 'no-army', scored: false },
+  'burden-tasks': { topics: ['war-dream'], answerKey: 'burdenTasksAnswer', inputName: 'burden-tasks-answer', condition: 'army', scored: true },
   emergency: { topics: ['religion-transport', 'war-dream'], answerKey: 'emergencyAnswer', inputName: 'emergency-answer', scored: true },
 };
 
-export function questionRoute(topics) {
-  return Object.keys(QUESTIONS).filter(id => QUESTIONS[id].topics.some(topic => topics.includes(topic)));
+export function questionRoute(topics, { noArmy = false } = {}) {
+  return Object.keys(QUESTIONS).filter(id => QUESTIONS[id].topics.some(topic => topics.includes(topic)) && (QUESTIONS[id].condition !== 'no-army' || noArmy) && (QUESTIONS[id].condition !== 'army' || !noArmy));
 }
 
-export function questionnaireQuestions(topics = []) {
+export function questionnaireQuestions(topics = [], options = {}) {
   // Continuing without topics keeps the existing invitation to try transport.
-  return questionRoute(topics.length ? topics : ['religion-transport']);
+  return questionRoute(topics.length ? topics : ['religion-transport'], options);
 }
 
 export function additionalQuestionCount(topic, selected = []) {
@@ -41,8 +43,8 @@ export function afterRobot(answer) {
   return 'sure';
 }
 
-export function progress(step, { topics = [], authority = false } = {}) {
-  const questions = questionnaireQuestions(topics);
+export function progress(step, { topics = [], authority = false, noArmy = false } = {}) {
+  const questions = questionnaireQuestions(topics, { noArmy });
   const index = questions.indexOf(step);
   if (index >= 0) return { current: index + 2, total: questions.length + 1 };
   if (step === 'topics') return { current: 1, total: authority ? 4 : topics.length && questions.length ? questions.length + 1 : null };

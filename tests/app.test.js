@@ -114,34 +114,34 @@ test('topic costs, total, and overlap update in place and are restored by browse
   click('start');
   const cost = id => $(`[data-topic-count="${id}"]`).textContent;
   assert.equal(cost('religion-transport'), '(+4 שאלות)');
-  assert.equal(cost('war-dream'), '(+4 שאלות)');
+  assert.equal(cost('war-dream'), '(+5 שאלות)');
   const transport = $('[value="religion-transport"]');
   transport.focus();
   choose('[value="religion-transport"]');
   assert.equal(document.activeElement, transport);
-  assert.equal(cost('war-dream'), '(+2 שאלות)');
+  assert.equal(cost('war-dream'), '(+3 שאלות)');
   assert.match($('#question-budget').textContent, /5 שאלות/);
   choose('[value="war-dream"]');
   assert.equal(cost('religion-transport'), '(+4 שאלות)');
-  assert.equal(cost('war-dream'), '(+2 שאלות)');
-  assert.match($('#question-budget').textContent, /7 שאלות/);
-  assert.equal($('.step-label').textContent, 'שאלה 1 מתוך 7');
+  assert.equal(cost('war-dream'), '(+3 שאלות)');
+  assert.match($('#question-budget').textContent, /8 שאלות/);
+  assert.equal($('.step-label').textContent, 'שאלה 1 מתוך 8');
   choose('[value="religion-transport"]', false);
-  assert.equal(cost('war-dream'), '(+4 שאלות)');
+  assert.equal(cost('war-dream'), '(+5 שאלות)');
   assert.equal(cost('religion-transport'), '(+2 שאלות)');
-  assert.match($('#question-budget').textContent, /5 שאלות/);
+  assert.match($('#question-budget').textContent, /6 שאלות/);
   await traverse('back');
   assert.deepEqual(window.history.state.bchirot.topics, ['religion-transport', 'war-dream']);
-  assert.equal(cost('war-dream'), '(+2 שאלות)');
-  assert.match($('#question-budget').textContent, /7 שאלות/);
+  assert.equal(cost('war-dream'), '(+3 שאלות)');
+  assert.match($('#question-budget').textContent, /8 שאלות/);
   await traverse('forward');
-  assert.equal(cost('war-dream'), '(+4 שאלות)');
+  assert.equal(cost('war-dream'), '(+5 שאלות)');
   choose('[name="authority"]');
   assert.equal(document.querySelectorAll('[name="topic"]:disabled').length, 3);
   assert.match($('#question-budget').textContent, /4 שאלות/);
   choose('[name="authority"]', false);
   assert.equal($('[value="war-dream"]').checked, true);
-  assert.match($('#question-budget').textContent, /5 שאלות/);
+  assert.match($('#question-budget').textContent, /6 שאלות/);
 });
 
 test('war and dream alone opens the two-choice dream and reaches the shared question without transport', async t => {
@@ -150,7 +150,7 @@ test('war and dream alone opens the two-choice dream and reaches the shared ques
   choose('[value="war-dream"]');
   click('next');
   assert.equal($('h2').textContent, 'איזה חלום מדבר אליך?');
-  assert.equal($('.step-label').textContent, 'שאלה 2 מתוך 5');
+  assert.equal($('.step-label').textContent, 'שאלה 2 מתוך 6');
   assert.equal(document.querySelectorAll('[name="dream-answer"]').length, 2);
   assert.equal($('.dilemma-details'), null);
   assert.match($('.selection-note').textContent, /נקודת זיקה אחת/);
@@ -161,9 +161,10 @@ test('war and dream alone opens the two-choice dream and reaches the shared ques
   assert.equal($('[name="dream-answer"]:checked').value, 'whole-land');
   click('next');
   click('skip'); // Threat
-  click('next'); // Burden: skip without an answer
+  click('next'); // Continue with nobody selected.
+  click('no-army-unsure');
   assert.equal(window.history.state.bchirot.step, 'emergency');
-  assert.equal($('.step-label').textContent, 'שאלה 5 מתוך 5');
+  assert.equal($('.step-label').textContent, 'שאלה 6 מתוך 6');
   choose('[name="emergency-answer"][value="immediate"]');
   click('next');
   assert.match($('.description').textContent, /2 מתוך 4/);
@@ -178,7 +179,8 @@ test('war and dream alone opens the two-choice dream and reaches the shared ques
   choose('[name="dream-answer"][value="peace"]');
   click('next');
   click('skip'); // Threat
-  click('next'); // Burden: skip without an answer
+  click('next'); // Continue with nobody selected.
+  click('no-army-unsure');
   click('next');
   assert.equal($('[data-party-id="likud"] .score').textContent, '−1');
   assert.match($('.dream-summary').textContent, /שלום בר־קיימא/);
@@ -199,7 +201,8 @@ test('a dream answer alone adds a weak sourced affinity to current ballots', asy
   choose('[name="dream-answer"][value="whole-land"]');
   click('next');
   click('skip'); // Threat
-  click('next'); // Burden: skip without an answer
+  click('next'); // Continue with nobody selected.
+  click('no-army-unsure');
   click('skip'); // Emergency
   assert.equal(document.querySelectorAll('[data-score-group="positive"] tbody tr').length, 2);
   assert.equal($('[data-party-id="religious-zionism"] .score').textContent, '+1');
@@ -214,20 +217,21 @@ test('both topics ask the shared question once and count its score once', async 
   click('start');
   choose('[value="war-dream"]');
   choose('[value="religion-transport"]');
-  assert.equal($('[data-topic-count="war-dream"]').textContent, '(+4 שאלות)');
+  assert.equal($('[data-topic-count="war-dream"]').textContent, '(+5 שאלות)');
   assert.equal($('[data-topic-count="religion-transport"]').textContent, '(+2 שאלות)');
   click('next');
   assert.equal(window.history.state.bchirot.step, 'dream');
   click('skip'); // Dream
   click('skip'); // Threat
-  assert.equal($('.step-label').textContent, 'שאלה 4 מתוך 7');
+  assert.equal($('.step-label').textContent, 'שאלה 4 מתוך 8');
   choose('[name="bridge-answer"][value="shabbat"]');
   click('next');
-  assert.equal($('.step-label').textContent, 'שאלה 5 מתוך 7');
+  assert.equal($('.step-label').textContent, 'שאלה 5 מתוך 8');
   choose('[name="weekend-answer"][value="expand"]');
   click('next');
-  click('next'); // Burden: skip without an answer
-  assert.equal($('.step-label').textContent, 'שאלה 7 מתוך 7');
+  click('next'); // Continue with nobody selected.
+  click('no-army-unsure');
+  assert.equal($('.step-label').textContent, 'שאלה 8 מתוך 8');
   choose('[name="emergency-answer"][value="immediate"]');
   click('next');
   assert.ok($('.score-table'));
@@ -270,7 +274,8 @@ test('weekend transit offers all three policies and scores an answer after skipp
   assert.ok($('.dilemma-background').textContent.includes('הנסיעה בו ללא תשלום (כי החוק לא מרשה אחרת)'));
   choose('[name="weekend-answer"][value="expand"]');
   click('next');
-  click('next'); // Burden: skip without an answer
+  click('next'); // Continue with nobody selected.
+  click('no-army-unsure');
   click('skip');
   assert.ok($('.description').textContent.includes('1 מתוך 4'));
   assert.equal($('[data-party-id="democrats"] .score').textContent, '+2');
@@ -289,17 +294,20 @@ test('skipping a selected answer clears its points while browser Back restores t
   click('next');
   choose('[name="weekend-answer"][value="expand"]');
   click('skip');
-  click('next'); // Burden: skip without an answer
+  click('next'); // Continue with nobody selected.
+  click('no-army-unsure');
   click('skip');
   assert.equal($('[data-party-id="democrats"] .score').textContent, '+2');
   assert.equal(window.history.state.bchirot.weekendAnswer, null);
   await traverse('back');
   assert.equal($('h2').textContent, 'שבת בבוקר. איך מגיעים להציל חיים?');
-  await traverse('back'); // Burden
+  await traverse('back'); // No-army follow-up
+  await traverse('back'); // Service
   await traverse('back');
   assert.equal($('[name="weekend-answer"]:checked').value, 'expand');
   click('next');
-  click('next'); // Burden: skip without an answer
+  click('next'); // Continue with nobody selected.
+  click('no-army-unsure');
   click('skip');
   assert.equal($('[data-party-id="democrats"] .score').textContent, '+4');
   assert.ok($('[data-party-id="democrats"] .score-coverage').textContent.includes('2 מתוך 2'));
@@ -325,7 +333,8 @@ test('skipping all dilemmas gives no ranking and explicit status quo remains an 
   click('next');
   click('skip'); // Bridge
   click('skip'); // Weekend
-  click('next'); // Burden: skip without an answer
+  click('next'); // Continue with nobody selected.
+  click('no-army-unsure');
   click('skip'); // Emergency
   assert.equal($('h2').textContent, 'עוד אין לנו מספיק חומר.');
   assert.equal($('.score-table'), null);
@@ -333,7 +342,8 @@ test('skipping all dilemmas gives no ranking and explicit status quo remains an 
   click('skip');
   choose('[name="weekend-answer"][value="keep"]');
   click('next');
-  click('next'); // Burden: skip without an answer
+  click('next'); // Continue with nobody selected.
+  click('no-army-unsure');
   click('skip');
   assert.ok($('.description').textContent.includes('1 מתוך 4'));
   assert.ok($('.score-table'));
@@ -344,15 +354,16 @@ test('skipping all dilemmas gives no ranking and explicit status quo remains an 
   assert.equal($('h2').textContent, 'עדיין לא נמצאה התאמה חיובית');
 });
 
-test('wartime transit is question five, has balanced background, and scores only Likud', async t => {
+test('wartime transit is question six, has balanced background, and scores only Likud', async t => {
   const { $, click, choose, traverse } = await setup(t);
   click('start');
   choose('[value="religion-transport"]');
   click('next');
   click('skip');
   click('skip');
-  click('next'); // Burden: skip without an answer
-  assert.equal($('.step-label').textContent, 'שאלה 5 מתוך 5');
+  click('next'); // Continue with nobody selected.
+  click('no-army-unsure');
+  assert.equal($('.step-label').textContent, 'שאלה 6 מתוך 6');
   assert.equal(document.querySelectorAll('[name="emergency-answer"]').length, 2);
   assert.equal($('[data-action="next"]').disabled, true);
   assert.match($('.dilemma-background').textContent, /הגעת חיילים ב־7 באוקטובר התעכבה/);
@@ -390,7 +401,8 @@ test('wartime transit is question five, has balanced background, and scores only
   choose('[name="bridge-answer"][value="shabbat"]');
   click('next');
   click('skip');
-  click('next'); // Burden: skip without an answer
+  click('next'); // Continue with nobody selected.
+  click('no-army-unsure');
   choose('[name="emergency-answer"][value="central-request"]');
   click('next');
   assert.match($('.description').textContent, /לחלופה שבחרת בשאלת 7 באוקטובר אין ניקוד מפלגתי/);
@@ -428,7 +440,8 @@ test('bridge answers are mutually exclusive, undoable, and restored when returni
   assert.equal(document.querySelectorAll('[name="bridge-answer"]:checked').length, 1);
   click('next');
   click('skip');
-  click('next'); // Burden: skip without an answer
+  click('next'); // Continue with nobody selected.
+  click('no-army-unsure');
   click('skip'); // Only the bridge contributes to this result.
   assert.ok($('.score-table'));
   assert.ok($('.todo').textContent.includes('הנושא הנוסף שבחרת עדיין לא נכלל'));
@@ -436,7 +449,8 @@ test('bridge answers are mutually exclusive, undoable, and restored when returni
 
   await traverse('back');
   assert.equal($('[name="emergency-answer"]:checked'), null);
-  await traverse('back'); // Burden
+  await traverse('back'); // No-army follow-up
+  await traverse('back'); // Service
   await traverse('back');
   assert.equal($('[name="weekend-answer"]:checked'), null);
   await traverse('back');
@@ -450,7 +464,8 @@ test('bridge answers are mutually exclusive, undoable, and restored when returni
   assert.equal($('[name="bridge-answer"]:checked').value, 'shabbat');
   click('next');
   click('skip');
-  click('next'); // Burden: skip without an answer
+  click('next'); // Continue with nobody selected.
+  click('no-army-unsure');
   click('skip');
   click('restart');
   choose('[value="religion-transport"]');
@@ -487,7 +502,8 @@ test('changing a bridge answer through browser history recalculates the visible 
   choose('[name="bridge-answer"][value="weekdays"]');
   click('next');
   click('skip');
-  click('next'); // Burden: skip without an answer
+  click('next'); // Continue with nobody selected.
+  click('no-army-unsure');
   click('skip');
   assert.equal($('[data-party-id="shas"] .score').textContent, '+2');
   assert.equal($('[data-party-id="likud"] .score').textContent, '+1');
@@ -497,10 +513,12 @@ test('changing a bridge answer through browser history recalculates the visible 
   await traverse('back');
   await traverse('back');
   await traverse('back');
+  await traverse('back');
   choose('[name="bridge-answer"][value="shabbat"]');
   click('next');
   click('skip');
-  click('next'); // Burden: skip without an answer
+  click('next'); // Continue with nobody selected.
+  click('no-army-unsure');
   click('skip');
   assert.equal($('[data-party-id="shas"] .score').textContent, '−2');
   assert.equal($('[data-party-id="democrats"] .score').textContent, '+2');
@@ -808,83 +826,13 @@ test('an updated recommendation clears the withdrawn choice and normal results s
   assert.equal($('.result-ballot'), null);
 });
 
-test('basic burden presents three independent service choices and retains one skip/continue action', async t => {
-  const { $, click, choose, traverse } = await setup(t);
-  click('start');
-  choose('[value="religion-transport"]');
-  click('next');
-  click('skip'); // Bridge
-  click('skip'); // Weekend
-  assert.equal($('h2').textContent, 'מי צריך לשרת בצבא?');
-  assert.equal($('.step-label').textContent, 'שאלה 4 מתוך 5');
-  assert.equal(document.querySelectorAll('[data-burden-group="service"]').length, 3);
-  assert.equal($('[data-burden-group="outposts"]'), null);
-  assert.equal($('[data-burden-group="partners"]'), null);
-  assert.equal($('.dilemma-option'), null);
-  assert.equal($('[data-action="skip"]'), null);
-  assert.equal($('.button-label').textContent, 'דלג');
-  choose('[value="serve-other-men"]');
-  choose('[value="serve-women"]');
-  assert.equal(document.querySelectorAll('[data-burden-group="service"]:checked').length, 2);
-  assert.equal($('.button-label').textContent, 'ממשיכים');
-  await traverse('back');
-  assert.equal($('[value="serve-women"]').checked, false);
-  assert.equal($('[value="serve-other-men"]').checked, true);
-  await traverse('forward');
-  assert.equal($('[value="serve-women"]').checked, true);
-  click('next');
-  click('skip'); // Emergency
-  assert.equal($('[data-party-id="shas"] .score').textContent, '+1');
-  assert.equal($('[data-party-id="democrats"] .score').textContent, '−1');
-  assert.match($('.burden-score-note').textContent, /גיוס חרדים בלבד/);
-});
-
-test('expanded burden shares one roster and two optional task choices without card frames', async t => {
-  const { $, click, choose, traverse } = await setup(t);
-  click('start');
-  choose('[value="war-dream"]');
-  choose('[value="religion-transport"]');
-  click('next');
-  click('skip'); // Dream
-  click('skip'); // Threat
-  click('skip'); // Bridge
-  click('skip'); // Weekend
-  assert.equal($('.step-label').textContent, 'שאלה 6 מתוך 7');
-  assert.equal(document.querySelectorAll('[name="burden-answer"]').length, 7);
-  assert.equal($('.dilemma-option'), null);
-  choose('[value="serve-haredim"]');
-  const snapshot = window.history.state.bchirot.burdenAnswer;
-  choose('[value="serve-women"]');
-  choose('[value="serve-other-men"]');
-  assert.deepEqual(snapshot, ['serve-haredim']);
-  choose('[value="limit-outposts"]');
-  choose('[value="seek-partners"]');
-  choose('[value="self-reliance"]');
-  assert.equal($('[value="seek-partners"]').checked, false);
-  assert.equal($('[value="limit-outposts"]').checked, true);
-  assert.equal(document.querySelectorAll('[data-burden-group="service"]:checked').length, 3);
-  await traverse('back');
-  assert.equal($('[value="seek-partners"]').checked, true);
-  await traverse('forward');
-  assert.equal($('[value="self-reliance"]').checked, true);
-  click('next');
-  click('skip');
-  assert.match($('.description').textContent, /1 מתוך 6/);
-  assert.equal($('[data-party-id="democrats"] .score').textContent, '+2');
-  assert.match($('[data-party-id="democrats"] .score-coverage').textContent, /1 מתוך 1/);
-  assert.equal($('[data-party-id="democrats"] details').querySelectorAll('b').length, 1);
-  assert.match($('.burden-score-note').textContent, /השותפים/);
-  click('restart');
-  assert.equal(window.history.state.bchirot.burdenAnswer, null);
-});
-
 test('threat question cites actions, restores its answer and allows skipping other dimensions', async t => {
   const { $, click, choose, traverse } = await setup(t);
   click('start');
   choose('[value="war-dream"]');
   click('next');
   click('skip'); // Dream
-  assert.equal($('.step-label').textContent, 'שאלה 3 מתוך 5');
+  assert.equal($('.step-label').textContent, 'שאלה 3 מתוך 6');
   assert.equal(document.querySelectorAll('[name="threat-answer"]').length, 2);
   assert.match($('.description').textContent, /2018/);
   assert.doesNotMatch($('.description').textContent, /הבהיר/);
@@ -895,85 +843,157 @@ test('threat question cites actions, restores its answer and allows skipping oth
   await traverse('forward');
   assert.equal($('[name="threat-answer"]:checked').value, 'pa');
   click('next');
-  choose('[name="burden-answer"][value="limit-outposts"]');
+  choose('[value="serve-haredim"]');
+  click('next');
+  choose('[value="limit-outposts"]');
   click('next');
   click('skip'); // Emergency
-  assert.equal($('[data-party-id="shas"]'), null, 'unanswered conscription must not create a party score');
-  assert.equal($('[data-party-id="democrats"] .score').textContent, '+1');
+  assert.equal($('[data-party-id="shas"] .score').textContent, '−1');
+  assert.equal($('[data-party-id="democrats"] .score').textContent, '+2');
   assert.equal($('[data-party-id="likud"] .score').textContent, '+2');
   assert.match($('[data-party-id="likud"] details').textContent, /החלטה שבוצעה/);
-  assert.match($('.description').textContent, /2 מתוך 4/);
+  assert.match($('.description').textContent, /3 מתוך 5/);
 });
 
 
-test('mobile meter reacts to widening the service pool and seeking partners; history restores both', async t => {
-  const { $, click, choose, traverse } = await setup(t, false);
+
+test('service starts empty with a warning, shows a meter after selection and hides it when cleared', async t => {
+  const { $, click, choose } = await setup(t, false);
   click('start');
   choose('[value="war-dream"]');
   click('next');
   click('skip');
   click('skip');
-  const value = () => Number($('#burden-gauge').getAttribute('aria-valuenow'));
-  assert.equal(value(), 5);
+  assert.equal($('h2').textContent, 'מי צריך לשרת בצבא?');
+  assert.equal(document.querySelectorAll('[name="burden-answer"]:checked').length, 0);
+  assert.equal($('[name="burden-tasks-answer"]'), null);
+  assert.equal($('#burden-gauge'), null);
+  assert.match($('.no-army-warning').textContent, /אף אחד לא בתורנות/);
+  assert.equal($('.button-label').textContent, 'ממשיכים');
   choose('[value="serve-other-men"]');
-  assert.equal(value(), 6);
-  assert.ok($('.burden-meter.is-rising'));
+  assert.ok($('#burden-gauge'));
+  assert.equal($('.no-army-warning'), null);
+  assert.match($('#burden-meter-status').textContent, /1 מתוך 1/);
+  const narrow = Number($('#burden-gauge').getAttribute('aria-valuenow'));
   choose('[value="serve-women"]');
-  assert.equal(value(), 4);
-  assert.ok($('.burden-meter.is-falling'));
-  choose('[value="serve-haredim"]');
-  assert.equal(value(), 2);
-  choose('[value="seek-partners"]');
-  assert.equal(value(), 1);
-  await traverse('back');
-  assert.equal(value(), 2);
-  assert.equal($('[value="seek-partners"]').checked, false);
-  await traverse('forward');
-  assert.equal(value(), 1);
-  assert.match($('#burden-impact').textContent, /בכפוף להצלחת/);
+  assert.ok(Number($('#burden-gauge').getAttribute('aria-valuenow')) < narrow);
+  choose('[value="serve-other-men"]', false);
+  choose('[value="serve-women"]', false);
+  assert.equal($('#burden-gauge'), null);
+  assert.ok($('.no-army-warning'));
   t.mock.timers.tick(10000);
-  assert.equal(value(), 1);
   assert.equal(window.history.state.bchirot.step, 'burden');
 });
 
-test('partners-only choice has no invented party ranking and does not infer a service position', async t => {
-  const { $, click, choose } = await setup(t);
+test('service and missions have separate pages, answers, histories and score coverage', async t => {
+  const { $, click, choose, traverse } = await setup(t);
   click('start');
   choose('[value="war-dream"]');
+  choose('[value="religion-transport"]');
   click('next');
   click('skip');
   click('skip');
+  click('skip');
+  click('skip');
+  assert.equal($('.step-label').textContent, 'שאלה 6 מתוך 8');
+  choose('[value="serve-haredim"]');
+  choose('[value="serve-women"]');
+  const serviceSnapshot = window.history.state.bchirot.burdenAnswer;
+  click('next');
+  assert.equal($('h2').textContent, 'אילו משימות הצבא צריך לשאת?');
+  assert.equal($('.step-label').textContent, 'שאלה 7 מתוך 8');
+  assert.equal($('[name="burden-answer"]'), null);
+  assert.equal($('.button-label').textContent, 'דלג');
+  choose('[value="limit-outposts"]');
+  const tasksSnapshot = window.history.state.bchirot.burdenTasksAnswer;
   choose('[value="seek-partners"]');
-  assert.match($('.burden-group').parentElement.textContent, /הרש״פ/);
-  assert.match($('.burden-group').parentElement.textContent, /מועצת השלום/);
+  assert.deepEqual(serviceSnapshot, ['serve-haredim', 'serve-women']);
+  assert.deepEqual(tasksSnapshot, ['limit-outposts']);
+  await traverse('back');
+  assert.equal($('[value="seek-partners"]').checked, false);
+  await traverse('forward');
+  assert.equal($('[value="seek-partners"]').checked, true);
   click('next');
   click('skip');
-  assert.equal($('h2').textContent, 'לתשובה הזו אין ניקוד מפלגתי.');
-  assert.equal($('.score-table'), null);
-  assert.match($('.burden-score-note').textContent, /ללא ניקוד מפלגתי/);
-  assert.doesNotMatch($('.description').textContent, /ריכוז הדרישות/);
+  assert.match($('.description').textContent, /2 מתוך 7/);
+  assert.equal($('[data-party-id="democrats"] .score').textContent, '+2');
+  assert.match($('[data-party-id="democrats"] .score-coverage').textContent, /2 מתוך 2/);
+  assert.equal($('[data-party-id="democrats"] details').querySelectorAll('b').length, 2);
+  click('restart');
+  assert.equal(window.history.state.bchirot.burdenAnswer, null);
+  assert.equal(window.history.state.bchirot.burdenTasksAnswer, null);
+  assert.equal(window.history.state.bchirot.noArmy, false);
+  assert.equal(window.history.state.bchirot.noArmyAnswer, null);
 });
 
-test('clearing the roster and tasks restores a focused skip button and an unanswered question', async t => {
+for (const mouseAvailable of [true, false]) {
+  for (const answer of ['faith', 'unsure']) {
+    test(`empty-service ${answer} branch is unscored and undoable on ${mouseAvailable ? 'desktop' : 'mobile'}`, async t => {
+      const { $, click, choose, traverse } = await setup(t, mouseAvailable);
+      click('start');
+      choose('[value="war-dream"]');
+      click('next');
+      click('skip');
+      click('skip');
+      click('next'); // Explicitly continue with no army.
+      assert.equal($('h2').textContent, 'בחרת שלא יהיה צבא. איך נישאר מוגנים?');
+      assert.equal($('.step-label').textContent, 'שאלה 5 מתוך 6');
+      assert.ok($('[data-action="choose-service"]'));
+      click(`no-army-${answer}`);
+      assert.equal(window.history.state.bchirot.step, 'emergency');
+      assert.equal(window.history.state.bchirot.noArmyAnswer, answer);
+      assert.equal($('.step-label').textContent, 'שאלה 6 מתוך 6');
+      await traverse('back');
+      assert.equal(window.history.state.bchirot.step, 'no-army');
+      await traverse('forward');
+      assert.equal(window.history.state.bchirot.noArmyAnswer, answer);
+      click('skip');
+      assert.equal($('.score-table'), null);
+      assert.match(document.querySelector('#app').textContent, /ללא ניקוד|אינו מקבל ניקוד/);
+    });
+  }
+}
+
+test('return from no-army lets the user change their mind and shrinks the religion route', async t => {
+  const { $, click, choose } = await setup(t);
+  click('start');
+  choose('[value="religion-transport"]');
+  click('next');
+  click('skip');
+  click('skip');
+  click('next');
+  assert.equal($('.step-label').textContent, 'שאלה 5 מתוך 6');
+  click('choose-service');
+  assert.equal($('#burden-gauge'), null);
+  choose('[value="serve-haredim"]');
+  assert.equal(window.history.state.bchirot.noArmy, false);
+  assert.equal($('.step-label').textContent, 'שאלה 4 מתוך 5');
+  click('next');
+  assert.equal(window.history.state.bchirot.step, 'emergency');
+  assert.equal($('.step-label').textContent, 'שאלה 5 מתוך 5');
+});
+
+test('switching to no-army excludes saved mission answers from the new results', async t => {
   const { $, click, choose } = await setup(t);
   click('start');
   choose('[value="war-dream"]');
   click('next');
   click('skip');
   click('skip');
-  const button = $('[data-action="next"]');
-  button.focus();
-  choose('[value="serve-women"]');
-  choose('[value="seek-partners"]');
-  assert.equal($('.button-label').textContent, 'ממשיכים');
-  choose('[value="serve-women"]', false);
-  assert.equal($('.button-label').textContent, 'ממשיכים');
-  choose('[value="seek-partners"]', false);
-  assert.equal($('.button-label').textContent, 'דלג');
-  assert.equal(document.activeElement, button);
-  assert.equal($('#burden-gauge').getAttribute('aria-valuenow'), '5');
+  choose('[value="serve-haredim"]');
   click('next');
-  assert.equal(window.history.state.bchirot.burdenAnswer, null);
+  choose('[value="limit-outposts"]');
+  click('next');
+  click('skip');
+  assert.equal($('[data-party-id="democrats"] .score').textContent, '+2');
+  click('review-questions');
+  click('skip');
+  click('skip');
+  choose('[value="serve-haredim"]', false);
+  click('next');
+  click('no-army-faith');
+  assert.equal(window.history.state.bchirot.step, 'emergency');
+  assert.deepEqual(window.history.state.bchirot.burdenTasksAnswer, ['limit-outposts']);
   click('skip');
   assert.equal($('.score-table'), null);
 });

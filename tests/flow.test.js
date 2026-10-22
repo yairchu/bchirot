@@ -20,8 +20,8 @@ test('the counter uses four authority questions and five religion/state question
 
 test('the shared question appears once for either topic or both and routes have a stable order', () => {
   assert.deepEqual(questionRoute(['religion-transport']), ['bridge', 'weekend', 'burden', 'emergency']);
-  assert.deepEqual(questionRoute(['war-dream']), ['dream', 'threat', 'burden', 'emergency']);
-  const both = ['dream', 'threat', 'bridge', 'weekend', 'burden', 'emergency'];
+  assert.deepEqual(questionRoute(['war-dream']), ['dream', 'threat', 'burden', 'burden-tasks', 'emergency']);
+  const both = ['dream', 'threat', 'bridge', 'weekend', 'burden', 'burden-tasks', 'emergency'];
   assert.deepEqual(questionRoute(['war-dream', 'religion-transport']), both);
   assert.deepEqual(questionRoute(['religion-transport', 'war-dream']), both);
   assert.deepEqual(questionRoute([]), []);
@@ -31,8 +31,8 @@ test('the shared question appears once for either topic or both and routes have 
 
 test('incremental costs reflect overlap and selected contributions sum to the actual length', () => {
   assert.equal(additionalQuestionCount('religion-transport'), 4);
-  assert.equal(additionalQuestionCount('war-dream'), 4);
-  assert.equal(additionalQuestionCount('war-dream', ['religion-transport']), 2);
+  assert.equal(additionalQuestionCount('war-dream'), 5);
+  assert.equal(additionalQuestionCount('war-dream', ['religion-transport']), 3);
   assert.equal(additionalQuestionCount('religion-transport', ['war-dream']), 2);
   for (const selected of [['religion-transport', 'war-dream'], ['war-dream', 'religion-transport'], ['todo-2', 'war-dream']]) {
     assert.equal(selected.reduce((sum, topic) => sum + additionalQuestionCount(topic, selected), 0), questionRoute(selected).length);
@@ -41,13 +41,13 @@ test('incremental costs reflect overlap and selected contributions sum to the ac
 
 test('progress follows the selected union and updates the topic screen total', () => {
   const topics = ['war-dream'];
-  assert.deepEqual(progress('dream', { topics }), { current: 2, total: 5 });
-  assert.deepEqual(progress('emergency', { topics }), { current: 5, total: 5 });
-  assert.deepEqual(progress('topics', { topics }), { current: 1, total: 5 });
+  assert.deepEqual(progress('dream', { topics }), { current: 2, total: 6 });
+  assert.deepEqual(progress('emergency', { topics }), { current: 6, total: 6 });
+  assert.deepEqual(progress('topics', { topics }), { current: 1, total: 6 });
   assert.deepEqual(progress('topics', { topics, authority: true }), { current: 1, total: 4 });
   const both = { topics: [...topics, 'religion-transport'] };
-  assert.deepEqual(progress('bridge', both), { current: 4, total: 7 });
-  assert.deepEqual(progress('emergency', both), { current: 7, total: 7 });
+  assert.deepEqual(progress('bridge', both), { current: 4, total: 8 });
+  assert.deepEqual(progress('emergency', both), { current: 8, total: 8 });
 });
 
 test('blank ballot is a separate answer and not one of the official party choices', () => {
@@ -67,4 +67,13 @@ test('all 38 ballot choices have unique letters and usable names', () => {
   assert.equal(PARTIES.length, 38);
   assert.equal(new Set(PARTIES.map(party => party[0])).size, PARTIES.length);
   assert.ok(PARTIES.every(([letters, name]) => letters.length && name.length));
+});
+
+
+test('no-army adds a follow-up and replaces tasks, with accurate progress for each category', () => {
+  assert.deepEqual(questionnaireQuestions(['war-dream'], { noArmy: true }), ['dream', 'threat', 'burden', 'no-army', 'emergency']);
+  assert.deepEqual(questionnaireQuestions(['religion-transport'], { noArmy: true }), ['bridge', 'weekend', 'burden', 'no-army', 'emergency']);
+  assert.deepEqual(progress('no-army', { topics: ['religion-transport'], noArmy: true }), { current: 5, total: 6 });
+  assert.deepEqual(progress('emergency', { topics: ['war-dream'], noArmy: true }), { current: 6, total: 6 });
+  assert.equal(questionnaireQuestions(['war-dream', 'religion-transport'], { noArmy: true }).filter(id => id === 'no-army').length, 1);
 });

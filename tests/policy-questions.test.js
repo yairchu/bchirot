@@ -39,14 +39,15 @@ test('outpost direction still scores one component, while partners add no invent
   assert.deepEqual(scoreBurden(['self-reliance']), []);
 });
 
-test('service and outposts merge into one covered question even with all groups and a partner choice', () => {
-  const find = answer => currentScores({ burdenAnswer: answer }).find(item => item.id === 'democrats');
-  const matched = find(['serve-haredim', 'serve-women', 'serve-other-men', 'limit-outposts', 'seek-partners']);
-  assert.equal(matched.points, 2);
-  assert.equal(matched.contributions.length, 1);
-  assert.equal(matched.contributions[0].evidence.length, 2);
-  assert.equal(find(['serve-haredim', 'protect-outposts']).points, 0);
-  assert.equal(find(['serve-other-men', 'protect-outposts']).points, -2);
+test('service and tasks have separate contributions and coverage after the page split', () => {
+  const scores = currentScores({ burdenAnswer: ['serve-haredim', 'serve-women', 'serve-other-men'], burdenTasksAnswer: ['limit-outposts', 'seek-partners'] });
+  const democrats = scores.find(item => item.id === 'democrats');
+  assert.equal(democrats.points, 2);
+  assert.equal(democrats.contributions.length, 2);
+  assert.ok(democrats.contributions.every(item => item.evidence.length === 1));
+  assert.equal(new Set(democrats.contributions.map(item => item.question)).size, 2);
+  assert.equal(currentScores({ burdenAnswer: ['limit-outposts'] }).length, 0);
+  assert.equal(currentScores({ burdenTasksAnswer: ['serve-haredim'] }).length, 0);
 });
 
 test('threat scores use executed decisions and resignation, with no platform-based Democrats points', () => {
@@ -67,12 +68,12 @@ test('threat scores use executed decisions and resignation, with no platform-bas
 });
 
 test('new policy evidence merges into existing ballots without duplicating historic or vision contributions', () => {
-  const scores = scoreCurrentReligion('shabbat', 'expand', null, 'peace', { burdenAnswer: ['serve-haredim', 'limit-outposts'], threatAnswer: 'hamas' });
+  const scores = scoreCurrentReligion('shabbat', 'expand', null, 'peace', { burdenAnswer: ['serve-haredim'], burdenTasksAnswer: ['limit-outposts'], threatAnswer: 'hamas' });
   assert.equal(new Set(scores.map(item => item.letters)).size, scores.length);
   const democrats = scores.find(item => item.id === 'democrats');
   assert.equal(democrats.points, 7); // bridge 2 + weekend 2 + vision 1 + burden 2; no threat point
-  assert.equal(democrats.contributions.length, 4);
-  assert.equal(new Set(democrats.contributions.map(item => item.question)).size, 4);
+  assert.equal(democrats.contributions.length, 5);
+  assert.equal(new Set(democrats.contributions.map(item => item.question)).size, 5);
 });
 
 test('withdrawn lists are excluded from all new policy scoring', t => {
