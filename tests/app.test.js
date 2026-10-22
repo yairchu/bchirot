@@ -117,7 +117,8 @@ for (const mouseAvailable of [true, false]) {
     assert.equal($('h2').textContent, 'מי יושב סביב שולחן ההחלטות?');
     assert.equal($('.step-label').textContent, 'שאלה 2 מתוך 3');
     assert.equal($('.button-label').textContent, 'דלג');
-    assert.equal(document.querySelectorAll('[name="representation-answer"]').length, 2);
+    assert.equal(document.querySelectorAll('[name="representation-answer"]').length, 3);
+    assert.deepEqual([...document.querySelectorAll('[name="representation-answer"]')].map(input => input.value), ['men-only', 'inclusive', 'equal']);
     assert.ok($('.dilemma-background a'));
     choose('[name="representation-answer"][value="inclusive"]'); click('next');
     assert.equal($('h2').textContent, 'תואר שני, כיתה נפרדת?');
@@ -138,6 +139,25 @@ for (const mouseAvailable of [true, false]) {
     assert.equal(window.history.state.bchirot.academiaAnswer, null);
   });
 }
+
+test('equal representation yields distinct positive and neutral results and can be undone or cleared', async t => {
+  const { $, click, choose, traverse } = await setup(t);
+  click('start'); choose('[value="modesty-partnership"]'); click('next');
+  $('[name="representation-answer"][value="equal"]').click();
+  assert.equal($('.button-label').textContent, 'ממשיכים'); click('next'); click('next');
+  assert.equal(document.querySelectorAll('[data-score-group="positive"] tbody tr').length, 3);
+  assert.equal($('[data-party-id="likud"] .score').textContent, '0');
+  assert.equal($('[data-party-id="likud"]').closest('[data-score-group]').dataset.scoreGroup, 'neutral');
+  assert.equal($('[data-party-id="yashar"] .score').textContent, '+1');
+  await traverse('back'); await traverse('back');
+  assert.equal($('[name="representation-answer"]:checked').value, 'equal');
+  $('[name="representation-answer"][value="equal"]').click();
+  assert.equal($('.button-label').textContent, 'דלג');
+  await traverse('back');
+  assert.equal($('[name="representation-answer"]:checked').value, 'equal');
+  await traverse('forward'); click('next'); click('next');
+  assert.equal($('.score-table'), null);
+});
 
 test('both partnership questions can be cleared and skipped without inventing party scores', async t => {
   const { $, click, choose } = await setup(t);

@@ -30,8 +30,21 @@ test('academia scores only the researched legislative actions and preserve limit
   assert.equal(democrats.basis, 'partial-action');
   assert.match(democrats.reason, /פרסום המפלגה/);
   const representation = scoreRepresentation('inclusive');
-  assert.equal(representation.find(item => item.id === 'beyachad').basis, 'partial-action');
-  assert.equal(representation.find(item => item.id === 'democrats').basis, 'partial-action');
+  assert.equal(representation.find(item => item.id === 'beyachad').basis, 'action');
+  assert.equal(representation.find(item => item.id === 'democrats').basis, 'action');
+});
+
+test('equal representation distinguishes near-balanced lists, limited participation and men-only lists', () => {
+  const equal = scoreRepresentation('equal');
+  assert.deepEqual(equal.filter(item => item.points > 0).map(item => item.id).sort(), ['beyachad', 'democrats', 'yashar']);
+  assert.deepEqual(equal.filter(item => item.points < 0).map(item => item.id).sort(), ['shas', 'utj']);
+  assert.equal(equal.find(item => item.id === 'likud').points, 0);
+  assert.equal(scoreRepresentation('inclusive').find(item => item.id === 'likud').points, 1);
+  assert.ok(equal.filter(item => item.points >= 0).every(item => item.source.endsWith('/66220')));
+  const results = scoreCurrentReligion(null, null, null, null, { representationAnswer: 'equal' });
+  assert.equal(results.find(item => item.id === 'likud').contributions.length, 1);
+  assert.equal(results.find(item => item.id === 'likud').points, 0);
+  assert.equal(results.some(item => item.id === 'otzma-yehudit'), false);
 });
 
 test('new contributions merge with prior topics without duplicate parties or lost scores', () => {

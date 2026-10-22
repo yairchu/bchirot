@@ -1,6 +1,6 @@
 import { PARTIES, PARTY_NOTICES } from './parties.js';
 
-const representationSource = 'https://www.idi.org.il/articles/53253';
+const representationSource = 'https://www.idi.org.il/articles/66220';
 const representationHistorySource = 'https://www.zman.co.il/727367/';
 const lawSource = 'https://m.knesset.gov.il/EN/News/PressReleases/Pages/press16726w.aspx';
 const concernsSource = 'https://www.academy.ac.il/News/NewsItem.aspx?id=3386&nodeId=658';
@@ -11,13 +11,14 @@ export const REPRESENTATION_DILEMMA = {
   context: 'ש״ס ויהדות התורה מעולם לא הציבו נשים ברשימותיהן לכנסת, בעוד שבמפלגות אחרות נשים מכהנות כחברות כנסת וכשרות. איזו רשימה היית רוצה שתייצג אותך?',
   note: 'זו שאלה על הרשימה המועדפת עליך, ולא על איסור התמודדות של רשימות אחרות.',
   options: [
-    { id: 'inclusive', label: 'רשימה שמשלבת נשים וגברים' },
     { id: 'men-only', label: 'רשימה של גברים בלבד' },
+    { id: 'inclusive', label: 'רשימה שמשלבת נשים וגברים' },
+    { id: 'equal', label: 'רשימה שפועלת לייצוג שוויוני יותר' },
   ],
   timeline: [
     { text: 'רשימות ש״ס ויהדות התורה לכנסת מורכבות מגברים בלבד לאורך השנים, ללא מועמדות גם במקומות שאינם ריאליים.', url: representationHistorySource, source: 'הרשימות לאורך השנים, זמן ישראל, 27.9.2026' },
-    { text: 'סקירת המכון הישראלי לדמוקרטיה מ־2024 תיעדה נשים בסיעות הליכוד, יש עתיד והעבודה, ולעומתן סיעות ללא נשים ובהן ש״ס ויהדות התורה. מדובר בהרכב בפועל בנקודת זמן מוגדרת.', url: representationSource, source: 'ייצוג נשים בכנסת, מרץ 2024' },
-    { text: 'הניקוד בוחן השתתפות בפועל, ולא שוויון מספרי או מדיניות בנושאים אחרים. לביחד נלקח כאן הרכיב של יש עתיד, ולדמוקרטים הרכיב של העבודה. אין מכאן מסקנה על כל מרכיבי הרשימות הנוכחיות.', url: representationSource, source: 'הנתונים לפי סיעה' },
+    { text: 'סקירת רשימות 2026 מצאה ייצוג קרוב לאיזון אצל הדמוקרטים, ישר וביחד, לעומת ייצוג מצומצם בליכוד. ההשוואה מתייחסת למקומות שהוגדרו כריאליים לפי סקרים; היא אינה תוצאת הבחירות.', url: representationSource, source: 'הרכב הרשימות שהוגשו, 22.9.2026' },
+    { text: 'בהעדפה לשילוב שוויוני יותר, רשימות קרובות לאיזון מקבלות נקודת התאמה, רשימות ללא נשים נקודת מחלוקת, וליכוד מקבל אפס: יש בו נשים, אך הרכבו שנבדק רחוק מאיזון. הניקוד נשען על הרכב הרשימה, ולא על הבטחה לשינוי בעתיד.', url: representationSource, source: 'הבסיס להבחנה בין נוכחות לאיזון' },
   ],
 };
 
@@ -45,14 +46,16 @@ function records(positions, direction) {
 }
 
 export function scoreRepresentation(answer) {
-  if (!['inclusive', 'men-only'].includes(answer)) return [];
+  if (!['inclusive', 'men-only', 'equal'].includes(answer)) return [];
   const positions = [
-    { id: 'likud', letters: 'מחל', position: 1, basis: 'action', reason: 'במרץ 2024 כיהנו נשים בסיעת הליכוד.' },
-    { id: 'beyachad', letters: 'רק', position: 1, basis: 'partial-action', reason: 'נשים כיהנו ביש עתיד; העדות נוגעת לרכיב זה בביחד בלבד.' },
-    { id: 'democrats', letters: 'אמת', position: 1, basis: 'partial-action', reason: 'נשים כיהנו בסיעת העבודה, מרכיב בדמוקרטים.' },
+    { id: 'likud', letters: 'מחל', position: 1, balanced: false, basis: 'action', reason: 'בליכוד 13% נשים במקומות שנבדקו בסקירת רשימות 2026; זהו שילוב נשים, אך הרכב רחוק מאיזון.' },
+    { id: 'beyachad', letters: 'רק', position: 1, balanced: true, basis: 'action', reason: 'ברשימת ביחד 46% נשים במקומות שנבדקו בסקירת רשימות 2026.' },
+    { id: 'democrats', letters: 'אמת', position: 1, balanced: true, basis: 'action', reason: 'ברשימת הדמוקרטים 50% נשים במקומות שנבדקו בסקירת רשימות 2026.' },
+    { id: 'yashar', letters: 'דרך', position: 1, balanced: true, basis: 'action', reason: 'ברשימת ישר 48% נשים במקומות שנבדקו בסקירת רשימות 2026.' },
     { id: 'shas', letters: 'שס', position: -1, basis: 'action', reason: 'ש״ס לא הציבה מעולם נשים ברשימותיה לכנסת.', source: representationHistorySource },
     { id: 'utj', letters: 'ג', position: -1, basis: 'action', reason: 'יהדות התורה לא הציבה מעולם נשים ברשימותיה לכנסת.', source: representationHistorySource },
   ].map(position => ({ ...position, source: position.source || representationSource, component: 'ייצוג נשים בכנסת' }));
+  if (answer === 'equal') return records(positions.map(position => ({ ...position, position: position.position < 0 ? -1 : position.balanced ? 1 : 0 })), 1);
   return records(positions, answer === 'inclusive' ? 1 : -1);
 }
 
