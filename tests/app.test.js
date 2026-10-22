@@ -64,7 +64,7 @@ async function setup(t, mouseAvailable = true) {
   return { $, click, choose, hover, robotQuestion, traverse, declineArmy, skipDraft };
 }
 
-test('welcome starts the questionnaire; unfinished choices are explicit TODOs', async t => {
+test('welcome starts the questionnaire; modesty and partnership is named and marked in development', async t => {
   const { $, click } = await setup(t);
   assert.equal($('h1').textContent, 'תכלס, בחירות.');
   assert.equal($('.description').textContent, 'השאלון שמבוסס על דילמות פוליטיות אמיתיות שקרו');
@@ -74,7 +74,8 @@ test('welcome starts the questionnaire; unfinished choices are explicit TODOs', 
   assert.equal(document.querySelectorAll('[name="topic"]').length, 3);
   assert.equal(document.querySelector('.choice input').name, 'authority');
   assert.ok($('[value="religion-transport"]').closest('label').textContent.includes('דת ותחבורה'));
-  assert.ok($('[value="todo-2"]').closest('label').textContent.includes('TODO'));
+  assert.ok($('[value="todo-2"]').closest('label').textContent.includes('צניעות ושותפות'));
+  assert.ok($('[value="todo-2"]').closest('label').textContent.includes('בפיתוח'));
   assert.equal($('[data-action="next"]').disabled, false);
 });
 
@@ -109,11 +110,12 @@ test('authority disables all topic choices and restores their selections when un
   assert.equal($('[data-action="next"]').disabled, false);
 });
 
-test('a TODO selection leads to the unfinished branch rather than party results', async t => {
+test('modesty and partnership selection opens its named development screen', async t => {
   const { $, click, choose } = await setup(t);
   click('start');
   choose('[value="todo-2"]');
   click('next');
+  assert.equal($('h2').textContent, 'צניעות ושותפות');
   assert.ok($('.todo').textContent.includes('TODO'));
   assert.equal($('.party-grid'), null);
   assert.equal($('.result-ballot'), null);

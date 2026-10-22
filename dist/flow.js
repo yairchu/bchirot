@@ -6,7 +6,7 @@ export const NO_TOPICS_DURATION = 1800;
 export const TOPIC_CHOICES = [
   { id: 'religion-transport', label: 'דת ותחבורה' },
   { id: 'war-dream', label: 'מלחמה וחלום' },
-  { id: 'todo-2', label: 'TODO' },
+  { id: 'todo-2', label: 'צניעות ושותפות' },
 ];
 
 // Ordering, shared membership, answer keys and progress use one question catalog.
