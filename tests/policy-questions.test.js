@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeBurdenAnswer, scoreBurden, scoreThreat, burdenLevel } from '../dist/policy-questions.js';
+import { normalizeBurdenAnswer, scoreDraft, scoreBurden, scoreThreat, burdenLevel } from '../dist/policy-questions.js';
 import { scoreCurrentReligion } from '../dist/current-lists.js';
 import { PARTIES, PARTY_NOTICES } from '../dist/parties.js';
 
@@ -27,6 +27,21 @@ test('service scoring evaluates the explicitly chosen roster; an unanswered rost
   assert.deepEqual(scoreBurden(['seek-partners']), []);
   assert.deepEqual(scoreBurden(null), []);
   assert.equal(scoreBurden(['limit-outposts']).some(item => item.id === 'shas'), false);
+});
+
+test('compact draft answers retain the full roster question weights without scoring a skip', () => {
+  assert.deepEqual(scoreDraft('draft'), scoreBurden(['serve-haredim']));
+  assert.deepEqual(scoreDraft('exempt'), scoreBurden(['serve-other-men']));
+  for (const invalid of [null, undefined, '', 'unknown']) {
+    assert.deepEqual(scoreDraft(invalid), []);
+    assert.deepEqual(currentScores({ draftAnswer: invalid }), []);
+  }
+  for (const answer of ['draft', 'exempt']) {
+    const compact = currentScores({ draftAnswer: answer });
+    const roster = currentScores({ burdenAnswer: answer === 'draft' ? ['serve-haredim'] : ['serve-other-men'] });
+    assert.deepEqual(compact.map(({ id, points }) => ({ id, points })), roster.map(({ id, points }) => ({ id, points })));
+    assert.ok(compact.every(party => party.contributions.length === 1));
+  }
 });
 
 test('outpost direction still scores one component, while partners add no invented party evidence', () => {

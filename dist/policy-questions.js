@@ -41,6 +41,16 @@ export const BURDEN_TIMELINE = [
   { text: 'מציאת שותפים יעילים עשויה לאפשר חלוקת משימות. המד ממחיש את הכיוון המבוקש, בתנאי ששיתוף הפעולה מצליח; הוא אינו מציג הקלה שהושגה כבר. לחלופת השותפים ולשירות נשים וגברים לא חרדים אין כרגע ניקוד מפלגתי.', url: 'https://www.un.org/unispal/document/security-council-meeting-coverage-17nov25/', source: 'מסגרת כוח הייצוב ותנאיה' },
 ];
 
+export const DRAFT_DILEMMA = {
+  title: 'האם גברים חרדים צריכים לשרת בצבא או ללמוד תורה בלבד?',
+  context: '',
+  options: [
+    { id: 'draft', label: 'לשרת בצבא' },
+    { id: 'exempt', label: 'ללמוד תורה בלבד' },
+  ],
+  timeline: [BURDEN_TIMELINE[0]],
+};
+
 export const THREAT_DILEMMA = {
   title: 'חמאס הוא נכס?',
   context: 'ב־2018 ממשלת נתניהו אישרה הכנסת מזוודות דולרים מקטאר לעזה שבשליטת חמאס. בניגוד לכרטיסי סיוע המוגבלים לרכישת מזון ומוצרים חיוניים, מזומן אפשר להפנות גם לרכישת נשק. ב־2023 ממשלת נתניהו וסמוטריץ׳ חסמו העברה של חלק מהכספים שהיו אמורים להגיע לרשות הפלסטינית. מה היה נכון לעשות מול חמאס והרשות?',
@@ -97,15 +107,22 @@ export function normalizeBurdenAnswer(answer, expanded = true) {
   return [...service, ...tasks];
 }
 
+export function scoreDraft(answer) {
+  if (!['draft', 'exempt'].includes(answer)) return [];
+  const results = [];
+  for (const position of DRAFT_POSITIONS) {
+    results.push(...evidence(position, position.supports === answer ? 1 : -1,
+      position.supports === 'draft' ? 'לפי סקירת עמדות המפלגות, הרשימה תומכת בחובת שירות רחבה, עם שירות צבאי או אזרחי לפי צורכי המדינה.' : 'לפי סקירת עמדות המפלגות, הרשימה מתנגדת לחובת גיוס ללומדי התורה ומגינה על הפטור.', draftSource, 'גיוס חרדים'));
+  }
+  return results;
+}
+
 export function scoreBurden(answer) {
   const selected = normalizeBurdenAnswer(answer);
   const results = [];
   const serviceAnswered = SERVICE_CHOICES.some(choice => selected.includes(choice.id));
   const draft = serviceAnswered ? (selected.includes('serve-haredim') ? 'draft' : 'exempt') : null;
-  if (draft) for (const position of DRAFT_POSITIONS) {
-    results.push(...evidence(position, position.supports === draft ? 1 : -1,
-      position.supports === 'draft' ? 'לפי סקירת עמדות המפלגות, הרשימה תומכת בחובת שירות רחבה, עם שירות צבאי או אזרחי לפי צורכי המדינה.' : 'לפי סקירת עמדות המפלגות, הרשימה מתנגדת לחובת גיוס ללומדי התורה ומגינה על הפטור.', draftSource, 'גיוס חרדים'));
-  }
+  results.push(...scoreDraft(draft));
   const outposts = selected.find(id => ['limit-outposts', 'protect-outposts'].includes(id));
   if (outposts) {
     results.push(...evidence({ id: 'democrats', letters: 'אמת' }, outposts === 'limit-outposts' ? 1 : -1,

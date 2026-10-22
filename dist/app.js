@@ -1,14 +1,14 @@
 import { CUTSCENE_DURATION, MOBILE_CONFIRM_DELAY, EASTER_EGG_DURATION, NO_TOPICS_DURATION, TOPIC_CHOICES, QUESTIONS, questionRoute, questionnaireQuestions, additionalQuestionCount, afterRobot, progress } from './flow.js';
 import { BALLOT_CHOICES, BLANK_BALLOT, BLANK_BALLOT_SOURCE, FAKE_BALLOT, PARTY_NOTICES } from './parties.js';
 import { BRIDGE_DILEMMA, WEEKEND_DILEMMA, EMERGENCY_DILEMMA, DREAM_QUESTION } from './dilemmas.js';
-import { SERVICE_CHOICES, BURDEN_GROUPS, BURDEN_TIMELINE, THREAT_DILEMMA, normalizeBurdenAnswer, burdenLevel } from './policy-questions.js';
+import { SERVICE_CHOICES, BURDEN_GROUPS, BURDEN_TIMELINE, DRAFT_DILEMMA, THREAT_DILEMMA, normalizeBurdenAnswer, burdenLevel } from './policy-questions.js';
 import { BASIS_LABELS } from './scoring.js';
 import { scoreCurrentReligion, unscoredCurrentLists, UNMAPPED_HISTORY, MAPPING_CHECKED_ON } from './current-lists.js';
 
 const app = document.querySelector('#app');
 const main = document.querySelector('#main');
 const mouseAvailable = matchMedia('(hover: hover) and (pointer: fine)').matches;
-const state = { step: 'welcome', topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null, emergencyAnswer: null, dreamAnswer: null, burdenAnswer: null, burdenTasksAnswer: null, noArmy: false, noArmyAnswer: null, threatAnswer: null };
+const state = { step: 'welcome', topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null, emergencyAnswer: null, dreamAnswer: null, draftAnswer: null, burdenAnswer: null, burdenTasksAnswer: null, noArmy: false, noArmyAnswer: null, threatAnswer: null };
 let timers = [];
 const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 
@@ -41,7 +41,7 @@ function back() {
 
 function restart(step = 'topics') {
   clearTimers();
-  Object.assign(state, { step, topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null, emergencyAnswer: null, dreamAnswer: null, burdenAnswer: null, burdenTasksAnswer: null, noArmy: false, noArmyAnswer: null, threatAnswer: null });
+  Object.assign(state, { step, topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null, emergencyAnswer: null, dreamAnswer: null, draftAnswer: null, burdenAnswer: null, burdenTasksAnswer: null, noArmy: false, noArmyAnswer: null, threatAnswer: null });
   saveHistory();
   render();
   focusQuestion();
@@ -206,6 +206,10 @@ function burdenDetails(expanded) {
   return `<details class="dilemma-details"><summary>לפרטים נוספים</summary><div class="dilemma-background">${BURDEN_TIMELINE.filter((item, index) => expanded || index === 0 || index === 4 || index === 5).map(item => `<p>${escape(item.text)} <a href="${item.url}" target="_blank" rel="noopener noreferrer">${escape(item.source)}</a>.</p>`).join('')}</div></details>`;
 }
 
+function draftView() {
+  return dilemmaView(DRAFT_DILEMMA, 'draftAnswer', 'draft-answer', 'גיוס ולימוד תורה');
+}
+
 function burdenView() {
   const selected = serviceAnswer();
   return frame({ title: 'מי צריך לשרת בצבא?', body: `
@@ -333,7 +337,7 @@ function emergencyView() {
 
 function dilemmaView(dilemma, answerKey, inputName, backgroundTitle) {
   return frame({ title: dilemma.title, body: `
-    <p class="description">${escape(dilemma.context)}</p>
+    ${dilemma.context ? `<p class="description">${escape(dilemma.context)}</p>` : ''}
     ${dilemma.note ? `<p class="selection-note">${escape(dilemma.note)}</p>` : ''}
     <div class="dilemma-options" role="radiogroup" aria-label="${escape(dilemma.title)}">
       ${dilemma.options.map(option => `<label class="choice dilemma-option"><input type="radio" name="${inputName}" value="${option.id}" ${state[answerKey] === option.id ? 'checked' : ''}><span class="choice-copy"><strong>${escape(option.label)}</strong>${option.detail ? `<small>${escape(option.detail)}</small>` : ''}</span></label>`).join('')}
@@ -376,14 +380,14 @@ function scoreGroupsView(scores, answered) {
 function bridgeResultView() {
   const questions = currentQuestions();
   const activeAnswer = id => !questions.includes(id) ? null : id === 'burden' ? (serviceAnswer().length ? serviceAnswer() : null) : id === 'burden-tasks' ? (tasksAnswer().length ? tasksAnswer() : null) : state[QUESTIONS[id].answerKey];
-  const scores = scoreCurrentReligion(activeAnswer('bridge'), activeAnswer('weekend'), activeAnswer('emergency'), activeAnswer('dream'), { burdenAnswer: activeAnswer('burden'), burdenTasksAnswer: activeAnswer('burden-tasks'), threatAnswer: activeAnswer('threat') });
+  const scores = scoreCurrentReligion(activeAnswer('bridge'), activeAnswer('weekend'), activeAnswer('emergency'), activeAnswer('dream'), { draftAnswer: activeAnswer('draft'), burdenAnswer: activeAnswer('burden'), burdenTasksAnswer: activeAnswer('burden-tasks'), threatAnswer: activeAnswer('threat') });
   const scoredQuestions = questions.filter(id => QUESTIONS[id].scored);
   const answered = scoredQuestions.filter(id => Boolean(activeAnswer(id))).length;
   const dream = dreamSummary();
   const burdenSelections = [...(activeAnswer('burden') || []), ...(activeAnswer('burden-tasks') || [])];
   const serviceAnswered = SERVICE_CHOICES.some(choice => burdenSelections.includes(choice.id));
   const partnersAnswered = burdenSelections.some(id => ['seek-partners', 'self-reliance'].includes(id));
-  const noArmyNote = state.noArmy ? '<p class="selection-note">מסלול ״בלי צבא״ הוא קטע הומוריסטי ואינו מקבל ניקוד מפלגתי.</p>' : '';
+  const noArmyNote = questions.includes('no-army') ? '<p class="selection-note">מסלול ״בלי צבא״ הוא קטע הומוריסטי ואינו מקבל ניקוד מפלגתי.</p>' : '';
   const burdenNote = serviceAnswered || partnersAnswered ? `<p class="selection-note burden-score-note">${serviceAnswered ? 'ניקוד השירות מתייחס כרגע לגיוס חרדים בלבד, לפי הקבוצות שסימנת. ' : ''}${partnersAnswered ? 'בחירת השותפים משפיעה על מד ההמחשה בלבד, ללא ניקוד מפלגתי.' : ''}</p>` : '';
   if (!answered) return frame({ title: 'עוד אין לנו מספיק חומר.', body: `${dream}${noArmyNote}<p class="description">לא נענו שאלות עם ניקוד מפלגתי. נשאיר את האפשרויות פתוחות.</p><button class="primary" data-action="review-questions">בחזרה לשאלות <span aria-hidden="true">↻</span></button><button class="text-button" data-action="restart">להתחיל מחדש</button>` });
   if (!scores.length) return frame({ title: 'לתשובה הזו אין ניקוד מפלגתי.', body: `${dream}${noArmyNote}${burdenNote}<p class="description">${partnersAnswered ? 'התשובות שלך נשמרו. לבחירת השותפים אין כרגע ניקוד מפלגתי.' : 'התשובה שלך נשמרה. לחלופה של ריכוז הדרישות בידי מערכת הביטחון לא ייחסנו עמדה של מפלגה או נקודות זכות.'} אפשר לחזור לשאלות האחרות כדי לקבל השוואה.</p><button class="primary" data-action="review-questions">בחזרה לשאלות</button><button class="text-button" data-action="restart">להתחיל מחדש</button>` });
@@ -407,7 +411,7 @@ function independentView() {
 }
 
 function render() {
-  const views = { welcome: welcomeView, topics: topicsView, 'no-topics': noTopicsView, dream: dreamView, threat: threatView, burden: burdenView, 'burden-tasks': burdenTasksView, 'no-army': noArmyView, bridge: bridgeView, weekend: weekendView, emergency: emergencyView, 'bridge-result': bridgeResultView, party: partyView, 'fake-ballot': fakeBallotView, robot: robotView, 'robot-thanks': robotThanksView, sure: sureView, loading: loadingView, result: resultView, independent: independentView };
+  const views = { welcome: welcomeView, topics: topicsView, 'no-topics': noTopicsView, dream: dreamView, threat: threatView, draft: draftView, burden: burdenView, 'burden-tasks': burdenTasksView, 'no-army': noArmyView, bridge: bridgeView, weekend: weekendView, emergency: emergencyView, 'bridge-result': bridgeResultView, party: partyView, 'fake-ballot': fakeBallotView, robot: robotView, 'robot-thanks': robotThanksView, sure: sureView, loading: loadingView, result: resultView, independent: independentView };
   app.innerHTML = views[state.step]();
   if (state.step === 'no-topics') timers.push(setTimeout(() => go(currentQuestions()[0], true), NO_TOPICS_DURATION));
   if (state.step === 'fake-ballot') {

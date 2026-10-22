@@ -12,22 +12,24 @@ export const TOPIC_CHOICES = [
 // Ordering, shared membership, answer keys and progress use one question catalog.
 export const QUESTIONS = {
   dream: { topics: ['war-dream'], answerKey: 'dreamAnswer', inputName: 'dream-answer', scored: true },
-  burden: { topics: ['religion-transport', 'war-dream'], answerKey: 'burdenAnswer', inputName: 'burden-answer', scored: true },
-  'no-army': { topics: ['religion-transport', 'war-dream'], answerKey: 'noArmyAnswer', inputName: 'no-army-answer', condition: 'no-army', scored: false },
+  burden: { topics: ['war-dream'], answerKey: 'burdenAnswer', inputName: 'burden-answer', scored: true },
+  'no-army': { topics: ['war-dream'], answerKey: 'noArmyAnswer', inputName: 'no-army-answer', condition: 'no-army', scored: false },
   'burden-tasks': { topics: ['war-dream'], answerKey: 'burdenTasksAnswer', inputName: 'burden-tasks-answer', condition: 'army', scored: true },
   threat: { topics: ['war-dream'], answerKey: 'threatAnswer', inputName: 'threat-answer', scored: true },
   bridge: { topics: ['religion-transport'], answerKey: 'bridgeAnswer', inputName: 'bridge-answer', scored: true },
   weekend: { topics: ['religion-transport'], answerKey: 'weekendAnswer', inputName: 'weekend-answer', scored: true },
   emergency: { topics: ['religion-transport', 'war-dream'], answerKey: 'emergencyAnswer', inputName: 'emergency-answer', scored: true },
+  draft: { topics: ['religion-transport'], answerKey: 'draftAnswer', inputName: 'draft-answer', condition: 'no-security', scored: true },
 };
 
 export function questionRoute(topics, { noArmy = false } = {}) {
-  const route = Object.keys(QUESTIONS).filter(id => QUESTIONS[id].topics.some(topic => topics.includes(topic)) && (QUESTIONS[id].condition !== 'no-army' || noArmy) && (QUESTIONS[id].condition !== 'army' || !noArmy));
-  // Without the security topic, introduce religion through the transport dilemmas
-  // before widening the discussion to military service. Keep the security route.
-  if (topics.includes('war-dream')) return route;
-  const transport = ['bridge', 'weekend', 'emergency'];
-  return [...route.filter(id => transport.includes(id)), ...route.filter(id => !transport.includes(id))];
+  return Object.keys(QUESTIONS).filter(id => {
+    const question = QUESTIONS[id];
+    return question.topics.some(topic => topics.includes(topic))
+      && (question.condition !== 'no-army' || noArmy)
+      && (question.condition !== 'army' || !noArmy)
+      && (question.condition !== 'no-security' || !topics.includes('war-dream'));
+  });
 }
 
 export function questionnaireQuestions(topics = [], options = {}) {
