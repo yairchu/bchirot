@@ -808,41 +808,38 @@ test('an updated recommendation clears the withdrawn choice and normal results s
   assert.equal($('.result-ballot'), null);
 });
 
-test('short conscription uses a single skip/continue button, with history undoing a choice', async t => {
+test('basic burden presents three independent service choices and retains one skip/continue action', async t => {
   const { $, click, choose, traverse } = await setup(t);
   click('start');
   choose('[value="religion-transport"]');
   click('next');
   click('skip'); // Bridge
   click('skip'); // Weekend
-  assert.equal($('h2').textContent, 'גיוס חרדים — מי נושא בנטל?');
+  assert.equal($('h2').textContent, 'מי צריך לשרת בצבא?');
   assert.equal($('.step-label').textContent, 'שאלה 4 מתוך 5');
-  assert.equal(document.querySelectorAll('[name="burden-answer"][type="radio"]').length, 2);
+  assert.equal(document.querySelectorAll('[data-burden-group="service"]').length, 3);
   assert.equal($('[data-burden-group="outposts"]'), null);
-  assert.equal($('[data-burden-group="women"]'), null);
+  assert.equal($('[data-burden-group="partners"]'), null);
+  assert.equal($('.dilemma-option'), null);
   assert.equal($('[data-action="skip"]'), null);
-  assert.equal($('[data-action="next"]').disabled, false);
   assert.equal($('.button-label').textContent, 'דלג');
-  choose('[name="burden-answer"][value="exempt"]');
+  choose('[value="serve-other-men"]');
+  choose('[value="serve-women"]');
+  assert.equal(document.querySelectorAll('[data-burden-group="service"]:checked').length, 2);
   assert.equal($('.button-label').textContent, 'ממשיכים');
   await traverse('back');
-  assert.equal($('.button-label').textContent, 'דלג');
-  click('next'); // Burden: no answer
-  click('skip'); // Emergency
-  assert.equal($('.score-table'), null);
-  assert.equal(window.history.state.bchirot.burdenAnswer, null);
-  await traverse('back'); // Emergency
-  await traverse('back'); // Unanswered conscription
-  assert.equal($('[name="burden-answer"]:checked'), null);
-  choose('[name="burden-answer"][value="exempt"]');
+  assert.equal($('[value="serve-women"]').checked, false);
+  assert.equal($('[value="serve-other-men"]').checked, true);
+  await traverse('forward');
+  assert.equal($('[value="serve-women"]').checked, true);
   click('next');
-  click('skip');
+  click('skip'); // Emergency
   assert.equal($('[data-party-id="shas"] .score').textContent, '+1');
   assert.equal($('[data-party-id="democrats"] .score').textContent, '−1');
-  assert.equal($('[data-party-id="likud"]'), null);
+  assert.match($('.burden-score-note').textContent, /גיוס חרדים בלבד/);
 });
 
-test('expanded burden pairs are independent, undoable, optional and scored once', async t => {
+test('expanded burden shares one roster and two optional task choices without card frames', async t => {
   const { $, click, choose, traverse } = await setup(t);
   click('start');
   choose('[value="war-dream"]');
@@ -852,36 +849,33 @@ test('expanded burden pairs are independent, undoable, optional and scored once'
   click('skip'); // Threat
   click('skip'); // Bridge
   click('skip'); // Weekend
-  assert.equal($('h2').textContent, 'הנטל ומי נושא בו');
   assert.equal($('.step-label').textContent, 'שאלה 6 מתוך 7');
-  assert.equal(document.querySelectorAll('[name="burden-answer"][type="checkbox"]').length, 6);
-  choose('[name="burden-answer"][value="draft"]');
+  assert.equal(document.querySelectorAll('[name="burden-answer"]').length, 7);
+  assert.equal($('.dilemma-option'), null);
+  choose('[value="serve-haredim"]');
   const snapshot = window.history.state.bchirot.burdenAnswer;
-  choose('[name="burden-answer"][value="limit-outposts"]');
-  assert.deepEqual(snapshot, ['draft']);
-  choose('[name="burden-answer"][value="exempt"]');
-  assert.deepEqual([...document.querySelectorAll('[name="burden-answer"]:checked')].map(item => item.value), ['exempt', 'limit-outposts']);
+  choose('[value="serve-women"]');
+  choose('[value="serve-other-men"]');
+  assert.deepEqual(snapshot, ['serve-haredim']);
+  choose('[value="limit-outposts"]');
+  choose('[value="seek-partners"]');
+  choose('[value="self-reliance"]');
+  assert.equal($('[value="seek-partners"]').checked, false);
+  assert.equal($('[value="limit-outposts"]').checked, true);
+  assert.equal(document.querySelectorAll('[data-burden-group="service"]:checked').length, 3);
   await traverse('back');
-  assert.deepEqual(window.history.state.bchirot.burdenAnswer, ['draft', 'limit-outposts']);
+  assert.equal($('[value="seek-partners"]').checked, true);
   await traverse('forward');
-  assert.deepEqual(window.history.state.bchirot.burdenAnswer, ['exempt', 'limit-outposts']);
-  choose('[name="burden-answer"][value="exempt"]', false);
-  choose('[name="burden-answer"][value="limit-outposts"]', false);
-  assert.equal($('[data-action="next"]').disabled, false);
-  assert.equal($('.button-label').textContent, 'דלג');
-  choose('[name="burden-answer"][value="draft"]');
-  choose('[name="burden-answer"][value="limit-outposts"]');
-  assert.match($('#burden-impact').textContent, /הרחבת מעגל המשרתים/);
+  assert.equal($('[value="self-reliance"]').checked, true);
   click('next');
-  assert.equal(window.history.state.bchirot.step, 'emergency');
   click('skip');
   assert.match($('.description').textContent, /1 מתוך 6/);
   assert.equal($('[data-party-id="democrats"] .score').textContent, '+2');
   assert.match($('[data-party-id="democrats"] .score-coverage').textContent, /1 מתוך 1/);
   assert.equal($('[data-party-id="democrats"] details').querySelectorAll('b').length, 1);
+  assert.match($('.burden-score-note').textContent, /השותפים/);
   click('restart');
   assert.equal(window.history.state.bchirot.burdenAnswer, null);
-  assert.equal(window.history.state.bchirot.threatAnswer, null);
 });
 
 test('threat question cites actions, restores its answer and allows skipping other dimensions', async t => {
@@ -912,107 +906,73 @@ test('threat question cites actions, restores its answer and allows skipping oth
 });
 
 
-test('burden meter animates real direction changes and browser history restores its level on mobile', async t => {
+test('mobile meter reacts to widening the service pool and seeking partners; history restores both', async t => {
   const { $, click, choose, traverse } = await setup(t, false);
   click('start');
   choose('[value="war-dream"]');
   click('next');
-  click('skip'); // Dream
-  click('skip'); // Threat
-  const value = () => Number($('#burden-gauge').getAttribute('aria-valuenow'));
-  assert.equal(value(), 3);
-  assert.ok($('.burden-meter.is-entering'));
-  assert.match($('.burden-disclaimer').textContent, /לא תחזית/);
-  choose('[name="burden-answer"][value="exempt"]');
-  assert.equal(value(), 4);
-  assert.ok($('.burden-meter.is-rising'));
-  assert.match($('.burden-scenes').textContent, /העסק מחכה/);
-  choose('[name="burden-answer"][value="protect-outposts"]');
-  assert.equal(value(), 5);
-  choose('[name="burden-answer"][value="draft"]');
-  assert.equal(value(), 3);
-  assert.ok($('.burden-meter.is-falling'));
-  assert.match($('.burden-scenes').textContent, /מקום לעסק ולבית/);
-  await traverse('back');
-  assert.equal(value(), 5);
-  await traverse('forward');
-  assert.equal(value(), 3);
-  choose('[name="burden-answer"][value="protect-outposts"]', false);
-  assert.equal(value(), 2);
-  choose('[name="burden-answer"][value="draft"]', false);
-  assert.equal(value(), 3);
-  assert.match($('#burden-gauge').getAttribute('aria-valuetext'), /נבחרו 0 מתוך 3/);
-  assert.equal($('.burden-meter.is-rising'), null);
-  assert.equal($('[data-action="next"]').disabled, false);
-  assert.equal($('.button-label').textContent, 'דלג');
-  choose('[name="burden-answer"][value="exempt"]');
-  click('next');
-  await traverse('back');
-  assert.equal(value(), 4);
-  t.mock.timers.tick(10000);
-  assert.equal(value(), 4, 'scene never changes an answer or auto-advances');
-});
-
-
-test('women service moves the shared burden meter, restores with history and explains missing party scores', async t => {
-  const { $, click, choose, traverse } = await setup(t);
-  click('start');
-  choose('[value="war-dream"]');
-  click('next');
-  click('skip'); // Dream
-  click('skip'); // Threat
-  assert.equal(document.querySelectorAll('[data-burden-group="women"]').length, 2);
-  choose('[name="burden-answer"][value="include-women"]');
-  assert.equal($('#burden-gauge').getAttribute('aria-valuenow'), '2');
-  assert.ok($('.burden-meter.is-falling'));
-  choose('[name="burden-answer"][value="restrict-women"]');
-  assert.equal(document.querySelectorAll('[data-burden-group="women"]:checked').length, 1);
-  assert.equal($('#burden-gauge').getAttribute('aria-valuenow'), '4');
-  await traverse('back');
-  assert.equal($('[data-burden-group="women"]:checked').value, 'include-women');
-  assert.equal($('#burden-gauge').getAttribute('aria-valuenow'), '2');
-  click('next');
-  click('skip'); // Emergency
-  assert.equal($('h2').textContent, 'לתשובה הזו אין ניקוד מפלגתי.');
-  assert.equal($('.score-table'), null);
-  assert.match($('.women-score-note').textContent, /שירות נשים/);
-  assert.doesNotMatch($('.description').textContent, /ריכוז הדרישות/);
-  click('review-questions');
-  click('skip'); // Dream
-  click('skip'); // Threat
-  choose('[name="burden-answer"][value="draft"]');
-  click('next');
   click('skip');
-  assert.equal($('[data-party-id="democrats"] .score').textContent, '+1');
-  assert.ok($('.women-score-note'));
-  assert.match($('.description').textContent, /1 מתוך 4/);
-  click('restart');
-  assert.equal(window.history.state.bchirot.burdenAnswer, null);
+  click('skip');
+  const value = () => Number($('#burden-gauge').getAttribute('aria-valuenow'));
+  assert.equal(value(), 5);
+  choose('[value="serve-other-men"]');
+  assert.equal(value(), 6);
+  assert.ok($('.burden-meter.is-rising'));
+  choose('[value="serve-women"]');
+  assert.equal(value(), 4);
+  assert.ok($('.burden-meter.is-falling'));
+  choose('[value="serve-haredim"]');
+  assert.equal(value(), 2);
+  choose('[value="seek-partners"]');
+  assert.equal(value(), 1);
+  await traverse('back');
+  assert.equal(value(), 2);
+  assert.equal($('[value="seek-partners"]').checked, false);
+  await traverse('forward');
+  assert.equal(value(), 1);
+  assert.match($('#burden-impact').textContent, /בכפוף להצלחת/);
+  t.mock.timers.tick(10000);
+  assert.equal(value(), 1);
+  assert.equal(window.history.state.bchirot.step, 'burden');
 });
 
-test('compact burden pairs keep one focused action while selections toggle continuation and skip', async t => {
+test('partners-only choice has no invented party ranking and does not infer a service position', async t => {
   const { $, click, choose } = await setup(t);
   click('start');
   choose('[value="war-dream"]');
   click('next');
-  click('skip'); // Dream
-  click('skip'); // Threat
-  assert.ok($('.burden-screen'));
-  const pairs = [...document.querySelectorAll('.burden-options')];
-  assert.equal(pairs.length, 3);
-  assert.ok(pairs.every(pair => pair.querySelectorAll('label.choice').length === 2));
+  click('skip');
+  click('skip');
+  choose('[value="seek-partners"]');
+  assert.match($('.burden-group').parentElement.textContent, /הרש״פ/);
+  assert.match($('.burden-group').parentElement.textContent, /מועצת השלום/);
+  click('next');
+  click('skip');
+  assert.equal($('h2').textContent, 'לתשובה הזו אין ניקוד מפלגתי.');
+  assert.equal($('.score-table'), null);
+  assert.match($('.burden-score-note').textContent, /ללא ניקוד מפלגתי/);
+  assert.doesNotMatch($('.description').textContent, /ריכוז הדרישות/);
+});
+
+test('clearing the roster and tasks restores a focused skip button and an unanswered question', async t => {
+  const { $, click, choose } = await setup(t);
+  click('start');
+  choose('[value="war-dream"]');
+  click('next');
+  click('skip');
+  click('skip');
   const button = $('[data-action="next"]');
   button.focus();
-  assert.equal($('.button-label').textContent, 'דלג');
-  assert.equal($('[data-action="skip"]'), null);
-  choose('[name="burden-answer"][value="include-women"]');
+  choose('[value="serve-women"]');
+  choose('[value="seek-partners"]');
   assert.equal($('.button-label').textContent, 'ממשיכים');
-  assert.equal(document.activeElement, button);
-  choose('[name="burden-answer"][value="include-women"]', false);
+  choose('[value="serve-women"]', false);
+  assert.equal($('.button-label').textContent, 'ממשיכים');
+  choose('[value="seek-partners"]', false);
   assert.equal($('.button-label').textContent, 'דלג');
   assert.equal(document.activeElement, button);
+  assert.equal($('#burden-gauge').getAttribute('aria-valuenow'), '5');
   click('next');
-  assert.equal(window.history.state.bchirot.step, 'emergency');
   assert.equal(window.history.state.bchirot.burdenAnswer, null);
   click('skip');
   assert.equal($('.score-table'), null);

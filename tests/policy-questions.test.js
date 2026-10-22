@@ -6,48 +6,47 @@ import { PARTIES, PARTY_NOTICES } from '../dist/parties.js';
 
 const currentScores = options => scoreCurrentReligion(null, null, null, null, options);
 
-test('burden answers reject contradictory dimensions and filter hidden advanced choices', () => {
-  for (const invalid of [null, undefined, 'draft', [], ['unknown']]) assert.deepEqual(normalizeBurdenAnswer(invalid), []);
-  assert.deepEqual(normalizeBurdenAnswer(['draft', 'draft', 'limit-outposts', 'unknown']), ['draft', 'limit-outposts']);
-  assert.deepEqual(normalizeBurdenAnswer(['draft', 'exempt', 'limit-outposts']), ['limit-outposts']);
-  assert.deepEqual(normalizeBurdenAnswer(['draft', 'protect-outposts'], false), ['draft']);
-  assert.deepEqual(normalizeBurdenAnswer(['protect-outposts'], false), []);
+test('service roster allows multiple independent groups and rejects conflicting task answers', () => {
+  for (const invalid of [null, undefined, 'serve-haredim', [], ['unknown'], ['draft', 'exempt']]) assert.deepEqual(normalizeBurdenAnswer(invalid), []);
+  assert.deepEqual(normalizeBurdenAnswer(['serve-women', 'serve-haredim', 'serve-haredim', 'limit-outposts']), ['serve-haredim', 'serve-women', 'limit-outposts']);
+  assert.deepEqual(normalizeBurdenAnswer(['serve-other-men', 'limit-outposts', 'protect-outposts', 'seek-partners']), ['serve-other-men', 'seek-partners']);
+  assert.deepEqual(normalizeBurdenAnswer(['seek-partners', 'self-reliance']), []);
+  assert.deepEqual(normalizeBurdenAnswer(['serve-women', 'protect-outposts', 'seek-partners'], false), ['serve-women']);
 });
 
-test('conscription scores documented positions only and reverses with the explicit opposite answer', () => {
-  const draft = scoreBurden(['draft']);
+test('service scoring evaluates the explicitly chosen roster; an unanswered roster has no inferred position', () => {
+  const draft = scoreBurden(['serve-haredim']);
   assert.equal(draft.length, 6);
   assert.deepEqual(draft.filter(item => item.points > 0).map(item => item.id).sort(), ['beyachad', 'democrats', 'yashar', 'yisrael-beitenu']);
   assert.deepEqual(draft.filter(item => item.points < 0).map(item => item.id).sort(), ['shas', 'utj']);
   for (const item of draft) {
-    assert.equal(item.component, 'גיוס חרדים');
-    assert.equal(scoreBurden(['exempt']).find(other => other.id === item.id).points, -item.points);
+    assert.equal(scoreBurden(['serve-other-men']).find(other => other.id === item.id).points, -item.points);
     assert.ok(PARTIES.some(([letters, name]) => letters === item.letters && name === item.name));
   }
+  assert.deepEqual(scoreBurden(['serve-haredim', 'serve-women', 'serve-other-men']), draft);
+  assert.deepEqual(scoreBurden(['seek-partners']), []);
   assert.deepEqual(scoreBurden(null), []);
-  assert.deepEqual(scoreBurden(['draft', 'exempt']), []);
+  assert.equal(scoreBurden(['limit-outposts']).some(item => item.id === 'shas'), false);
 });
 
-test('an unanswered component adds no evidence or invented neutral parties', () => {
-  const outposts = scoreBurden(['limit-outposts']);
-  assert.equal(outposts.length, 2);
-  assert.equal(outposts.find(item => item.id === 'democrats').points, 1);
-  assert.equal(outposts.find(item => item.id === 'religious-zionism').points, -1);
-  for (const item of outposts) {
-    assert.equal(item.component, 'משימות הגנה');
-    assert.equal(scoreBurden(['protect-outposts']).find(other => other.id === item.id).points, -item.points);
-  }
-  assert.equal(currentScores({ burdenAnswer: ['limit-outposts'] }).some(item => item.id === 'shas'), false);
+test('outpost direction still scores one component, while partners add no invented party evidence', () => {
+  const limit = scoreBurden(['limit-outposts']);
+  assert.equal(limit.length, 2);
+  assert.equal(limit.find(item => item.id === 'democrats').points, 1);
+  assert.equal(limit.find(item => item.id === 'religious-zionism').points, -1);
+  for (const item of limit) assert.equal(scoreBurden(['protect-outposts']).find(other => other.id === item.id).points, -item.points);
+  assert.deepEqual(scoreBurden(['limit-outposts', 'seek-partners']), limit);
+  assert.deepEqual(scoreBurden(['self-reliance']), []);
 });
 
-test('two burden dimensions sum into one covered question, including offsetting preferences', () => {
+test('service and outposts merge into one covered question even with all groups and a partner choice', () => {
   const find = answer => currentScores({ burdenAnswer: answer }).find(item => item.id === 'democrats');
-  const matched = find(['draft', 'limit-outposts']);
+  const matched = find(['serve-haredim', 'serve-women', 'serve-other-men', 'limit-outposts', 'seek-partners']);
   assert.equal(matched.points, 2);
   assert.equal(matched.contributions.length, 1);
   assert.equal(matched.contributions[0].evidence.length, 2);
-  assert.equal(find(['draft', 'protect-outposts']).points, 0);
-  assert.equal(find(['exempt', 'protect-outposts']).points, -2);
+  assert.equal(find(['serve-haredim', 'protect-outposts']).points, 0);
+  assert.equal(find(['serve-other-men', 'protect-outposts']).points, -2);
 });
 
 test('threat scores use executed decisions and resignation, with no platform-based Democrats points', () => {
@@ -68,7 +67,7 @@ test('threat scores use executed decisions and resignation, with no platform-bas
 });
 
 test('new policy evidence merges into existing ballots without duplicating historic or vision contributions', () => {
-  const scores = scoreCurrentReligion('shabbat', 'expand', null, 'peace', { burdenAnswer: ['draft', 'limit-outposts'], threatAnswer: 'hamas' });
+  const scores = scoreCurrentReligion('shabbat', 'expand', null, 'peace', { burdenAnswer: ['serve-haredim', 'limit-outposts'], threatAnswer: 'hamas' });
   assert.equal(new Set(scores.map(item => item.letters)).size, scores.length);
   const democrats = scores.find(item => item.id === 'democrats');
   assert.equal(democrats.points, 7); // bridge 2 + weekend 2 + vision 1 + burden 2; no threat point
@@ -80,33 +79,22 @@ test('withdrawn lists are excluded from all new policy scoring', t => {
   const previous = PARTY_NOTICES['אמת'];
   t.after(() => { if (previous) PARTY_NOTICES['אמת'] = previous; else delete PARTY_NOTICES['אמת']; });
   PARTY_NOTICES['אמת'] = { kind: 'withdrawn' };
-  assert.equal(scoreBurden(['draft', 'limit-outposts']).some(item => item.id === 'democrats'), false);
+  assert.equal(scoreBurden(['serve-haredim', 'limit-outposts']).some(item => item.id === 'democrats'), false);
   assert.equal(scoreThreat('hamas').some(item => item.id === 'democrats'), false);
-  assert.equal(currentScores({ burdenAnswer: ['draft'], threatAnswer: 'hamas' }).some(item => item.id === 'democrats'), false);
+  assert.equal(currentScores({ burdenAnswer: ['serve-haredim'], threatAnswer: 'hamas' }).some(item => item.id === 'democrats'), false);
 });
 
 
-test('burden meter includes women in the expanded version and derives its range from the group count', () => {
-  const level = (value, answered, total = 3) => ({ value, baseline: 3, max: 6, answered, total });
-  assert.deepEqual(burdenLevel(null), level(3, 0));
-  assert.deepEqual(burdenLevel(['exempt', 'protect-outposts']), level(5, 2));
-  assert.deepEqual(burdenLevel(['draft', 'limit-outposts']), level(1, 2));
-  assert.deepEqual(burdenLevel(['draft', 'protect-outposts']), level(3, 2));
-  assert.deepEqual(burdenLevel(['exempt', 'protect-outposts'], false), level(4, 1, 1));
-  assert.deepEqual(burdenLevel(['draft', 'exempt', 'protect-outposts']), level(4, 1));
-  assert.deepEqual(burdenLevel(['exempt', 'protect-outposts', 'restrict-women']), level(6, 3));
-  assert.deepEqual(burdenLevel(['draft', 'limit-outposts', 'include-women']), level(0, 3));
-  assert.deepEqual(burdenLevel(['include-women']), level(2, 1));
-  assert.deepEqual(burdenLevel(['restrict-women']), level(4, 1));
-  assert.deepEqual(burdenLevel(['include-women'], false), level(3, 0, 1));
-});
-
-test('women choices are optional, exclusive, undo no other component and never invent party scores', () => {
-  assert.deepEqual(normalizeBurdenAnswer(['draft', 'restrict-women']), ['draft', 'restrict-women']);
-  assert.deepEqual(normalizeBurdenAnswer(['draft', 'include-women', 'restrict-women']), ['draft']);
-  assert.deepEqual(normalizeBurdenAnswer(['draft', 'include-women'], false), ['draft']);
-  assert.deepEqual(scoreBurden(['include-women']), []);
-  assert.deepEqual(scoreBurden(['restrict-women']), []);
-  assert.deepEqual(scoreBurden(['draft', 'include-women']), scoreBurden(['draft']));
-  assert.deepEqual(currentScores({ burdenAnswer: ['include-women'] }), []);
+test('meter reflects the breadth of the roster and conditional partnership, without demographic estimates', () => {
+  const level = (value, answered, total = 3) => ({ value, baseline: 5, max: 10, answered, total });
+  assert.deepEqual(burdenLevel(null), level(5, 0));
+  assert.deepEqual(burdenLevel(['serve-other-men']), level(6, 1));
+  assert.deepEqual(burdenLevel(['serve-other-men', 'serve-women']), level(4, 1));
+  assert.deepEqual(burdenLevel(['serve-other-men', 'serve-women', 'serve-haredim']), level(2, 1));
+  assert.deepEqual(burdenLevel(['serve-other-men', 'protect-outposts', 'self-reliance']), level(8, 3));
+  assert.deepEqual(burdenLevel(['serve-other-men', 'serve-women', 'serve-haredim', 'limit-outposts', 'seek-partners']), level(0, 3));
+  assert.deepEqual(burdenLevel(['seek-partners']), level(4, 1));
+  assert.deepEqual(burdenLevel(['self-reliance']), level(6, 1));
+  assert.deepEqual(burdenLevel(['seek-partners'], false), level(5, 0, 1));
+  assert.deepEqual(burdenLevel(['serve-haredim', 'self-reliance'], false), level(6, 1, 1));
 });

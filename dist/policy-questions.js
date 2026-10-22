@@ -10,18 +10,20 @@ const outpostBurdenSource = 'https://www.mako.co.il/news-military/2026_q3/Articl
 
 export const WOMEN_SERVICE_SOURCE = 'https://www.ynet.co.il/news/article/rj1zgtdej';
 
+export const SERVICE_CHOICES = [
+  { id: 'serve-haredim', label: 'חרדים' },
+  { id: 'serve-women', label: 'נשים' },
+  { id: 'serve-other-men', label: 'גברים לא חרדים' },
+];
+
 export const BURDEN_GROUPS = [
-  { id: 'draft', title: 'גיוס חרדים', options: [
-    { id: 'draft', label: 'חובת שירות גם לחרדים', detail: 'צבאי לפי צורכי צה״ל; אזרחי למי שלא נדרש לצבא.' },
-    { id: 'exempt', label: 'פטור לתלמידי ישיבות', detail: 'להעדיף לימוד תורה, גם במחיר פחות משרתים.' },
+  { id: 'outposts', title: 'צריך את כל חוות הבודדים?', options: [
+    { id: 'limit-outposts', label: 'להגביל נקודות מבודדות' },
+    { id: 'protect-outposts', label: 'לאפשר ולהגן עליהן' },
   ] },
-  { id: 'outposts', title: 'הגנה על מאחזים מבודדים', options: [
-    { id: 'limit-outposts', label: 'להגביל מאחזים מבודדים', detail: 'פחות משימות הגנה, במחיר צמצום ההתיישבות.' },
-    { id: 'protect-outposts', label: 'לאפשר מאחזים ולספק הגנה', detail: 'יותר אחיזה בשטח, גם במחיר משימות הגנה נוספות.' },
-  ] },
-  { id: 'women', title: 'שירות נשים, כולל בתפקידי לחימה', note: 'משפיע על המד בלבד; עדיין ללא ניקוד מפלגתי.', options: [
-    { id: 'include-women', label: 'שיבוץ נשים לפי התאמה', detail: 'לפתוח תפקידים לפי דרישות מקצועיות וכשירות מבצעית.' },
-    { id: 'restrict-women', label: 'תפקידים מסוימים לגברים בלבד', detail: 'מטעמי דת והפרדה, גם כשיש נשים מתאימות.' },
+  { id: 'partners', title: 'לנסות למצוא שותפים לביטחון?', note: 'חמולות מקומיות, הרש״פ, מועצת השלום או כוחות בינלאומיים — לפי התאמה, אמינות ופיקוח.', options: [
+    { id: 'seek-partners', label: 'לחפש שותפים, עם תנאים ופיקוח' },
+    { id: 'self-reliance', label: 'להסתמך על צה״ל בלבד' },
   ] },
 ];
 
@@ -31,7 +33,10 @@ export const BURDEN_TIMELINE = [
   { text: 'הדמוקרטים מציגים את צמצום המאחזים והחוות המבודדים כדרך להפחית את משימות ההגנה ואת עומס המילואים. זהו טיעון המפלגה, ולא חישוב של מספר ימי מילואים שייחסכו.', url: democratsSource, source: 'עמדת הדמוקרטים' },
   { text: 'הציונות הדתית מציגה את החוות כאמצעי לאחיזה במרחב ומתארת מעטפת ביטחון ותיאום עם הגורמים הממונים. השאלה בוחנת את העדיפות בין האחיזה בשטח למשאבי ההגנה הנדרשים.', url: farmsSource, source: 'עמדת הציונות הדתית' },
   { text: 'באוקטובר 2022 החליט צה״ל לקבע את שירות לוחמות הטנקים בהגנת הגבולות, אחרי התנסות והערכת עמידה בקריטריונים מקצועיים ומבצעיים. מדובר בהגנת גבולות, ולא בפתיחת כל תפקידי השריון המתמרן.', url: WOMEN_SERVICE_SOURCE, source: 'החלטת צה״ל על לוחמות הטנקים, 27.10.2022' },
-  { text: 'פתיחת תפקידים למועמדות מתאימות יכולה להרחיב את מאגר המשרתים. המד ממחיש את הכיוון הזה, ללא אומדן של חיסכון בימי מילואים. לרכיב שירות הנשים אין כרגע ניקוד מפלגתי: החלטת צה״ל אינה משויכת אוטומטית למפלגה שהייתה בממשלה.', url: WOMEN_SERVICE_SOURCE, source: 'פרטי ההחלטה והקריטריונים' },
+  { text: 'הבחירה כאן עוסקת בחובת שירות לקבוצות שסומנו, ולא באיסור על אחרות להתנדב או בזכאות לתפקיד קרבי. השיבוץ לפי התאמה; מי שאינו נדרש לצבא יכול לשרת בשירות אזרחי. כשלא מסמנים אף קבוצה, הסעיף נחשב לדילוג.', url: WOMEN_SERVICE_SOURCE, source: 'פרטי ההחלטה והקריטריונים' },
+  { text: 'בנובמבר 2025 מועצת הביטחון אישרה מסגרת למועצת השלום ולכוח ייצוב בינלאומי בעזה. אישור מסגרת אינו מבטיח פריסה, הצלחה או החלפה מלאה של משימות צה״ל.', url: 'https://www.un.org/unispal/document/security-council-meeting-coverage-17nov25/', source: 'מועצת הביטחון, החלטה 2803' },
+  { text: 'ביוני 2025 נתניהו אישר שישראל תומכת בחמולות בעזה המתנגדות לחמאס. זהו ניסיון ממשי להיעזר בגורמים מקומיים, ולא הוכחה שהם שותפים אמינים לאורך זמן. הרשות, חמולות מקומיות וגופים בינלאומיים אינם חלופות זהות.', url: 'https://www.timesofisrael.com/liveblog_entry/netanyahu-confirms-arming-gazan-clans-whats-wrong-with-that/', source: 'אישור התמיכה בחמולות, 5.6.2025' },
+  { text: 'מציאת שותפים יעילים עשויה לאפשר חלוקת משימות. המד ממחיש את הכיוון המבוקש, בתנאי ששיתוף הפעולה מצליח; הוא אינו מציג הקלה שהושגה כבר. לחלופת השותפים ולשירות נשים וגברים לא חרדים אין כרגע ניקוד מפלגתי.', url: 'https://www.un.org/unispal/document/security-council-meeting-coverage-17nov25/', source: 'מסגרת כוח הייצוב ותנאיה' },
 ];
 
 export const THREAT_DILEMMA = {
@@ -53,9 +58,13 @@ export const THREAT_DILEMMA = {
 // An illustrative direction, deliberately independent of party points and days of service.
 export function burdenLevel(answer, expanded = true) {
   const selected = normalizeBurdenAnswer(answer, expanded);
-  const change = selected.reduce((sum, id) => sum + (['exempt', 'protect-outposts', 'restrict-women'].includes(id) ? 1 : -1), 0);
-  const baseline = BURDEN_GROUPS.length;
-  return { value: baseline + change, baseline, max: 2 * baseline, answered: selected.length, total: expanded ? baseline : 1 };
+  const serving = SERVICE_CHOICES.filter(choice => selected.includes(choice.id)).length;
+  const tasks = selected.filter(id => !SERVICE_CHOICES.some(choice => choice.id === id));
+  // Each group added widens the service pool; this is qualitative, not population weighting.
+  const serviceChange = serving ? SERVICE_CHOICES.length - 2 * serving : 0;
+  const taskChange = tasks.reduce((sum, id) => sum + (['protect-outposts', 'self-reliance'].includes(id) ? 1 : -1), 0);
+  const baseline = SERVICE_CHOICES.length + BURDEN_GROUPS.length;
+  return { value: baseline + serviceChange + taskChange, baseline, max: 2 * baseline, answered: Number(serving > 0) + tasks.length, total: expanded ? 1 + BURDEN_GROUPS.length : 1 };
 }
 
 const DRAFT_POSITIONS = [
@@ -75,17 +84,20 @@ function evidence(position, points, reason, source, component) {
 
 export function normalizeBurdenAnswer(answer, expanded = true) {
   if (!Array.isArray(answer)) return [];
-  return BURDEN_GROUPS.slice(0, expanded ? BURDEN_GROUPS.length : 1).flatMap(group => {
+  const service = SERVICE_CHOICES.map(choice => choice.id).filter(id => answer.includes(id));
+  const tasks = (expanded ? BURDEN_GROUPS : []).flatMap(group => {
     const selected = group.options.map(option => option.id).filter(id => answer.includes(id));
     // Reject contradictory imported state rather than silently choosing a side.
     return selected.length === 1 ? selected : [];
   });
+  return [...service, ...tasks];
 }
 
 export function scoreBurden(answer) {
   const selected = normalizeBurdenAnswer(answer);
   const results = [];
-  const draft = selected.find(id => ['draft', 'exempt'].includes(id));
+  const serviceAnswered = SERVICE_CHOICES.some(choice => selected.includes(choice.id));
+  const draft = serviceAnswered ? (selected.includes('serve-haredim') ? 'draft' : 'exempt') : null;
   if (draft) for (const position of DRAFT_POSITIONS) {
     results.push(...evidence(position, position.supports === draft ? 1 : -1,
       position.supports === 'draft' ? 'לפי סקירת עמדות המפלגות, הרשימה תומכת בחובת שירות רחבה, עם שירות צבאי או אזרחי לפי צורכי המדינה.' : 'לפי סקירת עמדות המפלגות, הרשימה מתנגדת לחובת גיוס ללומדי התורה ומגינה על הפטור.', draftSource, 'גיוס חרדים'));

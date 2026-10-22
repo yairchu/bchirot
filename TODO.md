@@ -53,3 +53,10 @@ The welcome line is “השאלון שמבוסס על דילמות פוליטי�
 - [ ] Review the hover cutscene with a real mouse and the focus-triggered equivalent with a keyboard, including reduced-motion settings.
 
 DOM tests cover the welcome screen, exclusive authority selection, browser Back/Forward with restored choices and canceled timers, desktop hover and keyboard cutscenes, the timed mobile confirmation, robot self-awareness acknowledgement, automatic continuation, results, and restart. Visual browser checks remain outstanding because the current execution environment blocks browser preview infrastructure.
+
+## Burden page refinement
+
+- [x] Replace framed pairs with plain multi-select service groups: Haredi men, women, and non-Haredi men; retain optional outpost choices and add conditional security partnerships.
+- [x] Distinguish an unanswered service roster from a roster that excludes Haredi men; never infer a service position from task-only answers.
+- [x] Source the Board of Peace/ISF framework and actual Israeli support for local clans without assigning automatic party scores to the broad partners option.
+- [ ] Find party-attributable actions that support or oppose the specific partner arrangements before adding points for them.
