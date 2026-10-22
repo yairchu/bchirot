@@ -441,7 +441,7 @@ function coalitionsButton() {
 
 function coalitionMatrixView(scores) {
   const parties = scores.length ? COALITION_PARTIES.filter(party => scores.some(score => score.letters === party.letters)) : COALITION_PARTIES;
-  const number = value => new Intl.NumberFormat('he', { maximumFractionDigits: 2 }).format(value);
+  const number = value => new Intl.NumberFormat('he', { maximumSignificantDigits: 2 }).format(value);
   const label = party => `<abbr title="${escape(party.name)}" aria-label="${escape(party.name)}">${escape(party.letters)}</abbr>`;
   return `<figure class="coalition-matrix"><figcaption id="coalition-matrix-title">מטריצת השותפויות${scores.length ? '' : ' · לפני נרמול'}</figcaption>
     <div class="coalition-matrix-scroll" role="region" aria-labelledby="coalition-matrix-title" tabindex="0"><table>
@@ -454,10 +454,12 @@ function coalitionMatrixView(scores) {
           const value = link.weight / divisor;
           const blocked = !link.weight && link.basis.startsWith('סירוב');
           const kind = value > 0 ? 'positive' : blocked ? 'blocked' : 'unknown';
-          return `<td class="matrix-${kind}" data-value="${value}" title="${escape(party.name)} ← ${escape(parties[index].name)}: ${escape(link.basis)}"><bdi>${number(value)}</bdi></td>`;
+          const band = value >= 0.75 ? 4 : value >= 0.5 ? 3 : value >= 0.25 ? 2 : value >= 0.125 ? 1 : 0;
+          const description = `${party.name} ← ${parties[index].name}: ${link.basis}; משקל ${value}`;
+          return `<td class="matrix-${kind}" data-value="${value}" data-band="${band}" title="${escape(description)}" aria-label="${escape(description)}"><bdi>${number(value)}</bdi></td>`;
         }).join('')}</tr>`;
       }).join('')}</tbody></table></div>
-    <p class="matrix-legend">ירוק: משקל חיובי · אדום: קשר חסום, במשקל 0 · אפור: קשר שלא מופה, במשקל 0.</p>
+    <p class="matrix-legend">ירוק כהה יותר = משקל גבוה יותר. אפס אדום: סירוב מתועד. אפס אפור: קשר שלא מופה. אלה אפסים מדויקים, לא עיגול.</p>
     <p class="matrix-legend">${scores.length ? 'כל שורה מסתכמת ל־1 לפני עיגול. מוצגות המפלגות שקיבלו ציון ישיר.' : 'כאן מוצגים משקלי הקשרים; אחרי מענה לשאלות מנרמלים את השורות לפי המפלגות שקיבלו ציון.'}</p>
     <p class="matrix-key">${parties.map(party => `<span><b>${escape(party.letters)}</b> ${escape(party.name)}</span>`).join('')}</p>
   </figure>`;

@@ -231,7 +231,11 @@ p { margin: 0 0 28px; }
 .coalition-matrix th { font-weight: 600; padding: 4px; white-space: nowrap; }
 .coalition-matrix td { min-width: 35px; height: 30px; text-align: center; border-radius: 3px; }
 .coalition-matrix abbr { text-decoration: none; }
-.coalition-matrix .matrix-positive { background: #d4e5d5; color: #174d47; }
+.coalition-matrix .matrix-positive { background: #edf4eb; color: #092b24; }
+.coalition-matrix .matrix-positive[data-band="1"] { background: #d4e5d5; }
+.coalition-matrix .matrix-positive[data-band="2"] { background: #a7c9b1; }
+.coalition-matrix .matrix-positive[data-band="3"] { background: #6d9e88; }
+.coalition-matrix .matrix-positive[data-band="4"] { background: #174d47; color: #fff; }
 .coalition-matrix .matrix-blocked { background: #f1d5ca; color: #78371e; }
 .coalition-matrix .matrix-unknown { background: #e8e8df; color: #62665e; }
 .matrix-legend, .matrix-key { font-size: 14px; line-height: 1.6; color: var(--muted); margin: 8px 0 0; }
