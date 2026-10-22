@@ -214,24 +214,9 @@ p { margin: 0 0 28px; }
 
 .coalition-next { margin-top: 24px; }
 .coalitions-screen { justify-content: flex-start; }
-.coalition-picker { font-size: 24px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 18px; }
-.coalition-picker select { font: inherit; color: inherit; background: transparent; border: 1px solid var(--border); padding: 10px; max-width: 100%; border-radius: 8px; }
-.coalition-picker select:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
-.coalition-connections { width: 100%; }
-.coalition-connection { padding: 20px 0; border-bottom: 1px solid var(--border); }
-.coalition-connection h3 { font-size: 28px; margin: 0 0 14px; }
-.coalition-connection p { font-size: 20px; margin: 0 0 16px; line-height: 1.6; }
-.coalition-connection strong, .coalition-connection small { display: block; }
-.coalition-connection small { font-size: 16px; color: var(--muted); max-width: 65ch; }
-.coalition-veto { color: #935035; font-weight: 700; }
-.coalition-coordination { font-weight: 700; }
-.coalition-unknown { color: var(--muted); }
-
 .coalition-ranking { list-style: none; width: 100%; padding: 0; margin: 0 0 20px; }
 .coalition-ranking > li { padding: 16px 0; border-bottom: 1px solid var(--border); }
 .coalition-score-heading { display: flex; justify-content: space-between; gap: 20px; font-size: clamp(24px, 3vw, 36px); }
-.coalition-ranking details { font-size: 17px; line-height: 1.6; margin-top: 8px; }
-.coalition-ranking details p { margin: 8px 0; }
 
 .coalition-score-group { width: 100%; }
 .coalition-score-group > h3 { font-size: 23px; margin: 16px 0 0; }

@@ -1,4 +1,4 @@
-import { COALITION_PARTIES, COALITIONS_CHECKED_ON, coalitionRelation, coalitionHistory, coalitionWeight, scoreCoalitions } from './coalitions.js';
+import { COALITION_PARTIES, coalitionWeight, scoreCoalitions } from './coalitions.js';
 import { createQuizAnalytics } from './analytics.js';
 import { CUTSCENE_DURATION, MOBILE_CONFIRM_DELAY, EASTER_EGG_DURATION, NO_TOPICS_DURATION, TOPIC_CHOICES, QUESTIONS, questionRoute, questionnaireQuestions, additionalQuestionCount, afterRobot, progress } from './flow.js';
 import { BALLOT_CHOICES, BLANK_BALLOT, BLANK_BALLOT_SOURCE, FAKE_BALLOT, PARTY_NOTICES } from './parties.js';
@@ -12,7 +12,7 @@ const analytics = createQuizAnalytics(window);
 const app = document.querySelector('#app');
 const main = document.querySelector('#main');
 const mouseAvailable = matchMedia('(hover: hover) and (pointer: fine)').matches;
-const state = { step: 'welcome', coalitionParty: 'מחל', topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null, emergencyAnswer: null, dreamAnswer: null, draftAnswer: null, representationAnswer: null, academiaAnswer: null, womenServiceAnswer: null, sidewalkAnswer: null, childProtectionAnswer: null, burdenAnswer: null, burdenTasksAnswer: null, noArmy: false, noArmyAnswer: null, threatAnswer: null };
+const state = { step: 'welcome', topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null, emergencyAnswer: null, dreamAnswer: null, draftAnswer: null, representationAnswer: null, academiaAnswer: null, womenServiceAnswer: null, sidewalkAnswer: null, childProtectionAnswer: null, burdenAnswer: null, burdenTasksAnswer: null, noArmy: false, noArmyAnswer: null, threatAnswer: null };
 let timers = [];
 const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 
@@ -46,7 +46,7 @@ function back() {
 function restart(step = 'topics') {
   clearTimers();
   analytics.reset();
-  Object.assign(state, { step, coalitionParty: 'מחל', topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null, emergencyAnswer: null, dreamAnswer: null, draftAnswer: null, representationAnswer: null, academiaAnswer: null, womenServiceAnswer: null, sidewalkAnswer: null, childProtectionAnswer: null, burdenAnswer: null, burdenTasksAnswer: null, noArmy: false, noArmyAnswer: null, threatAnswer: null });
+  Object.assign(state, { step, topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null, emergencyAnswer: null, dreamAnswer: null, draftAnswer: null, representationAnswer: null, academiaAnswer: null, womenServiceAnswer: null, sidewalkAnswer: null, childProtectionAnswer: null, burdenAnswer: null, burdenTasksAnswer: null, noArmy: false, noArmyAnswer: null, threatAnswer: null });
   saveHistory();
   render();
   focusQuestion();
@@ -439,16 +439,6 @@ function coalitionsButton() {
   return '<button class="primary coalition-next" data-action="coalitions">ועם מי הפתק הזה יושב? <span aria-hidden="true">←</span></button>';
 }
 
-function coalitionEvidence(from, to) {
-  const relation = coalitionRelation(from, to);
-  if (!relation) return '<span class="coalition-unknown">טרם מופה</span>';
-  return `<span class="coalition-${relation.kind}">${escape(relation.label)}</span><small>${escape(relation.detail)} <a href="${relation.source}" target="_blank" rel="noopener noreferrer">מקור · <bdi>${relation.date}</bdi></a></small>`;
-}
-
-function coalitionPast(from, to) {
-  return coalitionHistory(from, to).map(item => `<p class="coalition-past"><strong>שותפות בעבר · ${escape(item.government)}</strong><small>${escape(item.detail)} <a href="${item.source}" target="_blank" rel="noopener noreferrer">מקור · <bdi>${item.date}</bdi></a></small></p>`).join('');
-}
-
 function coalitionMatrixView(scores) {
   const parties = scores.length ? COALITION_PARTIES.filter(party => scores.some(score => score.letters === party.letters)) : COALITION_PARTIES;
   const number = value => new Intl.NumberFormat('he', { maximumFractionDigits: 2 }).format(value);
@@ -479,7 +469,7 @@ function coalitionScoreView() {
   const neutral = scores.filter(party => party.points === 0);
   const negative = scores.filter(party => party.points < 0);
   const number = value => new Intl.NumberFormat('he', { maximumFractionDigits: 2, signDisplay: 'exceptZero' }).format(value);
-  const rows = parties => parties.map(party => `<li data-coalition-party="${escape(party.letters)}"><div class="coalition-score-heading"><strong>${escape(party.name)}</strong><bdi>${number(party.points)}</bdi></div><details><summary>איך השותפות משפיעות?</summary><p>הציון הישיר: <bdi>${number(party.directPoints)}</bdi>. אחרי שקלול:</p>${party.terms.map(term => `<p>${escape(term.name)}: <bdi>${number(term.points)} × ${term.weight}</bdi> · ${escape(term.basis)}${term.sources.map(source => ` · <a href="${source}" target="_blank" rel="noopener noreferrer">מקור</a>`).join('')}</p>`).join('')}<p>מחלקים בסכום המשקלים: <bdi>${party.terms.reduce((sum, term) => sum + term.weight, 0)}</bdi>.</p></details></li>`).join('');
+  const rows = parties => parties.map(party => `<li data-coalition-party="${escape(party.letters)}"><div class="coalition-score-heading"><strong>${escape(party.name)}</strong><bdi>${number(party.points)}</bdi></div></li>`).join('');
   const group = (parties, label, kind) => parties.length ? `<section class="coalition-score-group" data-coalition-group="${kind}"><h3>${label}</h3><ol class="coalition-ranking" aria-label="${label}">${rows(parties)}</ol></section>` : '';
   return `<p class="description">כדי להקים ממשלה, מפלגות חוברות לקואליציה. לכן הפתק שלך משפיע גם על השותפות שיצטרפו לממשלה.</p>
     <p class="coalition-question">אז איך מבינים איזו מפלגה תקדם קואליציה שמתאימה לך?</p>
@@ -491,18 +481,13 @@ function coalitionScoreView() {
     ${group(negative, 'פער דרך שותפות', 'negative')}
     <p class="selection-note">הערכה ראשונית לפי הקשרים שמופו; בלי מנדטים או הערכת סיכוי להקמת ממשלה.</p>
     ${scores.length ? '' : '<button class="primary" data-action="independent">בואו נבדוק לפי העמדות שלי</button>'}
-    <details class="score-method"><summary>רגע, איזו מטריצה?</summary><p>מטריצת משקלים פשוטה שמבוססת על תיאום בגושים ועל שותפות בקואליציות בעבר. היא נותנת משקל גם למפלגה עצמה וגם לשותפות שמופו לה.</p><p>ממוצע משוקלל: הציון של המפלגה עצמה במשקל 1, שותפות בתיאום בגוש במשקל ½ ושותפות בקואליציה בעבר במשקל ¼. סירוב מתועד מצד כלשהו חוסם קשר בהרכב ההנהגה הנוכחי. קשר או ציון שלא מופו אינם נכנסים לממוצע.</p><p>אלה משקלי המודל, לא הסתברויות. החישוב הוא כפל מטריצה מנורמלת בווקטור הציונים; גם ציונים שליליים עוברים בהתמרה. מוצגות רק מפלגות שיש להן ציון ישיר, ואין כאן בדיקה שכל השותפות יכולות לשבת יחד או מי תעמוד בראשות הממשלה.</p></details>`;
+    `;
+
 }
 
 function coalitionsView() {
-  const selected = COALITION_PARTIES.find(party => party.letters === state.coalitionParty) || COALITION_PARTIES[0];
   return frame({ title: 'ומי תקדם ממשלה שמתאימה לך?', body: `
     ${coalitionScoreView()}
-    <details class="score-method coalition-map"><summary>מפת הקשרים והמקורות</summary>
-    <label class="coalition-picker">בודקים את <select id="coalition-party" name="coalition-party">${COALITION_PARTIES.map(party => `<option value="${escape(party.letters)}" ${party.letters === selected.letters ? 'selected' : ''}>${escape(party.name)}</option>`).join('')}</select></label>
-    <p class="selection-note">מיפוי ראשוני וחלקי, נבדק ב־${COALITIONS_CHECKED_ON}. ״טרם מופה״ אינו הסכמה, סירוב או נייטרליות. הרשימות הקטנות אינן מכוסות עדיין.</p>
-    <div class="coalition-connections">${COALITION_PARTIES.filter(party => party !== selected).map(party => `<section class="coalition-connection"><h3>${escape(party.name)}</h3><p><strong>מה מופה בכיוון של ${escape(selected.name)} אליה?</strong>${coalitionEvidence(selected.letters, party.letters)}</p><p><strong>ומה הכיוון ההפוך?</strong>${coalitionEvidence(party.letters, selected.letters)}</p>${coalitionPast(selected.letters, party.letters)}</section>`).join('')}</div>
-    </details>
     <div class="actions"><button class="back" data-action="back">חזרה לתוצאות</button><button class="text-button" data-action="restart">להתחיל מחדש</button></div>` }, { stage: 'אחרי הפתק: הגושים', className: 'coalitions-screen' });
 }
 
@@ -544,15 +529,7 @@ function render() {
 }
 
 app.addEventListener('change', event => {
-  if (state.step === 'coalitions' && event.target.name === 'coalition-party') {
-    if (!COALITION_PARTIES.some(party => party.letters === event.target.value)) return;
-    state.coalitionParty = event.target.value;
-    saveHistory(true);
-    render();
-    app.querySelector('.coalition-map').open = true;
-    app.querySelector('#coalition-party').focus();
-    return;
-  }
+
   const input = event.target;
   if (input.name === 'authority') {
     state.authority = input.checked;
@@ -600,7 +577,6 @@ app.addEventListener('click', event => {
   const action = event.target.closest('[data-action]')?.dataset.action;
   if (action === 'back') back();
   else if (action === 'coalitions' && ['result', 'bridge-result'].includes(state.step)) {
-    if (state.step === 'result' && COALITION_PARTIES.some(party => party.letters === state.party?.[0])) state.coalitionParty = state.party[0];
     go('coalitions');
   }
   else if (action === 'start') go('topics');

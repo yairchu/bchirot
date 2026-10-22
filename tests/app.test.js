@@ -1229,25 +1229,18 @@ for (const mouseAvailable of [true, false]) {
       assert.ok(Math.abs(cells.reduce((sum, cell) => sum + Number(cell.dataset.value), 0) - 1) < 1e-12);
     }
     assert.match($('.coalition-matrix .matrix-unknown').textContent, /0/);
-    assert.equal($('.coalition-map').open, false);
+    assert.equal($('.coalitions-screen details'), null);
     assert.ok($('[data-coalition-group="positive"]'));
     assert.ok($('[data-coalition-group="negative"]'));
     assert.equal($('[data-coalition-group="negative"]').closest('details'), null);
     assert.doesNotMatch($('#app').textContent, /הדירוג המלא|וקטורים עצמיים/);
     assert.match($('.description').textContent, /מפלגות חוברות לקואליציה/);
-    assert.match($('.coalition-connections').textContent, /לא עם נתניהו/);
-    assert.match($('.coalition-connections').textContent, /שותפות בעבר/);
-    // Selects dispatch change on the select itself, unlike radio answers.
-    const select = $('#coalition-party');
-    select.value = 'רק';
-    select.dispatchEvent(new window.Event('change', { bubbles: true }));
-    assert.equal(window.history.state.bchirot.coalitionParty, 'רק');
-    assert.ok(document.querySelectorAll('.coalition-connection a').length);
+    const coalitionResults = $('#app').textContent;
     await traverse('back');
     assert.equal($('#app').textContent, results);
     assert.equal(window.history.state.bchirot.representationAnswer, answer);
     await traverse('forward');
-    assert.equal($('#coalition-party').value, 'רק');
+    assert.equal($('#app').textContent, coalitionResults);
     assert.equal($('.step-label').textContent, 'אחרי הפתק: הגושים');
   });
 }
@@ -1259,5 +1252,6 @@ test('authority results also link to the coalition map', async t => {
   t.mock.timers.tick(2500);
   assert.equal(window.history.state.bchirot.step, 'result');
   click('coalitions');
-  assert.ok($('#coalition-party'));
+  assert.ok($('.coalition-matrix'));
+  assert.equal($('.coalitions-screen details'), null);
 });
