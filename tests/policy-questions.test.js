@@ -15,7 +15,7 @@ test('service roster allows multiple independent groups and rejects conflicting 
 });
 
 test('service scoring evaluates the explicitly chosen roster; an unanswered roster has no inferred position', () => {
-  const draft = scoreBurden(['serve-haredim']);
+  const draft = scoreBurden(['serve-haredim']).filter(item => item.component === 'גיוס חרדים');
   assert.equal(draft.length, 6);
   assert.deepEqual(draft.filter(item => item.points > 0).map(item => item.id).sort(), ['beyachad', 'democrats', 'yashar', 'yisrael-beitenu']);
   assert.deepEqual(draft.filter(item => item.points < 0).map(item => item.id).sort(), ['shas', 'utj']);
@@ -23,23 +23,23 @@ test('service scoring evaluates the explicitly chosen roster; an unanswered rost
     assert.equal(scoreBurden(['serve-other-men']).find(other => other.id === item.id).points, -item.points);
     assert.ok(PARTIES.some(([letters, name]) => letters === item.letters && name === item.name));
   }
-  assert.deepEqual(scoreBurden(['serve-haredim', 'serve-women', 'serve-other-men']), draft);
+  assert.deepEqual(scoreBurden(['serve-haredim', 'serve-women', 'serve-other-men']).filter(item => item.component === 'גיוס חרדים'), draft);
   assert.deepEqual(scoreBurden(['seek-partners']), []);
   assert.deepEqual(scoreBurden(null), []);
   assert.equal(scoreBurden(['limit-outposts']).some(item => item.id === 'shas'), false);
 });
 
 test('compact draft answers retain the full roster question weights without scoring a skip', () => {
-  assert.deepEqual(scoreDraft('draft'), scoreBurden(['serve-haredim']));
-  assert.deepEqual(scoreDraft('exempt'), scoreBurden(['serve-other-men']));
+  assert.deepEqual(scoreDraft('draft'), scoreBurden(['serve-haredim']).filter(item => item.component === 'גיוס חרדים'));
+  assert.deepEqual(scoreDraft('exempt'), scoreBurden(['serve-other-men']).filter(item => item.component === 'גיוס חרדים'));
   for (const invalid of [null, undefined, '', 'unknown']) {
     assert.deepEqual(scoreDraft(invalid), []);
     assert.deepEqual(currentScores({ draftAnswer: invalid }), []);
   }
   for (const answer of ['draft', 'exempt']) {
     const compact = currentScores({ draftAnswer: answer });
-    const roster = currentScores({ burdenAnswer: answer === 'draft' ? ['serve-haredim'] : ['serve-other-men'] });
-    assert.deepEqual(compact.map(({ id, points }) => ({ id, points })), roster.map(({ id, points }) => ({ id, points })));
+    const draftEvidence = scoreDraft(answer);
+    for (const party of compact) assert.equal(party.points, draftEvidence.find(item => item.id === party.id).points);
     assert.ok(compact.every(party => party.contributions.length === 1));
   }
 });
@@ -57,9 +57,9 @@ test('outpost direction still scores one component, while partners add no invent
 test('service and tasks have separate contributions and coverage after the page split', () => {
   const scores = currentScores({ burdenAnswer: ['serve-haredim', 'serve-women', 'serve-other-men'], burdenTasksAnswer: ['limit-outposts', 'seek-partners'] });
   const democrats = scores.find(item => item.id === 'democrats');
-  assert.equal(democrats.points, 2);
+  assert.equal(democrats.points, 3);
   assert.equal(democrats.contributions.length, 2);
-  assert.ok(democrats.contributions.every(item => item.evidence.length === 1));
+  assert.deepEqual(democrats.contributions.map(item => item.evidence.length), [2, 1]);
   assert.equal(new Set(democrats.contributions.map(item => item.question)).size, 2);
   assert.equal(currentScores({ burdenAnswer: ['limit-outposts'] }).length, 0);
   assert.equal(currentScores({ burdenTasksAnswer: ['serve-haredim'] }).length, 0);
@@ -86,7 +86,7 @@ test('new policy evidence merges into existing ballots without duplicating histo
   const scores = scoreCurrentReligion('shabbat', 'expand', null, 'peace', { burdenAnswer: ['serve-haredim'], burdenTasksAnswer: ['limit-outposts'], threatAnswer: 'hamas' });
   assert.equal(new Set(scores.map(item => item.letters)).size, scores.length);
   const democrats = scores.find(item => item.id === 'democrats');
-  assert.equal(democrats.points, 7); // bridge 2 + weekend 2 + vision 1 + burden 2; no threat point
+  assert.equal(democrats.points, 6); // bridge 2 + weekend 2 + vision 1 + Haredi 1 - women 1 + tasks 1
   assert.equal(democrats.contributions.length, 5);
   assert.equal(new Set(democrats.contributions.map(item => item.question)).size, 5);
 });

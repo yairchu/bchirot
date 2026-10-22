@@ -133,7 +133,7 @@ for (const mouseAvailable of [true, false]) {
     assert.equal($('[data-party-id="democrats"] .score').textContent, '+2');
     assert.equal($('[data-party-id="otzma-yehudit"] .score').textContent, '−1');
     assert.equal($('[data-party-id="shas"] .score').textContent, '−1');
-    assert.match($('.description').textContent, /2 מתוך 2/);
+    assert.match($('.description').textContent, /2 מתוך 3/);
     await traverse('back'); await traverse('back');
     assert.equal($('[name="academia-answer"]:checked').value, 'limit');
     choose('[name="academia-answer"][value="expand"]'); click('next'); skipWomenService();
@@ -203,7 +203,7 @@ test('both partnership questions can be cleared and skipped without inventing pa
 });
 
 for (const mouseAvailable of [true, false]) {
-  test(`standalone women service restores and clears choices without party credit on ${mouseAvailable ? 'desktop' : 'mobile'}`, async t => {
+  test(`standalone women service restores, reverses and clears its party scores on ${mouseAvailable ? 'desktop' : 'mobile'}`, async t => {
     const { $, click, choose, traverse } = await setup(t, mouseAvailable);
     click('start'); choose('[value="modesty-partnership"]'); click('next'); click('next'); click('next');
     assert.equal($('h2').textContent, 'האם נשים צריכות לשרת בצה״ל?');
@@ -215,13 +215,15 @@ for (const mouseAvailable of [true, false]) {
     $('[name="women-service-answer"][value="serve"]').click();
     assert.equal($('.button-label').textContent, 'לתוצאות'); click('next');
     assert.match($('.women-service-summary').textContent, /כן, שירות צבאי לפי התאמה לתפקיד/);
-    assert.match($('.women-service-summary').textContent, /אין כרגע ניקוד מפלגתי/);
-    assert.equal($('.score-table'), null);
+    assert.equal($('[data-party-id="democrats"] .score').textContent, '+1');
+    assert.equal($('[data-party-id="religious-zionism"] .score').textContent, '−1');
+    assert.match($('.description').textContent, /1 מתוך 3/);
     await traverse('back');
     assert.equal($('[name="women-service-answer"]:checked').value, 'serve');
     choose('[name="women-service-answer"][value="exempt"]'); click('next');
     assert.match($('.women-service-summary').textContent, /לפטור נשים/);
-    assert.equal($('.score-table'), null);
+    assert.equal($('[data-party-id="democrats"] .score').textContent, '−1');
+    assert.equal($('[data-party-id="religious-zionism"] .score').textContent, '+1');
     assert.equal(window.history.state.bchirot.noArmy, false);
     await traverse('back');
     $('[name="women-service-answer"]:checked').click();
@@ -251,6 +253,27 @@ test('selecting security removes the compact women question and updates the topi
   assert.equal(window.history.state.bchirot.step, 'dream');
 });
 
+test('a restored compact answer cannot add women service points after switching to the full roster', async t => {
+  const { $, click, choose } = await setup(t);
+  click('start'); choose('[value="modesty-partnership"]'); click('next'); click('next'); click('next');
+  choose('[name="women-service-answer"][value="exempt"]'); click('next');
+  const restored = { ...window.history.state.bchirot, step: 'topics', topics: ['war-dream', 'modesty-partnership'] };
+  window.history.replaceState({ bchirot: restored }, '');
+  window.dispatchEvent(new window.PopStateEvent('popstate', { state: { bchirot: restored } }));
+  click('next'); click('next');
+  choose('[value="serve-women"]'); click('next');
+  for (const step of ['burden-tasks', 'threat', 'emergency', 'representation', 'academia']) {
+    assert.equal(window.history.state.bchirot.step, step);
+    click('next');
+  }
+  assert.equal(window.history.state.bchirot.womenServiceAnswer, 'exempt');
+  assert.equal($('.women-service-summary'), null);
+  assert.equal($('[data-party-id="democrats"] .score').textContent, '0');
+  assert.equal($('[data-party-id="religious-zionism"] .score').textContent, '−1');
+  assert.equal($('[data-party-id="democrats"] details').querySelectorAll('b').length, 1);
+  assert.match($('.description').textContent, /1 מתוך 7/);
+});
+
 test('all three topics retain existing question order and append both partnership dilemmas', async t => {
   const { $, click, choose } = await setup(t);
   click('start');
@@ -267,7 +290,7 @@ test('all three topics retain existing question order and append both partnershi
     click('next');
   }
   assert.match($('.description').textContent, /3 מתוך 9/);
-  assert.equal($('[data-party-id="democrats"] .score').textContent, '+3');
+  assert.equal($('[data-party-id="democrats"] .score').textContent, '+2');
   assert.equal(document.querySelectorAll('[data-party-id="democrats"]').length, 1);
   assert.equal($('[data-party-id="democrats"] details').querySelectorAll('b').length, 3);
 });
@@ -845,7 +868,7 @@ test('threat question retains its sourced actions after the service and missions
   await traverse('forward');
   assert.equal($('[name="threat-answer"]:checked').value, 'pa');
   click('next'); click('next');
-  assert.equal($('[data-party-id="democrats"] .score').textContent, '+2');
+  assert.equal($('[data-party-id="democrats"] .score').textContent, '+1');
   assert.equal($('[data-party-id="likud"] .score').textContent, '+2');
   assert.match($('.description').textContent, /3 מתוך 5/);
 });
@@ -913,7 +936,7 @@ test('missions immediately follow service and continue its meter, with separate 
   click('next'); // To emergency.
   click('next'); // To results.
   assert.match($('.description').textContent, /2 מתוך 7/);
-  assert.equal($('[data-party-id="democrats"] .score').textContent, '+2');
+  assert.equal($('[data-party-id="democrats"] .score').textContent, '+3');
   assert.match($('[data-party-id="democrats"] .score-coverage').textContent, /2 מתוך 2/);
   assert.equal($('[data-party-id="democrats"] details').querySelectorAll('b').length, 2);
   click('restart');
@@ -1005,7 +1028,7 @@ test('switching to no-army excludes previously saved mission answers from the re
   choose('[value="serve-haredim"]'); click('next');
   choose('[value="limit-outposts"]'); click('next');
   click('next'); click('next');
-  assert.equal($('[data-party-id="democrats"] .score').textContent, '+2');
+  assert.equal($('[data-party-id="democrats"] .score').textContent, '+1');
   click('review-questions');
   click('next'); // Dream.
   choose('[value="serve-haredim"]', false);

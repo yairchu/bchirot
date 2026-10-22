@@ -1,4 +1,5 @@
 import { PARTIES, PARTY_NOTICES } from './parties.js';
+import { scoreWomenService } from './partnership.js';
 
 const draftSource = 'https://www.mako.co.il/news-israel-elections/2026/Article-4a2f820efe911a1027.htm';
 const farmsSource = 'https://zionutdatit.org.il/hityashvut/farms/';
@@ -38,7 +39,7 @@ export const BURDEN_TIMELINE = [
   { text: 'הבחירה כאן עוסקת בחובת שירות לקבוצות שסומנו, ולא באיסור על אחרות להתנדב או בזכאות לתפקיד קרבי. השיבוץ לפי התאמה; מי שאינו נדרש לצבא יכול לשרת בשירות אזרחי. המשך בלי סימון מוביל לשאלת המשך הומוריסטית בתרחיש ללא צבא; אין לכך ניקוד מפלגתי.', url: WOMEN_SERVICE_SOURCE, source: 'פרטי ההחלטה והקריטריונים' },
   { text: 'בנובמבר 2025 מועצת הביטחון אישרה מסגרת למועצת השלום ולכוח ייצוב בינלאומי בעזה. אישור מסגרת אינו מבטיח פריסה, הצלחה או החלפה מלאה של משימות צה״ל.', url: 'https://www.un.org/unispal/document/security-council-meeting-coverage-17nov25/', source: 'מועצת הביטחון, החלטה 2803' },
   { text: 'ביוני 2025 נתניהו אישר שישראל תומכת בחמולות בעזה המתנגדות לחמאס. זהו ניסיון ממשי להיעזר בגורמים מקומיים, ולא הוכחה שהם שותפים אמינים לאורך זמן. הרשות, חמולות מקומיות וגופים בינלאומיים אינם חלופות זהות.', url: 'https://www.timesofisrael.com/liveblog_entry/netanyahu-confirms-arming-gazan-clans-whats-wrong-with-that/', source: 'אישור התמיכה בחמולות, 5.6.2025' },
-  { text: 'מציאת שותפים יעילים עשויה לאפשר חלוקת משימות. המד ממחיש את הכיוון המבוקש, בתנאי ששיתוף הפעולה מצליח; הוא אינו מציג הקלה שהושגה כבר. לחלופת השותפים ולשירות נשים וגברים לא חרדים אין כרגע ניקוד מפלגתי.', url: 'https://www.un.org/unispal/document/security-council-meeting-coverage-17nov25/', source: 'מסגרת כוח הייצוב ותנאיה' },
+  { text: 'מציאת שותפים יעילים עשויה לאפשר חלוקת משימות. המד ממחיש את הכיוון המבוקש, בתנאי ששיתוף הפעולה מצליח; הוא אינו מציג הקלה שהושגה כבר. לחלופת השותפים ולשירות גברים לא חרדים אין כרגע ניקוד מפלגתי.', url: 'https://www.un.org/unispal/document/security-council-meeting-coverage-17nov25/', source: 'מסגרת כוח הייצוב ותנאיה' },
 ];
 
 export const DRAFT_DILEMMA = {
@@ -123,6 +124,7 @@ export function scoreBurden(answer) {
   const serviceAnswered = SERVICE_CHOICES.some(choice => selected.includes(choice.id));
   const draft = serviceAnswered ? (selected.includes('serve-haredim') ? 'draft' : 'exempt') : null;
   results.push(...scoreDraft(draft));
+  if (serviceAnswered) results.push(...scoreWomenService(selected.includes('serve-women') ? 'serve' : 'exempt'));
   const outposts = selected.find(id => ['limit-outposts', 'protect-outposts'].includes(id));
   if (outposts) {
     results.push(...evidence({ id: 'democrats', letters: 'אמת' }, outposts === 'limit-outposts' ? 1 : -1,

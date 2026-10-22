@@ -8,6 +8,8 @@ const democratsVoteSource = 'https://democrats.org.il/content/exclusion-of-women
 const academicChoiceSource = 'https://law.tau.ac.il/sites/law.tau.ac.il/files/media_server/law_heb/Law_Society_Culture/books/Haredim/11_Noya%20Rimlat.pdf#page=44';
 const academicPreferencesSource = 'https://lawjournal.huji.ac.il/article/12/1667';
 const womenServiceSource = 'https://www.idf.il/כתבות-ועדכונים/2022/אוקטובר/נשים-לוחמות-טנקיסטיות-לוחמות-טנקים-חיל-הגנת-הגבולות-זרוע-היבשה/';
+const womenProtectionSource = 'https://www.mako.co.il/news-military/politics-q3_2018/Article-e44259de0da6461004.htm';
+const womenCommitteeSource = 'https://oknesset.org/meetings/2/2/2229819.html';
 
 export const WOMEN_SERVICE_DILEMMA = {
   title: 'האם נשים צריכות לשרת בצה״ל?',
@@ -19,7 +21,9 @@ export const WOMEN_SERVICE_DILEMMA = {
   ],
   timeline: [
     { text: 'באוקטובר 2022 צה״ל קבע שהתנסות לוחמות הטנקים בהגנת הגבולות הצליחה ושהשיבוץ יהפוך לקבוע. ההחלטה התבססה על עמידה בקריטריונים מקצועיים ומבצעיים; היא עסקה בהגנת גבולות, ולא בכל תפקידי השריון המתמרן.', url: womenServiceSource, source: 'החלטת צה״ל על לוחמות הטנקים, 27.10.2022' },
-    { text: 'החלטה של צה״ל אינה מיוחסת כאן אוטומטית למפלגה. התשובה נשמרת ומוצגת בתוצאות ללא ניקוד מפלגתי, כמו רכיב שירות הנשים בשאלת הנטל הרחבה.', url: womenServiceSource, source: 'פרטי ההחלטה' },
+    { text: 'בדיוני חוק הגיוס ב־2018 סמוטריץ׳ דרש להסיר סעיף שנועד להגן על מעמד הנשים ושילובן בצה״ל בעת גיוס חרדים. זהו ניסיון לשנות הגנה על שילוב נשים, ולא חוק שביטל את שירותן. הניקוד לציונות הדתית מבוסס על פעילותו, בלי לייחס עמדה אחידה לכל ישיבות ההסדר או לכל הציבור הדתי.', url: womenProtectionSource, source: 'הדרישה להסרת ההגנה, N12, ‏2018' },
+    { text: 'בדיון ועדת הכנסת ב־7.5.2025 מרב מיכאלי מהעבודה דרשה לקדם שיבוץ לפי כישורים ולהסיר חסמים בפני נשים. זו פעילות פרלמנטרית לקידום השילוב; היא משויכת לרכיב העבודה בדמוקרטים.', url: womenCommitteeSource, source: 'פרוטוקול הוועדה, 7.5.2025' },
+    { text: 'הניקוד הוא נקודה אחת בכיוון השילוב או נגדו, על בסיס פעילות פרלמנטרית מוגבלת. אין כאן הוכחה לתמיכה או להתנגדות לכל פטור מגיוס או לכל תפקיד לחימה. ההחלטה המקצועית של צה״ל אינה מקור לניקוד מפלגתי.', url: womenCommitteeSource, source: 'הדיון וגבולות ההשוואה' },
   ],
 };
 
@@ -63,6 +67,14 @@ function records(positions, direction) {
     if (!ballot || PARTY_NOTICES[position.letters]?.kind === 'withdrawn') return [];
     return [{ ...position, name: ballot[1], points: position.position * direction }];
   });
+}
+
+export function scoreWomenService(answer) {
+  if (!['serve', 'exempt'].includes(answer)) return [];
+  return records([
+    { id: 'democrats', letters: 'אמת', position: 1, basis: 'partial-action', reason: 'מרב מיכאלי מהעבודה פעלה בדיון ועדת הכנסת במאי 2025 להסרת חסמים ולשיבוץ נשים לפי כישורים. זהו רכיב העבודה בדמוקרטים ועדות לכיוון השילוב, ללא מסקנה על כל פרט בחובת השירות.', source: womenCommitteeSource, component: 'שירות נשים בצה״ל' },
+    { id: 'religious-zionism', letters: 'ט', position: -1, basis: 'partial-action', reason: 'סמוטריץ׳ דרש ב־2018 להסיר מחוק הגיוס הגנה על מעמד הנשים ושילובן. זהו ניסיון לשינוי חקיקה, לא ביטול שירות נשים בפועל; השיוך לרשימה מבוסס על רכיב הציונות הדתית.', source: womenProtectionSource, component: 'שירות נשים בצה״ל' },
+  ], answer === 'serve' ? 1 : -1);
 }
 
 export function scoreRepresentation(answer) {
