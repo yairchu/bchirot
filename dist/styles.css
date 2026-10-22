@@ -241,3 +241,8 @@ p { margin: 0 0 28px; }
 .matrix-legend, .matrix-key { font-size: 14px; line-height: 1.6; color: var(--muted); margin: 8px 0 0; }
 .matrix-key { display: flex; flex-wrap: wrap; gap: 4px 18px; }
 .coalition-matrix-scroll:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+
+.about-content { max-width: 800px; margin-inline: auto; font-size: clamp(20px, 2.2vw, 25px); line-height: 1.8; }
+.about-content h1 { font-size: clamp(42px, 6vw, 64px); }
+.about-content h2 { font-size: clamp(28px, 4vw, 40px); line-height: 1.4; letter-spacing: -.7px; margin: 36px 0 18px; }
+.about-content a, .about-link a { text-underline-offset: 4px; }

@@ -1218,10 +1218,14 @@ for (const mouseAvailable of [true, false]) {
     choose('[name="representation-answer"][value="men-only"]');
     for (let i = 0; i < 5; i++) click('next');
     const answer = window.history.state.bchirot.representationAnswer;
+    const about = $('.about-link a');
+    assert.equal(about.getAttribute('href'), 'about.html');
+    assert.equal(about.target, '_blank'); // Reading the explanation preserves quiz state in this tab.
     const results = $('#app').textContent;
     click('coalitions');
     assert.match($('h2').textContent, /ממשלה שמתאימה לך/);
     assert.ok($('.coalition-ranking'));
+    assert.equal($('.about-link a').getAttribute('href'), 'about.html');
     const matrixRows = [...document.querySelectorAll('.coalition-matrix tbody tr')];
     assert.equal(matrixRows.length, document.querySelectorAll('[data-coalition-party]').length);
     for (const row of matrixRows) {
@@ -1253,6 +1257,7 @@ test('authority results do not offer the coalition map', async t => {
   t.mock.timers.tick(2500);
   assert.equal(window.history.state.bchirot.step, 'result');
   assert.equal($('[data-action="coalitions"]'), null);
+  assert.equal($('.about-link'), null);
 });
 
 test('the coalition map blocks vetoed links', async t => {
