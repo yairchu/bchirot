@@ -1222,6 +1222,11 @@ for (const mouseAvailable of [true, false]) {
     assert.match($('h2').textContent, /ממשלה שמתאימה לך/);
     assert.ok($('.coalition-ranking'));
     assert.equal($('.coalition-map').open, false);
+    assert.ok($('[data-coalition-group="positive"]'));
+    assert.ok($('[data-coalition-group="negative"]'));
+    assert.equal($('[data-coalition-group="negative"]').closest('details'), null);
+    assert.doesNotMatch($('#app').textContent, /הדירוג המלא|וקטורים עצמיים/);
+    assert.match($('.description').textContent, /מפלגות חוברות לקואליציה/);
     assert.match($('.coalition-connections').textContent, /לא עם נתניהו/);
     assert.match($('.coalition-connections').textContent, /שותפות בעבר/);
     // Selects dispatch change on the select itself, unlike radio answers.
