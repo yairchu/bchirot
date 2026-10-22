@@ -8,7 +8,7 @@ const cashSource = 'https://www.timesofisrael.com/en-route-to-paris-netanyahu-de
 const aidCardsSource = 'https://cdn.wfp.org/2016/solutions/';
 const cashRiskSource = 'https://www.ynetnews.com/article/bjyl2ji6u';
 const paFundsSource = 'https://www.timesofisrael.com/liveblog_entry/smotrich-formally-withholds-millions-from-pa-says-he-has-no-interest-for-it-to-exist/';
-const continuationSource = 'https://www.aljazeera.com/news/2021/9/12/un-to-distribute-cash-aid-to-gaza-families-envoy-says';
+const continuationSource = 'https://www.aljazeera.com/news/2021/9/12/un-to-distribute-qatari-aid-to-gaza-on-monday-envoy-says';
 const resignationSource = 'https://www.calcalist.co.il/articles/0%2C7340%2CL-3749788%2C00.html';
 const outpostsDecisionSource = 'https://www.ynetnews.com/article/rkbtr0ipj';
 const outpostBurdenSource = 'https://www.mako.co.il/news-military/2026_q3/Article-d2e9ea66e62af91027.htm';
@@ -69,7 +69,7 @@ export const THREAT_DILEMMA = {
     { text: 'מזומן מאפשר שימושים רחבים יותר מכרטיסי סיוע. ביולי 2021 הוצג החשש מהפנייתו להתחמשות כנימוק להצעה להעביר סיוע בשוברים. זהו סיכון של המתווה, ולא הוכחה שכל הכסף שהועבר שימש לרכישת נשק.', url: cashRiskSource, source: 'החשש מהסטת הסיוע לנשק, רויטרס, 13.7.2021' },
     { text: 'בינואר 2023 סמוטריץ׳ חתם על צו שמנע העברה של 139 מיליון ש״ח מכספי המסים שישראל גובה עבור הרשות, והעביר אותם למשפחות נפגעי טרור. המהלך בוצע בעקבות פניית הרשות לערכאות בינלאומיות. הוא צמצם את הכספים שהגיעו לרשות, אך לא עצר את כל ההעברות אליה.', url: paFundsSource, source: 'חתימת הצו, 8.1.2023' },
     { text: 'בנובמבר 2018 ליברמן התפטר מתפקיד שר הביטחון. הוא מנה את העברת הכסף ואת הפסקת האש עם חמאס כשתי נקודות המפנה. זו פעולה פוליטית מתועדת, ללא הסקת תמיכה שלו בחיזוק הרשות.', url: resignationSource, source: 'התפטרות ליברמן, 14.11.2018' },
-    { text: 'בספטמבר 2021 ממשלת בנט–לפיד החליפה את הכנסת המזומן בחלוקה של הכסף הקטארי דרך האו״ם, ובמקביל המשיכה לאפשר את המימון. השינוי צמצם את המזומן הישיר, אך לא עצר את המדיניות.', url: continuationSource, source: 'המנגנון החדש, אל־ג׳זירה, 12.9.2021' },
+    { text: 'בספטמבר 2021, בתקופת ממשלת בנט–לפיד, הכסף הקטארי למשפחות נזקקות בעזה החל להיות מחולק דרך האו״ם במקום במזוודות מזומן, במתווה שישראל תמכה בו. לשכת בנט תיארה שוברים, ואילו פקיד באו״ם תיאר חלוקת מזומן. מנגנון למשכורות עובדי המשרדים בשלטון חמאס לא הוסדר אז.', url: continuationSource, source: 'המנגנון החדש, אל־ג׳זירה, 12.9.2021' },
     { text: 'ביסוס שלטון חמאס והחלשת הרשות הם האופן שבו השאלון מפרש את כיוון הצעדים. ההחלטות והתאריכים מתועדים; אין כאן קביעה שכל הכסף שימש ללחימה, שכל ממשלות נתניהו פעלו באופן זהה, או שכל שותפה בממשלה תמכה בכל צעד.', url: cashSource, source: 'פרטי העברת הכסף' },
   ],
 };
@@ -155,6 +155,6 @@ export function scoreThreat(answer) {
       'ליברמן התפטר מתפקיד שר הביטחון בנובמבר 2018 במחאה על המדיניות מול חמאס, וציין את העברת הכסף ואת הפסקת האש. משקל 2 להתפטרות במחאה, מעשה שבוצע ולא הצהרה; אין בכך קביעה שתמך בחיזוק הרשות.', resignationSource, 'פרישה במחאה על המדיניות').map(item => ({ ...item, basis: 'action' })),
     // Continuing a policy is weaker than initiating it: a penalty only, with no credit for the other answer.
     ...(answer === 'hamas' ? evidence({ id: 'beyachad', letters: 'רק' }, -1,
-      'ב־2021 ממשלת בנט–לפיד שינתה את מנגנון הכסף הקטארי לעזה, מהכנסת מזוודות מזומן לחלוקה דרך האו״ם, אך לא עצרה את המימון. מינוס נקודה כהערכת אחריות של ראשי הממשלה להמשך המדיניות, חלשה מהניקוד לממשלה שיזמה אותה; אין ניקוד זכות לחלופה השנייה.', continuationSource, 'המשך המימון במנגנון מתוקן').map(item => ({ ...item, basis: 'responsibility' })) : []),
+      'ב־2021 ממשלת בנט–לפיד תמכה במתווה שבו הכסף הקטארי למשפחות נזקקות בעזה חולק דרך האו״ם במקום במזוודות מזומן. היא שינתה את המנגנון אך לא עצרה את המימון. מינוס נקודה כהערכת אחריות של ראשי הממשלה להמשך המדיניות, חלשה מהניקוד לממשלה שיזמה אותה; אין ניקוד זכות לחלופה השנייה.', continuationSource, 'המשך המימון במנגנון מתוקן').map(item => ({ ...item, basis: 'responsibility' })) : []),
   ];
 }
