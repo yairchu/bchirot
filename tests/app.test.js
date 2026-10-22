@@ -1219,7 +1219,9 @@ for (const mouseAvailable of [true, false]) {
     const answer = window.history.state.bchirot.representationAnswer;
     const results = $('#app').textContent;
     click('coalitions');
-    assert.match($('h2').textContent, /בחרת מפלגה/);
+    assert.match($('h2').textContent, /ממשלה שמתאימה לך/);
+    assert.ok($('.coalition-ranking'));
+    assert.equal($('.coalition-map').open, false);
     assert.match($('.coalition-connections').textContent, /לא עם נתניהו/);
     assert.match($('.coalition-connections').textContent, /שותפות בעבר/);
     // Selects dispatch change on the select itself, unlike radio answers.

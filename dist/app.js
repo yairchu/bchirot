@@ -1,4 +1,4 @@
-import { COALITION_PARTIES, COALITIONS_CHECKED_ON, GOVERNMENT_EXPLAINER, coalitionRelation, coalitionHistory } from './coalitions.js';
+import { COALITION_PARTIES, COALITIONS_CHECKED_ON, GOVERNMENT_EXPLAINER, coalitionRelation, coalitionHistory, scoreCoalitions } from './coalitions.js';
 import { createQuizAnalytics } from './analytics.js';
 import { CUTSCENE_DURATION, MOBILE_CONFIRM_DELAY, EASTER_EGG_DURATION, NO_TOPICS_DURATION, TOPIC_CHOICES, QUESTIONS, questionRoute, questionnaireQuestions, additionalQuestionCount, afterRobot, progress } from './flow.js';
 import { BALLOT_CHOICES, BLANK_BALLOT, BLANK_BALLOT_SOURCE, FAKE_BALLOT, PARTY_NOTICES } from './parties.js';
@@ -402,10 +402,15 @@ function scoreGroupsView(scores, answered) {
   }).join('');
 }
 
-function bridgeResultView() {
+function currentScoreContext() {
   const questions = currentQuestions();
   const activeAnswer = id => !questions.includes(id) ? null : id === 'burden' ? (serviceAnswer().length ? serviceAnswer() : null) : id === 'burden-tasks' ? (tasksAnswer().length ? tasksAnswer() : null) : state[QUESTIONS[id].answerKey];
   const scores = scoreCurrentReligion(activeAnswer('bridge'), activeAnswer('weekend'), activeAnswer('emergency'), activeAnswer('dream'), { childProtectionAnswer: activeAnswer('child-protection'), sidewalkAnswer: activeAnswer('sidewalk'), womenServiceAnswer: activeAnswer('women-service'), representationAnswer: activeAnswer('representation'), academiaAnswer: activeAnswer('academia'), draftAnswer: activeAnswer('draft'), burdenAnswer: activeAnswer('burden'), burdenTasksAnswer: activeAnswer('burden-tasks'), threatAnswer: activeAnswer('threat') });
+  return { questions, activeAnswer, scores };
+}
+
+function bridgeResultView() {
+  const { questions, activeAnswer, scores } = currentScoreContext();
   const scoredQuestions = questions.filter(id => QUESTIONS[id].scored);
   const answered = scoredQuestions.filter(id => Boolean(activeAnswer(id))).length;
   const dream = dreamSummary();
@@ -444,16 +449,30 @@ function coalitionPast(from, to) {
   return coalitionHistory(from, to).map(item => `<p class="coalition-past"><strong>שותפות בעבר · ${escape(item.government)}</strong><small>${escape(item.detail)} <a href="${item.source}" target="_blank" rel="noopener noreferrer">מקור · <bdi>${item.date}</bdi></a></small></p>`).join('');
 }
 
+function coalitionScoreView() {
+  const scores = state.authority ? [] : scoreCoalitions(currentScoreContext().scores);
+  const positive = scores.filter(party => party.points > 0);
+  const number = value => new Intl.NumberFormat('he', { maximumFractionDigits: 2, signDisplay: 'exceptZero' }).format(value);
+  const rows = parties => parties.map(party => `<li data-coalition-party="${escape(party.letters)}"><div class="coalition-score-heading"><strong>${escape(party.name)}</strong><bdi>${number(party.points)}</bdi></div><details><summary>איך השותפות משפיעות?</summary><p>הציון הישיר: <bdi>${number(party.directPoints)}</bdi>. אחרי שקלול:</p>${party.terms.map(term => `<p>${escape(term.name)}: <bdi>${number(term.points)} × ${term.weight}</bdi> · ${escape(term.basis)}${term.sources.map(source => ` · <a href="${source}" target="_blank" rel="noopener noreferrer">מקור</a>`).join('')}</p>`).join('')}<p>מחלקים בסכום המשקלים: <bdi>${party.terms.reduce((sum, term) => sum + term.weight, 0)}</bdi>.</p></details></li>`).join('');
+  return `<p class="description">ההתאמה שלך למפלגות, משוקללת גם דרך השותפות שלהן.</p>
+    ${positive.length ? `<ol class="coalition-ranking" aria-label="התאמה דרך שותפות">${rows(positive.slice(0, 3))}</ol>` : `<p class="result-status">${scores.length ? 'גם אחרי שקלול השותפות, לא נמצאה התאמה חיובית.' : 'צריך לענות על שאלות העמדות כדי לחשב התאמה דרך שותפות.'}</p>`}
+    <p class="selection-note">הערכה ראשונית לפי הקשרים שמופו; בלי מנדטים או הערכת סיכוי להקמת ממשלה.</p>
+    ${scores.length ? `<details class="score-method"><summary>הדירוג המלא</summary><p>ציון חיובי מציין התאמה; ציון שלילי מציין פער.</p><ol class="coalition-ranking">${rows(scores)}</ol></details>` : '<button class="primary" data-action="independent">בואו נבדוק לפי העמדות שלי</button>'}
+    <details class="score-method"><summary>מה ההתמרה עושה?</summary><p>ממוצע משוקלל: הציון של המפלגה עצמה במשקל 1, שותפות בתיאום בגוש במשקל ½ ושותפות בקואליציה בעבר במשקל ¼. סירוב מתועד מצד כלשהו חוסם קשר בהרכב ההנהגה הנוכחי. קשר או ציון שלא מופו אינם נכנסים לממוצע.</p><p>אלה משקלי המודל, לא הסתברויות. החישוב הוא כפל מטריצה מנורמלת בווקטור הציונים; גם ציונים שליליים עוברים בהתמרה. מוצגות רק מפלגות שיש להן ציון ישיר, ואין כאן בדיקה שכל השותפות יכולות לשבת יחד או מי תעמוד בראשות הממשלה.</p></details>`;
+}
+
 function coalitionsView() {
   const selected = COALITION_PARTIES.find(party => party.letters === state.coalitionParty) || COALITION_PARTIES[0];
-  return frame({ title: 'בחרת מפלגה. קיבלת גם שותפים?', body: `
-    <p class="description">הצבעה למפלגה היא גם הצבעה עקיפה לממשלות שהיא עשויה לקחת בהן חלק. קרבה בעמדות לא מבטיחה ישיבה משותפת.</p>
+  return frame({ title: 'ומי תקדם ממשלה שמתאימה לך?', body: `
+    ${coalitionScoreView()}
+    <details class="score-method coalition-map"><summary>מפת הקשרים והמקורות</summary>
     <label class="coalition-picker">בודקים את <select id="coalition-party" name="coalition-party">${COALITION_PARTIES.map(party => `<option value="${escape(party.letters)}" ${party.letters === selected.letters ? 'selected' : ''}>${escape(party.name)}</option>`).join('')}</select></label>
     <p class="selection-note">מיפוי ראשוני וחלקי, נבדק ב־${COALITIONS_CHECKED_ON}. ״טרם מופה״ אינו הסכמה, סירוב או נייטרליות. הרשימות הקטנות אינן מכוסות עדיין.</p>
     <div class="coalition-connections">${COALITION_PARTIES.filter(party => party !== selected).map(party => `<section class="coalition-connection"><h3>${escape(party.name)}</h3><p><strong>מה מופה בכיוון של ${escape(selected.name)} אליה?</strong>${coalitionEvidence(selected.letters, party.letters)}</p><p><strong>ומה הכיוון ההפוך?</strong>${coalitionEvidence(party.letters, selected.letters)}</p>${coalitionPast(selected.letters, party.letters)}</section>`).join('')}</div>
-    <details class="dilemma-details"><summary>וקטורים עצמיים? קודם שיסכימו לשבת יחד.</summary><div class="dilemma-background">
+    </details>
+    <details class="dilemma-details"><summary>ומה עם וקטורים עצמיים?</summary><div class="dilemma-background">
       <p>המפה כיוונית: א׳ יכולה להסכים לשבת עם ב׳, גם אם ב׳ מסרבת. במטריצה ממשית, מטריצה הרמיטית היא סימטרית — וכאן אין סיבה להניח סימטריה.</p>
-      <p>וקטורים עצמיים יכולים לעזור לחשוף דפוסים במטריצה מספרית מתאימה. הם אינם הקואליציות האפשריות. במפה הזו מוצגות עדויות מילוליות; אין בה חישוב של וקטורים עצמיים.</p>
+      <p>וקטורים עצמיים יכולים לעזור לחשוף דפוסים במטריצה מספרית מתאימה. הם אינם הקואליציות האפשריות. כאן משתמשים בכפל מטריצה בווקטור הציונים כדי לשקלל שותפות; אין צורך בחישוב וקטורים עצמיים.</p>
       <p>כדי לבחון ממשלה צריך גם מנדטים, הסכמות על ההרכב והמדיניות, ולעיתים תמיכה מבחוץ. אפילו הסכמה של כל זוג מפלגות אינה מבטיחה הסכמה על ההרכב כולו. 61 מנדטים נותנים רוב קואליציוני; תיתכן גם ממשלת מיעוט. <a href="${GOVERNMENT_EXPLAINER}" target="_blank" rel="noopener noreferrer">איך זה עובד?</a></p>
       <p>ישיבה משותפת בעבר, תיאום בגוש והצהרת בחירות הם סוגים שונים של מידע. התיאום וההצהרות שמופו כאן אינם תחזית ואינם משנים את ניקוד העמדות שלך.</p>
     </div></details>
@@ -503,6 +522,7 @@ app.addEventListener('change', event => {
     state.coalitionParty = event.target.value;
     saveHistory(true);
     render();
+    app.querySelector('.coalition-map').open = true;
     app.querySelector('#coalition-party').focus();
     return;
   }

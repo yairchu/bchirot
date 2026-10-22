@@ -226,3 +226,9 @@ p { margin: 0 0 28px; }
 .coalition-veto { color: #935035; font-weight: 700; }
 .coalition-coordination { font-weight: 700; }
 .coalition-unknown { color: var(--muted); }
+
+.coalition-ranking { list-style: none; width: 100%; padding: 0; margin: 0 0 20px; }
+.coalition-ranking > li { padding: 16px 0; border-bottom: 1px solid var(--border); }
+.coalition-score-heading { display: flex; justify-content: space-between; gap: 20px; font-size: clamp(24px, 3vw, 36px); }
+.coalition-ranking details { font-size: 17px; line-height: 1.6; margin-top: 8px; }
+.coalition-ranking details p { margin: 8px 0; }

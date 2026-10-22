@@ -9,7 +9,7 @@ export const COALITION_PARTIES = coveredLetters.flatMap(letters => {
   return party && !PARTY_NOTICES[letters] ? [{ letters, name: party[1] }] : [];
 });
 
-// Relations describe evidence, not probabilities or a numerical compatibility score.
+// Relations retain the evidence; separate model weights below are not probabilities.
 // A declaration about Netanyahu must not become a veto of every future Likud leader.
 const opposition = ['רק', 'דרך', 'אמת', 'ל'];
 export const COALITION_RELATIONS = [
@@ -42,4 +42,32 @@ const historicalGroups = [
 export function coalitionHistory(from, to) {
   if (from === to) return [];
   return historicalGroups.filter(group => group.letters.includes(from) && group.letters.includes(to));
+}
+
+// Explicit modeling assumptions, not estimated probabilities. Unknown links carry
+// no weight. A veto in either direction blocks the link under today's leadership.
+export function coalitionWeight(from, to) {
+  if (from === to) return { weight: 1, basis: 'המפלגה עצמה', sources: [] };
+  const relations = [coalitionRelation(from, to), coalitionRelation(to, from)].filter(Boolean);
+  if (relations.some(item => item.kind === 'veto')) return { weight: 0, basis: 'סירוב מתועד בהרכב ההנהגה הנוכחי', sources: relations.filter(item => item.kind === 'veto').map(item => item.source) };
+  const coordination = relations.filter(item => item.kind === 'coordination');
+  const history = coalitionHistory(from, to);
+  if (coordination.length) return { weight: 0.5, basis: 'תיאום בגוש', sources: [...new Set(coordination.map(item => item.source))] };
+  if (history.length) return { weight: 0.25, basis: 'שותפות בעבר', sources: [...new Set(history.map(item => item.source))] };
+  return { weight: 0, basis: 'טרם מופה', sources: [] };
+}
+
+// Row-normalized matrix-vector multiplication, restricted to observed scores.
+// A missing party score is never inserted as zero. Negative scores propagate too.
+export function scoreCoalitions(scores) {
+  const observed = new Map(scores.filter(item => Number.isFinite(item.points)).map(item => [item.letters, item]));
+  return COALITION_PARTIES.filter(party => observed.has(party.letters)).map(party => {
+    const terms = COALITION_PARTIES.filter(other => observed.has(other.letters)).flatMap(other => {
+      const link = coalitionWeight(party.letters, other.letters);
+      return link.weight ? [{ ...other, ...link, points: observed.get(other.letters).points }] : [];
+    });
+    const totalWeight = terms.reduce((sum, term) => sum + term.weight, 0);
+    const points = terms.reduce((sum, term) => sum + term.weight * term.points, 0) / totalWeight;
+    return { ...party, points, directPoints: observed.get(party.letters).points, terms };
+  }).sort((a, b) => b.points - a.points || a.name.localeCompare(b.name, 'he'));
 }

@@ -1,6 +1,6 @@
 # Coalition connections after the results
 
-Checked on 2026-10-22. This informational screen follows both scored results (including unanswered/unscored results) and ordinary authority-ballot results. It does not change scores, question counts or analytics payloads. Withdrawn-ballot notices retain their existing update path.
+Checked on 2026-10-22. This additional scoring screen follows both scored results (including unanswered/unscored results) and ordinary authority-ballot results. It keeps the original party scores, question counts and analytics payloads unchanged, and adds a separate transformed ranking. Withdrawn-ballot notices retain their existing update path.
 
 The first version covers 11 major current ballots from the existing party catalog. Its coverage is deliberately incomplete: an unmapped relation means unknown, never agreement or rejection. Other ballots are not covered yet. Selecting a party shows both directions, plus historical coalition membership where mapped. The selector replaces the current history entry so browser Back returns to the results and Forward restores the selected party.
 
@@ -13,8 +13,19 @@ The first version covers 11 major current ballots from the existing party catalo
 
 ## Mathematical interpretation
 
-Willingness is directed. A real Hermitian matrix would be symmetric, which is not justified for unilateral declarations. Historical co-membership is symmetric, but is a different evidence layer. Neither unknown relations nor qualitative categories are assigned numerical weights.
+Willingness is directed. A real Hermitian matrix would be symmetric, which is not justified for unilateral declarations. Historical co-membership is symmetric, but is a different evidence layer. Unknown relations receive no propagation weight. The evidence categories are converted to explicit model weights for the score transformation described below.
 
 Eigenvectors are not binary coalition membership vectors. Spectral methods on an appropriately defined numerical matrix might expose patterns, but would not enumerate feasible governments. Even unanimous pairwise compatibility does not establish agreement on an entire coalition, its leader, policies or external support. This version does not compute eigenvectors, seat totals, coalition probabilities or predicted blocs.
 
 Future coverage should include more current sourced commitments, conditional agreements and historical examples. Preserve distinctions between a party, its leader, constituent parties, coalition membership and outside support. Add multiple evidence records when a new source conflicts with existing evidence rather than silently treating missing evidence as consent.
+
+
+## Score-vector transformation
+
+For candidate i and scored party j, use W[i,j] = 1 for the party itself, 0.5 for documented bloc coordination, 0.25 for historical co-membership, and 0 otherwise. A sourced veto in either direction takes precedence, under the current leadership assumption; it is not a blanket prediction about a different Likud leader. Coordination takes precedence over history rather than counting both. These are editorial model weights, not empirical probabilities.
+
+The output is t[i] = sum(W[i,j] * s[j]) / sum(W[i,j]), restricting both candidates and terms to parties with observed direct scores and covered ballot mappings. Missing scores are excluded, not filled with zero. This is multiplication by a row-normalized matrix for the given coverage mask. Positive and negative scores both propagate. Normalization avoids rewarding a party merely because it has more mapped connections, and ensures a vector with no positive entries cannot generate a positive result. It does not correct the underlying quiz's differing evidence coverage across parties.
+
+The compact screen shows the top three strictly positive transformed results. The full ranking, per-party arithmetic and source map are collapsed. If no transformed score is positive, no positive match is presented. With no direct scores (including the authority shortcut), the screen invites the user to answer the opinion questions. It does not treat an authority-selected ballot as a score vector.
+
+A candidate without mapped scored partners retains its direct score; its expanded calculation makes that visible. Historical components of today's merged lists remain an imperfect modeling proxy. The transformation does not validate an entire coalition's pairwise compatibility or establish that the candidate could lead a government. Without seats, a statement about electoral influence or prime-ministerial likelihood would require assumptions this version does not make.

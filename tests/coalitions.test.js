@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { COALITION_PARTIES, COALITION_RELATIONS, coalitionRelation, coalitionHistory } from '../dist/coalitions.js';
+import { COALITION_PARTIES, COALITION_RELATIONS, coalitionRelation, coalitionHistory, coalitionWeight, scoreCoalitions } from '../dist/coalitions.js';
 
 test('a leader-specific veto is directional; missing reverse evidence stays unknown', () => {
   assert.equal(coalitionRelation('רק', 'מחל').label, 'לא עם נתניהו');
@@ -29,4 +29,39 @@ test('all mapped relations have sources, dates and live ballot endpoints', () =>
     assert.match(relation.source, /^https:\/\//);
     assert.match(relation.date, /^\d{4}-\d{2}-\d{2}$/);
   }
+});
+
+
+test('matrix transform combines direct scores with weighted partner scores', () => {
+  const scores = [{ letters: 'מחל', points: 2 }, { letters: 'שס', points: -2 }];
+  const result = scoreCoalitions(scores);
+  assert.equal(result.find(party => party.letters === 'מחל').points, 1.2);
+  assert.equal(result.find(party => party.letters === 'שס').points, -1.2);
+  assert.equal(result.length, 2); // Unscored parties do not acquire invented zero scores.
+  assert.equal(scores[0].points, 2);
+});
+
+test('one-sided current veto blocks score propagation in both directions', () => {
+  assert.equal(coalitionWeight('מחל', 'רק').weight, 0);
+  assert.equal(coalitionWeight('רק', 'מחל').weight, 0);
+  const result = scoreCoalitions([{ letters: 'מחל', points: 10 }, { letters: 'רק', points: -2 }]);
+  assert.equal(result.find(party => party.letters === 'רק').points, -2);
+  assert.equal(result.find(party => party.letters === 'מחל').points, 10);
+});
+
+test('unknown links do not spread scores and negative-only inputs never become endorsements', () => {
+  assert.equal(coalitionWeight('ודם', 'שס').weight, 0);
+  assert.deepEqual(scoreCoalitions([]), []);
+  assert.deepEqual(scoreCoalitions([{ letters: 'כן', points: 50 }]), []);
+  const result = scoreCoalitions([{ letters: 'מחל', points: -1 }, { letters: 'שס', points: -2 }, { letters: 'רק', points: -3 }]);
+  assert.ok(result.every(party => party.points < 0));
+  assert.equal(scoreCoalitions([{ letters: 'מחל', points: 0 }])[0].points, 0);
+});
+
+test('normalization preserves constant scores regardless of number of mapped partners', () => {
+  const scores = COALITION_PARTIES.map(party => ({ ...party, points: 3 }));
+  assert.ok(scoreCoalitions(scores).every(party => party.points === 3));
+  const base = scoreCoalitions(scores.map(party => ({ ...party, points: party.letters === 'מחל' ? -2 : 1 })));
+  const doubled = scoreCoalitions(scores.map(party => ({ ...party, points: party.letters === 'מחל' ? -4 : 2 })));
+  for (const party of base) assert.equal(doubled.find(other => other.letters === party.letters).points, party.points * 2);
 });
