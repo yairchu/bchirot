@@ -1155,7 +1155,11 @@ for (const mouseAvailable of [true, false]) {
     assert.equal($('h2').textContent, 'מי שומר על הילדות?');
     assert.equal($('.step-label').textContent, 'שאלה 6 מתוך 6');
     assert.equal($('.button-label').textContent, 'דלג');
-    assert.match($('.description').textContent, /עדות על אונס כבר בגיל הגן/);
+    assert.match($('.description').textContent, /פגיעות מיניות בילדות בגיל הרך/);
+    assert.doesNotMatch($('.description').textContent, /בשם האב/);
+    assert.match($('.dilemma-background').textContent, /בשם האב/);
+    assert.doesNotMatch($('.description').textContent, /עד הקצה/);
+    assert.ok([...document.querySelectorAll('.dilemma-background a')].some(link => link.href === 'https://omny.fm/shows/ad-hakaze/15'));
     assert.match($('.description').textContent, /אין אכיפה מספקת/);
     const background = $('.dilemma-background');
     assert.match(background.textContent, /תשעה תיקים/);
