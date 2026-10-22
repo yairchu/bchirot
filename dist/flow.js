@@ -23,6 +23,7 @@ export const QUESTIONS = {
   representation: { topics: ['modesty-partnership'], answerKey: 'representationAnswer', inputName: 'representation-answer', scored: true },
   academia: { topics: ['modesty-partnership'], answerKey: 'academiaAnswer', inputName: 'academia-answer', scored: true },
   'women-service': { topics: ['modesty-partnership'], answerKey: 'womenServiceAnswer', inputName: 'women-service-answer', condition: 'no-security', scored: true },
+  sidewalk: { topics: ['modesty-partnership'], answerKey: 'sidewalkAnswer', inputName: 'sidewalk-answer', scored: true },
 };
 
 export function questionRoute(topics, { noArmy = false } = {}) {

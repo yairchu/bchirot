@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { scoreRepresentation, scoreAcademia, scoreWomenService } from '../dist/partnership.js';
+import { scoreRepresentation, scoreAcademia, scoreWomenService, scoreSidewalk } from '../dist/partnership.js';
 import { scoreCurrentReligion } from '../dist/current-lists.js';
 import { scoreBurden } from '../dist/policy-questions.js';
 import { PARTIES, PARTY_NOTICES } from '../dist/parties.js';
@@ -108,4 +108,20 @@ test('withdrawn ballots do not receive either partnership contribution', t => {
   assert.equal(scoreRepresentation('inclusive').some(item => item.id === 'democrats'), false);
   assert.equal(scoreAcademia('limit').some(item => item.id === 'democrats'), false);
   assert.equal(scoreWomenService('serve').some(item => item.id === 'democrats'), false);
+});
+
+test('sidewalk scoring follows the documented petition without inferring other party positions', () => {
+  for (const [answer, points] of [['free-choice', 1], ['separate', -1]]) {
+    const evidence = scoreSidewalk(answer);
+    assert.equal(evidence.length, 1);
+    assert.equal(evidence[0].id, 'democrats');
+    assert.equal(evidence[0].points, points);
+    assert.equal(evidence[0].basis, 'partial-action');
+    const scores = scoreCurrentReligion(null, null, null, null, { sidewalkAnswer: answer });
+    assert.equal(scores.length, 1);
+    assert.equal(scores[0].points, points);
+    assert.equal(scores[0].contributions.length, 1);
+    assert.equal(scores[0].contributions[0].evidence[0].source, evidence[0].source);
+  }
+  for (const answer of [null, undefined, '', 'unknown']) assert.deepEqual(scoreSidewalk(answer), []);
 });

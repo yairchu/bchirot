@@ -101,3 +101,27 @@ export function scoreAcademia(answer) {
   const supported = answer === 'ban' ? positions.filter(position => position.id === 'otzma-yehudit') : positions;
   return records(supported, answer === 'expand' ? 1 : -1);
 }
+
+const sidewalkPetitionSource = 'https://www.inn.co.il/news/701567';
+const sidewalkUpdateSource = 'https://www.israelhayom.co.il/news/local/article/21290484';
+
+export const SIDEWALK_DILEMMA = {
+  title: 'גם למדרכה יש מגדר?',
+  context: 'בבני ברק הוצבו ליד אולמות אירועים שלטים שמכוונים גברים למדרכה אחת ונשים לאחרת. התומכים ביקשו לשמור על הצניעות בדרך לאירוע; המתנגדים טענו שברחוב ציבורי כל אדם צריך לבחור היכן ללכת. מה נכון לעשות?',
+  options: [
+    { id: 'separate', label: 'לאפשר הכוונה למדרכות נפרדות ליד האולמות' },
+    { id: 'free-choice', label: 'בלי הכוונה מגדרית ברחוב — כל אחד ואחת יבחרו היכן ללכת' },
+  ],
+  timeline: [
+    { text: 'ביולי 2026 דווח על שילוט להפרדה ברחובות עזרא ושלמה המלך. העירייה מסרה שהקריאה היא יוזמת רבני העיר, שהיא סייעה בהרחבת התשתיות בגלל הצפיפות, ושאין מדובר בהנחיה או באכיפה עירונית. השאלה עוסקת בהכוונה במדרכה ציבורית, ולא בהפרדה בתוך אולם פרטי.', url: sidewalkPetitionSource, source: 'המקרה ותגובת העירייה, ערוץ 7, 15.7.2026' },
+    { text: 'יאיא פינק ומיכל רוזין הגישו עתירה נגד ההפרדה. הפעולה מעניקה לדמוקרטים נקודת זיקה אחת נגד ההכוונה המגדרית, על בסיס פעילות אישים במפלגה ולא הצבעה של סיעה שלמה. אין כרגע ניקוד לרשימות אחרות בשאלה הזו.', url: sidewalkPetitionSource, source: 'העתירה נגד ההפרדה וגבולות הניקוד' },
+    { text: 'לאחר הסרת שלטים ביולי, דווח ב־27 באוגוסט על הצבתם מחדש. לכן אין כאן טענה שההפרדה בוטלה סופית או שבית המשפט כבר הכריע בעתירה.', url: sidewalkUpdateSource, source: 'השלטים הוצבו מחדש, ישראל היום, 27.8.2026' },
+  ],
+};
+
+export function scoreSidewalk(answer) {
+  if (!['separate', 'free-choice'].includes(answer)) return [];
+  return records([
+    { id: 'democrats', letters: 'אמת', position: 1, basis: 'partial-action', reason: 'יאיא פינק ומיכל רוזין הגישו ביולי 2026 עתירה נגד ההפרדה במדרכות בני ברק. זו פעילות של אישים במפלגה, ולא הצבעה של הסיעה כולה.', source: sidewalkPetitionSource, component: 'הפרדה במדרכות' },
+  ], answer === 'free-choice' ? 1 : -1);
+}
