@@ -819,6 +819,7 @@ test('religion/state presents the short conscription question and skip removes a
   assert.equal($('.step-label').textContent, 'שאלה 4 מתוך 5');
   assert.equal(document.querySelectorAll('[name="burden-answer"][type="radio"]').length, 2);
   assert.equal($('[data-burden-group="outposts"]'), null);
+  assert.equal($('[data-burden-group="women"]'), null);
   assert.equal($('[data-action="next"]').disabled, true);
   choose('[name="burden-answer"][value="exempt"]');
   click('skip');
@@ -847,7 +848,7 @@ test('expanded burden pairs are independent, undoable, optional and scored once'
   click('skip'); // Weekend
   assert.equal($('h2').textContent, 'הנטל ומי נושא בו');
   assert.equal($('.step-label').textContent, 'שאלה 6 מתוך 7');
-  assert.equal(document.querySelectorAll('[name="burden-answer"][type="checkbox"]').length, 4);
+  assert.equal(document.querySelectorAll('[name="burden-answer"][type="checkbox"]').length, 6);
   choose('[name="burden-answer"][value="draft"]');
   const snapshot = window.history.state.bchirot.burdenAnswer;
   choose('[name="burden-answer"][value="limit-outposts"]');
@@ -912,34 +913,71 @@ test('burden meter animates real direction changes and browser history restores 
   click('skip'); // Dream
   click('skip'); // Threat
   const value = () => Number($('#burden-gauge').getAttribute('aria-valuenow'));
-  assert.equal(value(), 2);
+  assert.equal(value(), 3);
   assert.ok($('.burden-meter.is-entering'));
   assert.match($('.burden-disclaimer').textContent, /לא תחזית/);
   choose('[name="burden-answer"][value="exempt"]');
-  assert.equal(value(), 3);
+  assert.equal(value(), 4);
   assert.ok($('.burden-meter.is-rising'));
   assert.match($('.burden-scenes').textContent, /העסק מחכה/);
   choose('[name="burden-answer"][value="protect-outposts"]');
-  assert.equal(value(), 4);
+  assert.equal(value(), 5);
   choose('[name="burden-answer"][value="draft"]');
-  assert.equal(value(), 2);
+  assert.equal(value(), 3);
   assert.ok($('.burden-meter.is-falling'));
   assert.match($('.burden-scenes').textContent, /מקום לעסק ולבית/);
   await traverse('back');
-  assert.equal(value(), 4);
+  assert.equal(value(), 5);
   await traverse('forward');
-  assert.equal(value(), 2);
+  assert.equal(value(), 3);
   choose('[name="burden-answer"][value="protect-outposts"]', false);
-  assert.equal(value(), 1);
-  choose('[name="burden-answer"][value="draft"]', false);
   assert.equal(value(), 2);
-  assert.match($('#burden-gauge').getAttribute('aria-valuetext'), /נבחרו 0 מתוך 2/);
+  choose('[name="burden-answer"][value="draft"]', false);
+  assert.equal(value(), 3);
+  assert.match($('#burden-gauge').getAttribute('aria-valuetext'), /נבחרו 0 מתוך 3/);
   assert.equal($('.burden-meter.is-rising'), null);
   assert.equal($('[data-action="next"]').disabled, true);
   choose('[name="burden-answer"][value="exempt"]');
   click('skip');
   await traverse('back');
-  assert.equal(value(), 3);
+  assert.equal(value(), 4);
   t.mock.timers.tick(10000);
-  assert.equal(value(), 3, 'scene never changes an answer or auto-advances');
+  assert.equal(value(), 4, 'scene never changes an answer or auto-advances');
+});
+
+
+test('women service moves the shared burden meter, restores with history and explains missing party scores', async t => {
+  const { $, click, choose, traverse } = await setup(t);
+  click('start');
+  choose('[value="war-dream"]');
+  click('next');
+  click('skip'); // Dream
+  click('skip'); // Threat
+  assert.equal(document.querySelectorAll('[data-burden-group="women"]').length, 2);
+  choose('[name="burden-answer"][value="include-women"]');
+  assert.equal($('#burden-gauge').getAttribute('aria-valuenow'), '2');
+  assert.ok($('.burden-meter.is-falling'));
+  choose('[name="burden-answer"][value="restrict-women"]');
+  assert.equal(document.querySelectorAll('[data-burden-group="women"]:checked').length, 1);
+  assert.equal($('#burden-gauge').getAttribute('aria-valuenow'), '4');
+  await traverse('back');
+  assert.equal($('[data-burden-group="women"]:checked').value, 'include-women');
+  assert.equal($('#burden-gauge').getAttribute('aria-valuenow'), '2');
+  click('next');
+  click('skip'); // Emergency
+  assert.equal($('h2').textContent, 'לתשובה הזו אין ניקוד מפלגתי.');
+  assert.equal($('.score-table'), null);
+  assert.match($('.women-score-note').textContent, /שירות נשים/);
+  assert.doesNotMatch($('.description').textContent, /ריכוז הדרישות/);
+  click('review-questions');
+  click('skip'); // Dream
+  click('skip'); // Threat
+  choose('[name="burden-answer"][value="draft"]');
+  click('next');
+  click('skip');
+  assert.equal($('[data-party-id="democrats"] .score').textContent, '+1');
+  assert.ok($('.women-score-note'));
+  assert.match($('.description').textContent, /1 מתוך 4/);
+  click('restart');
+  assert.equal(window.history.state.bchirot.burdenAnswer, null);
 });

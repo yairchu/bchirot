@@ -8,6 +8,8 @@ const paFundsSource = 'https://www.timesofisrael.com/liveblog_entry/smotrich-for
 const resignationSource = 'https://www.calcalist.co.il/articles/0%2C7340%2CL-3749788%2C00.html';
 const outpostBurdenSource = 'https://www.mako.co.il/news-military/2026_q3/Article-d2e9ea66e62af91027.htm';
 
+export const WOMEN_SERVICE_SOURCE = 'https://www.ynet.co.il/news/article/rj1zgtdej';
+
 export const BURDEN_GROUPS = [
   { id: 'draft', title: 'גיוס חרדים', options: [
     { id: 'draft', label: 'להחיל חובת שירות גם על חרדים', detail: 'גם למי שמבקש ללמוד בישיבה; קדימות לצורכי צה״ל, ושירות אזרחי למי שאינו נדרש לצבא.' },
@@ -17,6 +19,10 @@ export const BURDEN_GROUPS = [
     { id: 'limit-outposts', label: 'להגביל מאחזים וחוות מבודדים', detail: 'לצמצם משימות הגנה ומוקדי חיכוך, גם במחיר צמצום ההתיישבות.' },
     { id: 'protect-outposts', label: 'לאפשר את ההתיישבות ולספק לה הגנה', detail: 'להעדיף אחיזה בשטח, גם כשהיא דורשת משאבי הגנה.' },
   ] },
+  { id: 'women', title: 'שירות נשים, כולל בתפקידי לחימה', note: 'משפיע כרגע על מד ההמחשה בלבד, ללא ניקוד מפלגתי.', options: [
+    { id: 'include-women', label: 'לפתוח תפקידים לנשים לפי התאמה מקצועית', detail: 'למצות את כוח האדם בלחימה ובשאר התפקידים, לפי דרישות התפקיד והכשירות המבצעית, במסגרות מתאימות.' },
+    { id: 'restrict-women', label: 'להשאיר תפקידים מסוימים לגברים בלבד', detail: 'מטעמי דת והפרדה, גם כשיש נשים שעומדות בדרישות המקצועיות. מאגר המועמדים לתפקידים האלה יישאר מצומצם יותר.' },
+  ] },
 ];
 
 export const BURDEN_TIMELINE = [
@@ -24,6 +30,8 @@ export const BURDEN_TIMELINE = [
   { text: 'לפי דיווח N12, הגנה על נקודות מבודדות דורשת לעיתים ליווי, סיורים ותגבורי כוחות, ובמקרים מסוימים מסיטה כוחות ממשימות אחרות. אין כאן אומדן של מספר ימי המילואים שייחסכו.', url: outpostBurdenSource, source: 'משימות ההגנה בפועל, N12' },
   { text: 'הדמוקרטים מציגים את צמצום המאחזים והחוות המבודדים כדרך להפחית את משימות ההגנה ואת עומס המילואים. זהו טיעון המפלגה, ולא חישוב של מספר ימי מילואים שייחסכו.', url: democratsSource, source: 'עמדת הדמוקרטים' },
   { text: 'הציונות הדתית מציגה את החוות כאמצעי לאחיזה במרחב ומתארת מעטפת ביטחון ותיאום עם הגורמים הממונים. השאלה בוחנת את העדיפות בין האחיזה בשטח למשאבי ההגנה הנדרשים.', url: farmsSource, source: 'עמדת הציונות הדתית' },
+  { text: 'באוקטובר 2022 החליט צה״ל לקבע את שירות לוחמות הטנקים בהגנת הגבולות, אחרי התנסות והערכת עמידה בקריטריונים מקצועיים ומבצעיים. מדובר בהגנת גבולות, ולא בפתיחת כל תפקידי השריון המתמרן.', url: WOMEN_SERVICE_SOURCE, source: 'החלטת צה״ל על לוחמות הטנקים, 27.10.2022' },
+  { text: 'פתיחת תפקידים למועמדות מתאימות יכולה להרחיב את מאגר המשרתים. המד ממחיש את הכיוון הזה, ללא אומדן של חיסכון בימי מילואים. לרכיב שירות הנשים אין כרגע ניקוד מפלגתי: החלטת צה״ל אינה משויכת אוטומטית למפלגה שהייתה בממשלה.', url: WOMEN_SERVICE_SOURCE, source: 'פרטי ההחלטה והקריטריונים' },
 ];
 
 export const THREAT_DILEMMA = {
@@ -45,8 +53,9 @@ export const THREAT_DILEMMA = {
 // An illustrative direction, deliberately independent of party points and days of service.
 export function burdenLevel(answer, expanded = true) {
   const selected = normalizeBurdenAnswer(answer, expanded);
-  const change = selected.reduce((sum, id) => sum + (['exempt', 'protect-outposts'].includes(id) ? 1 : -1), 0);
-  return { value: 2 + change, answered: selected.length, total: expanded ? 2 : 1 };
+  const change = selected.reduce((sum, id) => sum + (['exempt', 'protect-outposts', 'restrict-women'].includes(id) ? 1 : -1), 0);
+  const baseline = BURDEN_GROUPS.length;
+  return { value: baseline + change, baseline, max: 2 * baseline, answered: selected.length, total: expanded ? baseline : 1 };
 }
 
 const DRAFT_POSITIONS = [
@@ -66,7 +75,7 @@ function evidence(position, points, reason, source, component) {
 
 export function normalizeBurdenAnswer(answer, expanded = true) {
   if (!Array.isArray(answer)) return [];
-  return BURDEN_GROUPS.slice(0, expanded ? 2 : 1).flatMap(group => {
+  return BURDEN_GROUPS.slice(0, expanded ? BURDEN_GROUPS.length : 1).flatMap(group => {
     const selected = group.options.map(option => option.id).filter(id => answer.includes(id));
     // Reject contradictory imported state rather than silently choosing a side.
     return selected.length === 1 ? selected : [];

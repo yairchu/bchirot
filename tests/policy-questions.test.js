@@ -86,11 +86,27 @@ test('withdrawn lists are excluded from all new policy scoring', t => {
 });
 
 
-test('burden meter shows relative direction, excludes unanswered components and filters basic mode', () => {
-  assert.deepEqual(burdenLevel(null), { value: 2, answered: 0, total: 2 });
-  assert.deepEqual(burdenLevel(['exempt', 'protect-outposts']), { value: 4, answered: 2, total: 2 });
-  assert.deepEqual(burdenLevel(['draft', 'limit-outposts']), { value: 0, answered: 2, total: 2 });
-  assert.deepEqual(burdenLevel(['draft', 'protect-outposts']), { value: 2, answered: 2, total: 2 });
-  assert.deepEqual(burdenLevel(['exempt', 'protect-outposts'], false), { value: 3, answered: 1, total: 1 });
-  assert.deepEqual(burdenLevel(['draft', 'exempt', 'protect-outposts']), { value: 3, answered: 1, total: 2 });
+test('burden meter includes women in the expanded version and derives its range from the group count', () => {
+  const level = (value, answered, total = 3) => ({ value, baseline: 3, max: 6, answered, total });
+  assert.deepEqual(burdenLevel(null), level(3, 0));
+  assert.deepEqual(burdenLevel(['exempt', 'protect-outposts']), level(5, 2));
+  assert.deepEqual(burdenLevel(['draft', 'limit-outposts']), level(1, 2));
+  assert.deepEqual(burdenLevel(['draft', 'protect-outposts']), level(3, 2));
+  assert.deepEqual(burdenLevel(['exempt', 'protect-outposts'], false), level(4, 1, 1));
+  assert.deepEqual(burdenLevel(['draft', 'exempt', 'protect-outposts']), level(4, 1));
+  assert.deepEqual(burdenLevel(['exempt', 'protect-outposts', 'restrict-women']), level(6, 3));
+  assert.deepEqual(burdenLevel(['draft', 'limit-outposts', 'include-women']), level(0, 3));
+  assert.deepEqual(burdenLevel(['include-women']), level(2, 1));
+  assert.deepEqual(burdenLevel(['restrict-women']), level(4, 1));
+  assert.deepEqual(burdenLevel(['include-women'], false), level(3, 0, 1));
+});
+
+test('women choices are optional, exclusive, undo no other component and never invent party scores', () => {
+  assert.deepEqual(normalizeBurdenAnswer(['draft', 'restrict-women']), ['draft', 'restrict-women']);
+  assert.deepEqual(normalizeBurdenAnswer(['draft', 'include-women', 'restrict-women']), ['draft']);
+  assert.deepEqual(normalizeBurdenAnswer(['draft', 'include-women'], false), ['draft']);
+  assert.deepEqual(scoreBurden(['include-women']), []);
+  assert.deepEqual(scoreBurden(['restrict-women']), []);
+  assert.deepEqual(scoreBurden(['draft', 'include-women']), scoreBurden(['draft']));
+  assert.deepEqual(currentScores({ burdenAnswer: ['include-women'] }), []);
 });

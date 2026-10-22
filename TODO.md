@@ -34,6 +34,8 @@ The welcome line is “השאלון שמבוסס על דילמות פוליטי�
 - [x] Add the shared conscription question, expanded into independent conscription/outpost choices for security interest, and a sourced Hamas/PA policy question scored from executed decisions and a resignation. See [sources and model](docs/burden-and-threat.md).
 - [x] Add an illustrative burden meter with brief personal-cost scenes, history restoration and reduced-motion support.
 - [x] Replace the Hamas/PA platform/clarification scoring with executed government decisions and a resignation in protest.
+- [x] Add women’s service and combat eligibility as an optional third burden component, with a documented IDF precedent and no invented party scores.
+- [ ] Source party-attributable actions for the women’s-service component before introducing party points.
 - [ ] Find documented actions to replace declared positions in the remaining conscription/outpost scoring; keep current position-based evidence labeled explicitly.
 - [ ] Broaden the documented party coverage for the new policy questions.
 - [ ] Broaden vision coverage to more lists and prefer a current primary party source for Raam over the quoted 2025 chairman statement.
