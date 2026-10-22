@@ -11,13 +11,13 @@ export const TOPIC_CHOICES = [
 
 // Ordering, shared membership, answer keys and progress use one question catalog.
 export const QUESTIONS = {
+  burden: { topics: ['religion-transport', 'war-dream'], answerKey: 'burdenAnswer', inputName: 'burden-answer', scored: true },
+  'no-army': { topics: ['religion-transport', 'war-dream'], answerKey: 'noArmyAnswer', inputName: 'no-army-answer', condition: 'no-army', scored: false },
+  'burden-tasks': { topics: ['war-dream'], answerKey: 'burdenTasksAnswer', inputName: 'burden-tasks-answer', condition: 'army', scored: true },
   dream: { topics: ['war-dream'], answerKey: 'dreamAnswer', inputName: 'dream-answer', scored: true },
   threat: { topics: ['war-dream'], answerKey: 'threatAnswer', inputName: 'threat-answer', scored: true },
   bridge: { topics: ['religion-transport'], answerKey: 'bridgeAnswer', inputName: 'bridge-answer', scored: true },
   weekend: { topics: ['religion-transport'], answerKey: 'weekendAnswer', inputName: 'weekend-answer', scored: true },
-  burden: { topics: ['religion-transport', 'war-dream'], answerKey: 'burdenAnswer', inputName: 'burden-answer', scored: true },
-  'no-army': { topics: ['religion-transport', 'war-dream'], answerKey: 'noArmyAnswer', inputName: 'no-army-answer', condition: 'no-army', scored: false },
-  'burden-tasks': { topics: ['war-dream'], answerKey: 'burdenTasksAnswer', inputName: 'burden-tasks-answer', condition: 'army', scored: true },
   emergency: { topics: ['religion-transport', 'war-dream'], answerKey: 'emergencyAnswer', inputName: 'emergency-answer', scored: true },
 };
 

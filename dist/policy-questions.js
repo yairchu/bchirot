@@ -11,9 +11,9 @@ const outpostBurdenSource = 'https://www.mako.co.il/news-military/2026_q3/Articl
 export const WOMEN_SERVICE_SOURCE = 'https://www.ynet.co.il/news/article/rj1zgtdej';
 
 export const SERVICE_CHOICES = [
-  { id: 'serve-haredim', label: 'חרדים' },
-  { id: 'serve-women', label: 'נשים' },
   { id: 'serve-other-men', label: 'גברים לא חרדים' },
+  { id: 'serve-women', label: 'נשים' },
+  { id: 'serve-haredim', label: 'חרדים' },
 ];
 
 export const BURDEN_GROUPS = [

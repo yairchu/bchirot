@@ -56,8 +56,18 @@ function frame(content, { stage = '', heading = 'h2', className = '' } = {}) {
     ${content.body}</section>`;
 }
 
-function actions(nextLabel = 'ממשיכים', disabled = false) {
-  return `<div class="actions"><button class="primary" data-action="next" ${disabled ? 'disabled' : ''}><span class="button-label">${nextLabel}</span><span aria-hidden="true">←</span></button><button class="back" data-action="back">חזרה</button></div>`;
+function actions(nextLabel = 'ממשיכים', disabled = false, continuation = nextLabel) {
+  return `<div class="actions"><button class="primary" data-action="next" data-continuation="${escape(continuation)}" ${disabled ? 'disabled' : ''}><span class="button-label">${nextLabel}</span><span aria-hidden="true">←</span></button><button class="back" data-action="back">חזרה</button></div>`;
+}
+
+function questionActions(nextLabel = 'ממשיכים') {
+  return actions(hasAnswer(state.step) ? nextLabel : 'דלג', false, nextLabel);
+}
+
+function updateQuestionAction() {
+  const next = app.querySelector('[data-action="next"]');
+  next.disabled = false;
+  next.querySelector('.button-label').textContent = hasAnswer(state.step) ? next.dataset.continuation : 'דלג';
 }
 
 function welcomeView() {
@@ -72,7 +82,7 @@ function topicsView() {
       ${TOPIC_CHOICES.map(({ id, label }) => `<label class="choice"><input type="checkbox" name="topic" value="${id}" ${state.topics.includes(id) ? 'checked' : ''} ${state.authority ? 'disabled' : ''}><span class="choice-copy"><strong><bdi>${escape(label)}</bdi> <span class="topic-count" data-topic-count="${id}">${topicCountLabel(id)}</span></strong></span></label>`).join('')}
     </div>
     <p class="selection-note" id="question-budget" role="status">${questionBudgetLabel()}</p>
-    ${actions('ממשיכים')}` });
+    ${actions(state.authority || state.topics.length ? 'ממשיכים' : 'דלג')}` });
 }
 
 function topicCountLabel(id) {
@@ -88,6 +98,7 @@ function questionBudgetLabel() {
 }
 
 function updateTopicSummary() {
+  app.querySelector('.button-label').textContent = state.authority || state.topics.length ? 'ממשיכים' : 'דלג';
   for (const { id } of TOPIC_CHOICES) app.querySelector(`[data-topic-count="${id}"]`).innerHTML = topicCountLabel(id);
   app.querySelector('#question-budget').textContent = questionBudgetLabel();
   const { current, total } = progress(state.step, state);
@@ -180,7 +191,8 @@ function burdenView() {
       <div class="service-options">${SERVICE_CHOICES.map(choice => `<label class="choice burden-choice"><input type="checkbox" name="burden-answer" data-burden-group="service" value="${choice.id}" ${selected.includes(choice.id) ? 'checked' : ''}><span class="choice-copy"><strong>${escape(choice.label)}</strong></span></label>`).join('')}</div>
       <p class="selection-note">בתרחיש שלך ישרתו הקבוצות שסומנו, לפי התאמה לתפקיד. המשך בלי סימון מוביל לתרחיש ללא צבא.</p>
     </fieldset>
-    ${burdenDetails(false)}${actions('ממשיכים')}` }, { className: 'burden-screen' });
+    ${burdenMeterView()}<p class="sr-only" id="burden-impact" role="status">${burdenImpact()}</p>
+    ${burdenDetails(false)}${questionActions()}` }, { className: 'burden-screen' });
 }
 
 function burdenTasksView() {
@@ -188,7 +200,7 @@ function burdenTasksView() {
   return frame({ title: 'אילו משימות הצבא צריך לשאת?', body: `
     ${BURDEN_GROUPS.map(group => `<fieldset class="burden-group"><legend>${escape(group.title)}</legend>${group.note ? `<p class="selection-note">${escape(group.note)}</p>` : ''}<div class="burden-options">${group.options.map(option => `<label class="choice burden-choice"><input type="checkbox" name="burden-tasks-answer" data-burden-group="${group.id}" value="${option.id}" ${selected.includes(option.id) ? 'checked' : ''}><span class="choice-copy"><strong>${escape(option.label)}</strong></span></label>`).join('')}</div></fieldset>`).join('')}
     ${burdenMeterView()}<p class="sr-only" id="burden-impact" role="status">${burdenImpact()}</p>
-    ${burdenDetails(true)}${actions(selected.length ? 'ממשיכים' : 'דלג')}` }, { className: 'burden-screen' });
+    ${burdenDetails(true)}${questionActions()}` }, { className: 'burden-screen' });
 }
 
 function noArmyView() {
@@ -309,8 +321,7 @@ function dilemmaView(dilemma, answerKey, inputName, backgroundTitle, nextLabel) 
         ${dilemma.timeline.map(item => `<p>${escape(item.text)} <a href="${item.url}" target="_blank" rel="noopener noreferrer">${escape(item.source)}</a>.</p>`).join('')}
       </div>
     </details>` : ''}
-    ${actions(nextLabel, !state[answerKey])}
-    <button class="text-button" data-action="skip">לדלג על השאלה</button>` });
+    ${questionActions(nextLabel)}` });
 }
 
 function currentContributionView(item) {
@@ -428,20 +439,25 @@ app.addEventListener('change', event => {
         const { current, total } = progress(state.step, state);
         app.querySelector('.step-label').textContent = `שאלה ${current} מתוך ${total}`;
       }
-      if (input.name === 'burden-tasks-answer') {
-        app.querySelector('#burden-impact').textContent = burdenImpact();
-        updateBurdenMeter(previousValue);
-      }
-    } else state[question.answerKey] = input.value;
-    const next = document.querySelector('[data-action="next"]');
-    next.disabled = !['burden', 'burden-tasks'].includes(state.step) && !hasAnswer(state.step);
-    if (state.step === 'burden-tasks') next.querySelector('.button-label').textContent = hasAnswer(state.step) ? 'ממשיכים' : 'דלג';
+      app.querySelector('#burden-impact').textContent = burdenImpact();
+      updateBurdenMeter(previousValue);
+    } else state[question.answerKey] = input.checked ? input.value : null;
+    updateQuestionAction();
   }
   if (['authority', 'topic'].includes(input.name)) updateTopicSummary();
   if (['authority', 'topic', 'party', ...Object.values(QUESTIONS).map(question => question.inputName)].includes(input.name)) saveHistory();
 });
 
 app.addEventListener('click', event => {
+  const input = event.target;
+  const question = input.matches('input[type="radio"]') && Object.values(QUESTIONS).find(item => item.inputName === input.name);
+  if (question && state[question.answerKey] === input.value) {
+    input.checked = false;
+    state[question.answerKey] = null;
+    updateQuestionAction();
+    saveHistory();
+    return;
+  }
   const action = event.target.closest('[data-action]')?.dataset.action;
   if (action === 'back') back();
   else if (action === 'start') go('topics');
@@ -454,10 +470,6 @@ app.addEventListener('click', event => {
     advanceQuestion();
   }
   else if (action === 'review-questions') go(currentQuestions()[0]);
-  else if (action === 'skip' && currentQuestions().includes(state.step)) {
-    state[QUESTIONS[state.step].answerKey] = null;
-    advanceQuestion();
-  }
   else if (action === 'update-recommendation') {
     state.party = null;
     state.robot = null;
@@ -467,7 +479,7 @@ app.addEventListener('click', event => {
   else if (action === 'next') {
     if (state.step === 'topics') go(state.authority ? 'party' : !state.topics.length ? 'no-topics' : currentQuestions()[0] || 'independent');
     else if (state.step === 'party' && state.party) go(state.party[0] === FAKE_BALLOT[0] ? 'fake-ballot' : 'robot');
-    else if (currentQuestions().includes(state.step) && (hasAnswer(state.step) || ['burden', 'burden-tasks'].includes(state.step))) {
+    else if (currentQuestions().includes(state.step)) {
       if (state.step === 'burden') {
         state.noArmy = !hasAnswer('burden');
         state.noArmyAnswer = null;

@@ -10,8 +10,8 @@ test('no gets the confirmation scene on all devices; yes gets the acknowledgemen
 
 test('the counter uses four authority questions and five religion/state questions', () => {
   assert.deepEqual(progress('topics'), { current: 1, total: null });
-  assert.deepEqual(progress('bridge'), { current: 2, total: 5 });
-  assert.deepEqual(progress('weekend'), { current: 3, total: 5 });
+  assert.deepEqual(progress('bridge'), { current: 3, total: 5 });
+  assert.deepEqual(progress('weekend'), { current: 4, total: 5 });
   assert.deepEqual(progress('emergency'), { current: 5, total: 5 });
   assert.deepEqual(progress('party', { authority: true }), { current: 2, total: 4 });
   assert.deepEqual(progress('robot', { authority: true }), { current: 3, total: 4 });
@@ -19,13 +19,13 @@ test('the counter uses four authority questions and five religion/state question
 });
 
 test('the shared question appears once for either topic or both and routes have a stable order', () => {
-  assert.deepEqual(questionRoute(['religion-transport']), ['bridge', 'weekend', 'burden', 'emergency']);
-  assert.deepEqual(questionRoute(['war-dream']), ['dream', 'threat', 'burden', 'burden-tasks', 'emergency']);
-  const both = ['dream', 'threat', 'bridge', 'weekend', 'burden', 'burden-tasks', 'emergency'];
+  assert.deepEqual(questionRoute(['religion-transport']), ['burden', 'bridge', 'weekend', 'emergency']);
+  assert.deepEqual(questionRoute(['war-dream']), ['burden', 'burden-tasks', 'dream', 'threat', 'emergency']);
+  const both = ['burden', 'burden-tasks', 'dream', 'threat', 'bridge', 'weekend', 'emergency'];
   assert.deepEqual(questionRoute(['war-dream', 'religion-transport']), both);
   assert.deepEqual(questionRoute(['religion-transport', 'war-dream']), both);
   assert.deepEqual(questionRoute([]), []);
-  assert.deepEqual(questionnaireQuestions([]), ['bridge', 'weekend', 'burden', 'emergency']);
+  assert.deepEqual(questionnaireQuestions([]), ['burden', 'bridge', 'weekend', 'emergency']);
   assert.deepEqual(questionnaireQuestions(['todo-2']), []);
 });
 
@@ -41,12 +41,12 @@ test('incremental costs reflect overlap and selected contributions sum to the ac
 
 test('progress follows the selected union and updates the topic screen total', () => {
   const topics = ['war-dream'];
-  assert.deepEqual(progress('dream', { topics }), { current: 2, total: 6 });
+  assert.deepEqual(progress('dream', { topics }), { current: 4, total: 6 });
   assert.deepEqual(progress('emergency', { topics }), { current: 6, total: 6 });
   assert.deepEqual(progress('topics', { topics }), { current: 1, total: 6 });
   assert.deepEqual(progress('topics', { topics, authority: true }), { current: 1, total: 4 });
   const both = { topics: [...topics, 'religion-transport'] };
-  assert.deepEqual(progress('bridge', both), { current: 4, total: 8 });
+  assert.deepEqual(progress('bridge', both), { current: 6, total: 8 });
   assert.deepEqual(progress('emergency', both), { current: 8, total: 8 });
 });
 
@@ -71,9 +71,9 @@ test('all 38 ballot choices have unique letters and usable names', () => {
 
 
 test('no-army adds a follow-up and replaces tasks, with accurate progress for each category', () => {
-  assert.deepEqual(questionnaireQuestions(['war-dream'], { noArmy: true }), ['dream', 'threat', 'burden', 'no-army', 'emergency']);
-  assert.deepEqual(questionnaireQuestions(['religion-transport'], { noArmy: true }), ['bridge', 'weekend', 'burden', 'no-army', 'emergency']);
-  assert.deepEqual(progress('no-army', { topics: ['religion-transport'], noArmy: true }), { current: 5, total: 6 });
+  assert.deepEqual(questionnaireQuestions(['war-dream'], { noArmy: true }), ['burden', 'no-army', 'dream', 'threat', 'emergency']);
+  assert.deepEqual(questionnaireQuestions(['religion-transport'], { noArmy: true }), ['burden', 'no-army', 'bridge', 'weekend', 'emergency']);
+  assert.deepEqual(progress('no-army', { topics: ['religion-transport'], noArmy: true }), { current: 3, total: 6 });
   assert.deepEqual(progress('emergency', { topics: ['war-dream'], noArmy: true }), { current: 6, total: 6 });
   assert.equal(questionnaireQuestions(['war-dream', 'religion-transport'], { noArmy: true }).filter(id => id === 'no-army').length, 1);
 });

@@ -8,7 +8,7 @@ const currentScores = options => scoreCurrentReligion(null, null, null, null, op
 
 test('service roster allows multiple independent groups and rejects conflicting task answers', () => {
   for (const invalid of [null, undefined, 'serve-haredim', [], ['unknown'], ['draft', 'exempt']]) assert.deepEqual(normalizeBurdenAnswer(invalid), []);
-  assert.deepEqual(normalizeBurdenAnswer(['serve-women', 'serve-haredim', 'serve-haredim', 'limit-outposts']), ['serve-haredim', 'serve-women', 'limit-outposts']);
+  assert.deepEqual(normalizeBurdenAnswer(['serve-women', 'serve-haredim', 'serve-haredim', 'limit-outposts']), ['serve-women', 'serve-haredim', 'limit-outposts']);
   assert.deepEqual(normalizeBurdenAnswer(['serve-other-men', 'limit-outposts', 'protect-outposts', 'seek-partners']), ['serve-other-men', 'seek-partners']);
   assert.deepEqual(normalizeBurdenAnswer(['seek-partners', 'self-reliance']), []);
   assert.deepEqual(normalizeBurdenAnswer(['serve-women', 'protect-outposts', 'seek-partners'], false), ['serve-women']);
