@@ -132,21 +132,30 @@ test('sidewalk scores distinguish petition evidence from one-sided ministerial r
   for (const answer of [null, undefined, '', 'unknown']) assert.deepEqual(scoreSidewalk(answer), []);
 });
 
-test('minors protection scores documented oversight and ministerial responsibility, not political connections', () => {
+test('minors protection distinguishes sustained work, partial legislation and ministerial responsibility', () => {
   const records = scoreMinorsProtection('enforce');
-  assert.deepEqual(Object.fromEntries(records.map(item => [item.id, item.points])), {
-    beyachad: 1, 'otzma-yehudit': -1, likud: -1,
+  const combined = scoreCurrentReligion(null, null, null, null, { childProtectionAnswer: 'enforce' });
+  assert.deepEqual(Object.fromEntries(combined.map(item => [item.id, item.points])), {
+    beyachad: 2, 'yisrael-beitenu': 1, democrats: 1, 'joint-list': 1,
+    likud: 0, shas: -1, utj: -1, 'otzma-yehudit': -1,
   });
-  assert.equal(records.find(item => item.id === 'beyachad').basis, 'partial-action');
-  for (const id of ['otzma-yehudit', 'likud']) assert.equal(records.find(item => item.id === id).basis, 'responsibility');
-  assert.equal(records.some(item => item.id === 'shas'), false);
-  const delay = scoreMinorsProtection('community-first');
-  assert.deepEqual(delay.map(item => [item.id, item.points]), [['beyachad', -1]]);
+  assert.equal(records.find(item => item.id === 'beyachad').basis, 'sustained-action');
+  const likud = combined.find(item => item.id === 'likud');
+  assert.equal(likud.contributions.length, 1);
+  assert.equal(likud.contributions[0].evidence.length, 2);
+  assert.deepEqual(likud.contributions[0].evidence.map(item => item.basis), ['partial-action', 'responsibility']);
+  for (const id of ['yisrael-beitenu', 'democrats', 'joint-list', 'shas', 'utj']) {
+    assert.equal(records.find(item => item.id === id).basis, 'partial-action');
+  }
+  const alternative = scoreMinorsProtection('community-first');
+  assert.deepEqual(Object.fromEntries(alternative.map(item => [item.id, item.points])), {
+    beyachad: -2, 'yisrael-beitenu': -1, democrats: -1, 'joint-list': -1, likud: -1,
+  });
+  assert.equal(alternative.some(item => item.points > 0), false);
   for (const answer of [null, undefined, '', 'unknown']) assert.deepEqual(scoreMinorsProtection(answer), []);
-  const combined = scoreCurrentReligion(null, null, null, null, { childProtectionAnswer: 'enforce', sidewalkAnswer: 'free-choice' });
-  assert.equal(combined.find(item => item.id === 'otzma-yehudit').points, -2);
-  assert.equal(combined.find(item => item.id === 'otzma-yehudit').contributions.length, 2);
-  assert.equal(combined.find(item => item.id === 'beyachad').points, 1);
+  const withSidewalk = scoreCurrentReligion(null, null, null, null, { childProtectionAnswer: 'enforce', sidewalkAnswer: 'free-choice' });
+  assert.equal(withSidewalk.find(item => item.id === 'otzma-yehudit').points, -2);
+  assert.equal(withSidewalk.find(item => item.id === 'otzma-yehudit').contributions.length, 2);
 });
 
 test('withdrawn ballots are excluded from minors protection scoring', t => {
@@ -154,5 +163,5 @@ test('withdrawn ballots are excluded from minors protection scoring', t => {
   t.after(() => { if (previous) PARTY_NOTICES['רק'] = previous; else delete PARTY_NOTICES['רק']; });
   PARTY_NOTICES['רק'] = { kind: 'withdrawn' };
   assert.equal(scoreMinorsProtection('enforce').some(item => item.id === 'beyachad'), false);
-  assert.deepEqual(scoreMinorsProtection('community-first'), []);
+  assert.equal(scoreMinorsProtection('community-first').some(item => item.id === 'beyachad'), false);
 });

@@ -135,6 +135,9 @@ export function scoreSidewalk(answer) {
   return result;
 }
 
+const minorsLawInitiativesSource = 'https://main.knesset.gov.il/News/PressReleases/Pages/PR_1609.aspx';
+const minorsLawPassageSource = 'https://main.knesset.gov.il/News/PressReleases/Pages/press041113-16.aspx';
+const minorsLawOppositionSource = 'https://main.knesset.gov.il/News/PressReleases/Pages/press260613p.aspx';
 const minorsCommitteeSource = 'https://main.knesset.gov.il/News/PressReleases/Pages/press01072026v.aspx';
 const minorsReportSource = 'https://www.ynet.co.il/judaism/article/s1b00k00xnfl';
 const minorsPodcastSource = 'https://omny.fm/shows/ad-hakaze/15';
@@ -156,21 +159,31 @@ export const MINORS_PROTECTION_DILEMMA = {
     { text: 'בפרק ״בת 15 מתחתנת וכולם שותקים״ בהסכת ״עד הקצה״ של כאן, אורן אהרוני פוגש את שרה מימוני, שנישאה בגיל 15. הפרק עוסק בהמשך התופעה ובאחריות להגנה על הנערות, על רקע תלונות ועדויות שהצטברו לאורך השנים.', url: minorsPodcastSource, source: 'להאזנה: עד הקצה, כאן — בת 15 מתחתנת וכולם שותקים' },
     { text: 'בדיון בכנסת בספטמבר 2026 נשמעו עדויות של הורים ויוצאות הקהילה על נישואים בכפייה ופגיעות מיניות בילדים. אלו עדויות המחייבות בדיקה והגנה, ולא פסקי דין נגד כל חברי הקהילה. השאלה אינה מייחסת מעשים לכל חסידי ברסלב או לכל תושבי יבנאל.', url: minorsTestimonySource, source: 'העדויות בוועדה, N12, ‏23.9.2026' },
     { text: 'לפי סיכום ועדה בין־משרדית שפורסם באוקטובר 2026, בשנים 2024–2025 לא נפתחו ביבנאל תיקים בגין נישואי קטינים, וב־2026 נפתחו תשעה תיקים שהיו בחקירה בעת הכנת הדוח. המשטרה גם עצרה טקסים חשודים. פעולות נקודתיות אינן מעידות שהתופעה נעצרה; הביקורת בשאלה היא על היעדר אכיפה מספקת שמגינה על הילדות.', url: minorsReportSource, source: 'ממצאי הוועדה והחקירות, ynet, ‏19.10.2026' },
-    { text: 'מירב כהן מיש עתיד כינסה דיונים ודיוני מעקב, דרשה נתונים ופעלה לקידום טיפול מערכתי. הניקוד לביחד נשען על פעילותה ברכיב יש עתיד. נקודות המחלוקת לעוצמה יהודית ולליכוד הן הערכת אחריות של השרים לביטחון לאומי ולחינוך, ולא קביעה שהם הורו למנוע אכיפה.', url: minorsCommitteeSource, source: 'דיון המעקב בכנסת, 1.7.2026' },
+    { text: 'מירב כהן מיש עתיד כינסה דיונים ודיוני מעקב, דרשה נתונים ופעלה לקידום טיפול מערכתי. שתי הנקודות לביחד נשענות על פעילותה המתמשכת ברכיב יש עתיד, ולא על פעולה אישית של בנט. נקודות המחלוקת לעוצמה יהודית ולליכוד הן הערכת אחריות של השרים לביטחון לאומי ולחינוך, ולא קביעה שהם הורו למנוע אכיפה.', url: minorsCommitteeSource, source: 'דיון המעקב בכנסת, 1.7.2026' },
     { text: 'באוגוסט 2026 פנתה כהן לשר החינוך יואב קיש בדרישה להתערב, בעקבות דיווח על מנהלת החשודה בהשאת בנותיה הקטינות וממשיכה בתפקידה. זו עדות להתרעה בנושא שבאחריות המשרד, ולא הרשעה של המנהלת.', url: minorsEducationSource, source: 'הפנייה לשר החינוך, ישראל היום, 23.8.2026' },
-    { text: 'תחקיר שומרים תיאר קשרים בין הנהגת הקהילה לאריה דרעי וש״ס, ותרומות של יצחק מירילשוילי, מבעלי ערוץ 14, לעמותה הקשורה לקהילה. קשרים ותרומות אינם כשלעצמם הוכחה לידיעה על עבירות או להתערבות בחקירות, ולכן לא ניתן עליהם ניקוד.', url: minorsConnectionsSource, source: 'תחקיר שומרים על הקשרים והמימון, פורסם ב־ynet' },
+    { text: 'תחקיר שומרים תיאר קשרים בין הנהגת הקהילה לאריה דרעי וש״ס, ותרומות של יצחק מירילשוילי, מבעלי ערוץ 14, לעמותה הקשורה לקהילה. קשרים ותרומות אינם כשלעצמם הוכחה לידיעה על עבירות או להתערבות בחקירות. נקודת המחלוקת לש״ס נשענת על התנגדותה הפרלמנטרית להרחבת ההגנה על קטינים, המתועדת בהמשך.', url: minorsConnectionsSource, source: 'תחקיר שומרים על הקשרים והמימון, פורסם ב־ynet' },
+    { text: 'ב־2012 קידמו את העלאת גיל הנישואים יריב לוין מהליכוד, זהבה גלאון ממרצ, דב חנין מחד״ש ונציגי בל״ד, לצד אורית זוארץ מקדימה. זו פעילות נגד נישואי קטינים בכלל, ולא אכיפה ביבנאל או עמדה בכל טענת פגיעה מינית. קדימה אינה משויכת כאן לרשימה נוכחית.', url: minorsLawInitiativesSource, source: 'יוזמי החקיקה, הכנסת, 6.3.2012' },
+    { text: 'דוד רותם מישראל ביתנו הוביל כיו״ר ועדת החוקה את הכנת החוק, שאושר ב־2013. נקודה לרשימה מבוססת על פעילות זו, ולא על השערה כיצד ליברמן היה מטפל ביבנאל כיום.', url: minorsLawPassageSource, source: 'אישור החוק והכנתו בוועדה, הכנסת, 4.11.2013' },
+    { text: 'ש״ס ויהדות התורה הגישו ערעור נגד החלת דין רציפות על הצעת החוק להעלאת גיל הנישואים. ההתנגדות מקבלת נקודת מחלוקת חלקית בבחירה באכיפה; אין בכך טענה שהמפלגות תמכו באונס או בנישואים בגיל הגן.', url: minorsLawOppositionSource, source: 'הערעור הפרלמנטרי, הכנסת, 26.6.2013' },
     { text: 'חדשות 13 פרסמו עדויות על התפקדות מאורגנת לליכוד, ובהן טענות להבטחת סלי מזון ולרישום ללא ידיעת המתפקדות. מדובר בטענות שפורסמו בתחקיר; לא הוכח כאן שההתפקדות גרמה להימנעות מאכיפה.', url: minorsLikudSource, source: 'תחקיר ההתפקדות, חדשות 13, ‏23.9.2026' },
   ],
 };
 
 export function scoreMinorsProtection(answer) {
   if (!['enforce', 'community-first'].includes(answer)) return [];
+  const component = 'הגנה על קטינות ביבנאל';
   const result = records([
-    { id: 'beyachad', letters: 'רק', position: 1, basis: 'partial-action', reason: 'מירב כהן מיש עתיד כינסה דיוני מעקב, דרשה נתונים ופעלה לטיפול בנישואי הקטינות ביבנאל. זהו רכיב יש עתיד בביחד, ולא עמדה מתועדת של כל רכיבי הרשימה.', source: minorsCommitteeSource, component: 'הגנה על קטינות ביבנאל' },
+    { id: 'beyachad', letters: 'רק', position: 2, basis: 'sustained-action', reason: 'שתי נקודות לפעילות המתמשכת של מירב כהן: דיוני מעקב, דרישת נתונים ופניות לרשויות בנושא יבנאל. השיוך לביחד מבוסס על יש עתיד, ולא על מעשה אישי של בנט.', source: minorsCommitteeSource, component },
+    { id: 'yisrael-beitenu', letters: 'ל', position: 1, basis: 'partial-action', reason: 'דוד רותם מישראל ביתנו הוביל בוועדת החוקה את הכנת חוק גיל הנישואים שאושר ב־2013. זו עדות חקיקתית חלקית, ללא ייחוס טיפול אישי ביבנאל לליברמן.', source: minorsLawPassageSource, component },
+    { id: 'democrats', letters: 'אמת', position: 1, basis: 'partial-action', reason: 'זהבה גלאון ונציגי מרצ קידמו את העלאת גיל הנישואים. השיוך לדמוקרטים הוא דרך מרצ; זו חקיקה כללית, לא פעולה מתועדת ביבנאל.', source: minorsLawInitiativesSource, component },
+    { id: 'joint-list', letters: 'ודם', position: 1, basis: 'partial-action', reason: 'דב חנין מחד״ש ונציגי בל״ד קידמו את העלאת גיל הנישואים. הפעילות משויכת לרכיבים ברשימה המשותפת ונשקלת פעם אחת; אינה מייצגת כל פרט בעמדת הרשימה.', source: minorsLawInitiativesSource, component },
+    { id: 'likud', letters: 'מחל', position: 1, basis: 'partial-action', reason: 'יריב לוין מהליכוד היה מיוזמי העלאת גיל הנישואים. הפעילות החקיקתית מוצגת לצד האחריות המאוחרת לפיקוח על מוסדות החינוך.', source: minorsLawInitiativesSource, component },
   ], answer === 'enforce' ? 1 : -1);
   if (answer === 'enforce') result.push(...records([
-    { id: 'otzma-yehudit', letters: 'ב', position: -1, basis: 'responsibility', reason: 'מינוס נקודה לעוצמה יהודית כהערכת אחריות מיניסטריאלית של בן גביר למדיניות ולפיקוח על המשטרה מול כשל האכיפה המתמשך. חקירות ופעולות נקודתיות ב־2026 אינן פוטרות מאחריות לטיפול שלא עצר את התופעה. זו הערכת אחריות, ולא קביעה שהשר חסם חקירה.', source: minorsReportSource, followupSource: sidewalkResponsibilitySource, followupLabel: 'סמכות השר וגבולותיה', component: 'הגנה על קטינות ביבנאל' },
-    { id: 'likud', letters: 'מחל', position: -1, basis: 'responsibility', reason: 'הערכת אחריות מיניסטריאלית של יואב קיש לפיקוח על מוסדות החינוך, לאחר התרעות בנושא נישואי קטינות והפנייה אליו באוגוסט 2026. הניקוד אינו מבוסס על התפקדות לליכוד ואינו קביעה שהשר הגן על עבריינים.', source: minorsEducationSource, component: 'הגנה על קטינות ביבנאל' },
+    { id: 'shas', letters: 'שס', position: -1, basis: 'partial-action', reason: 'ש״ס הגישה ערעור נגד קידום העלאת גיל הנישואים ב־2013. זו התנגדות פרלמנטרית להגנה רחבה יותר, לא הוכחה לתמיכה בפגיעות מיניות. הקשרים המתועדים להנהגת הקהילה מובאים כרקע, ללא קביעה על חסימת חקירות.', source: minorsLawOppositionSource, followupSource: minorsConnectionsSource, followupLabel: 'תחקיר הקשרים להנהגת הקהילה', component },
+    { id: 'utj', letters: 'ג', position: -1, basis: 'partial-action', reason: 'יהדות התורה ערערה נגד קידום העלאת גיל הנישואים ב־2013. זו עדות חלקית להתנגדות להגבלה חוקית, ולא ראיה לתמיכה בפגיעה מינית בילדים.', source: minorsLawOppositionSource, component },
+    { id: 'otzma-yehudit', letters: 'ב', position: -1, basis: 'responsibility', reason: 'מינוס נקודה לעוצמה יהודית כהערכת אחריות מיניסטריאלית של בן גביר למדיניות ולפיקוח על המשטרה מול כשל האכיפה המתמשך. חקירות ופעולות נקודתיות ב־2026 אינן פוטרות מאחריות לטיפול שלא עצר את התופעה. זו הערכת אחריות, ולא קביעה שהשר חסם חקירה.', source: minorsReportSource, followupSource: sidewalkResponsibilitySource, followupLabel: 'סמכות השר וגבולותיה', component },
+    { id: 'likud', letters: 'מחל', position: -1, basis: 'responsibility', reason: 'הערכת אחריות מיניסטריאלית של יואב קיש לפיקוח על מוסדות החינוך, לאחר התרעות בנושא נישואי קטינות והפנייה אליו באוגוסט 2026. הניקוד אינו מבוסס על התפקדות לליכוד ואינו קביעה שהשר הגן על עבריינים.', source: minorsEducationSource, component },
   ], 1));
   return result;
 }
