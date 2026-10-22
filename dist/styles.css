@@ -238,4 +238,17 @@ p { margin: 0 0 28px; }
 [data-coalition-group="negative"] .coalition-score-heading > bdi { color: #935035; }
 
 .coalition-punchline { font-size: clamp(24px, 3vw, 36px); line-height: 1.5; text-wrap: balance; }
-.coalition-punchline em { font-weight: 800; color: var(--orange); }
+.coalition-question { font-size: clamp(24px, 3vw, 36px); line-height: 1.5; margin-bottom: 12px; }
+.coalition-matrix { width: 100%; min-width: 0; margin: 8px 0 28px; }
+.coalition-matrix figcaption { font-size: 18px; margin-bottom: 10px; }
+.coalition-matrix-scroll { max-width: 100%; overflow-x: auto; padding-bottom: 5px; }
+.coalition-matrix table { border-collapse: separate; border-spacing: 3px; font-size: 13px; font-variant-numeric: tabular-nums; }
+.coalition-matrix th { font-weight: 600; padding: 4px; white-space: nowrap; }
+.coalition-matrix td { min-width: 35px; height: 30px; text-align: center; border-radius: 3px; }
+.coalition-matrix abbr { text-decoration: none; }
+.coalition-matrix .matrix-positive { background: #d4e5d5; color: #174d47; }
+.coalition-matrix .matrix-blocked { background: #f1d5ca; color: #78371e; }
+.coalition-matrix .matrix-unknown { background: #e8e8df; color: #62665e; }
+.matrix-legend, .matrix-key { font-size: 14px; line-height: 1.6; color: var(--muted); margin: 8px 0 0; }
+.matrix-key { display: flex; flex-wrap: wrap; gap: 4px 18px; }
+.coalition-matrix-scroll:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }

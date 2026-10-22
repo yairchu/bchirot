@@ -1,4 +1,4 @@
-import { COALITION_PARTIES, COALITIONS_CHECKED_ON, coalitionRelation, coalitionHistory, scoreCoalitions } from './coalitions.js';
+import { COALITION_PARTIES, COALITIONS_CHECKED_ON, coalitionRelation, coalitionHistory, coalitionWeight, scoreCoalitions } from './coalitions.js';
 import { createQuizAnalytics } from './analytics.js';
 import { CUTSCENE_DURATION, MOBILE_CONFIRM_DELAY, EASTER_EGG_DURATION, NO_TOPICS_DURATION, TOPIC_CHOICES, QUESTIONS, questionRoute, questionnaireQuestions, additionalQuestionCount, afterRobot, progress } from './flow.js';
 import { BALLOT_CHOICES, BLANK_BALLOT, BLANK_BALLOT_SOURCE, FAKE_BALLOT, PARTY_NOTICES } from './parties.js';
@@ -449,6 +449,30 @@ function coalitionPast(from, to) {
   return coalitionHistory(from, to).map(item => `<p class="coalition-past"><strong>שותפות בעבר · ${escape(item.government)}</strong><small>${escape(item.detail)} <a href="${item.source}" target="_blank" rel="noopener noreferrer">מקור · <bdi>${item.date}</bdi></a></small></p>`).join('');
 }
 
+function coalitionMatrixView(scores) {
+  const parties = scores.length ? COALITION_PARTIES.filter(party => scores.some(score => score.letters === party.letters)) : COALITION_PARTIES;
+  const number = value => new Intl.NumberFormat('he', { maximumFractionDigits: 2 }).format(value);
+  const label = party => `<abbr title="${escape(party.name)}" aria-label="${escape(party.name)}">${escape(party.letters)}</abbr>`;
+  return `<figure class="coalition-matrix"><figcaption id="coalition-matrix-title">מטריצת השותפויות${scores.length ? '' : ' · לפני נרמול'}</figcaption>
+    <div class="coalition-matrix-scroll" role="region" aria-labelledby="coalition-matrix-title" tabindex="0"><table>
+      <caption class="sr-only">שורה: המפלגה שנבדקת. עמודה: המפלגה שהציון שלה משפיע עליה.</caption>
+      <thead><tr><td></td>${parties.map(party => `<th scope="col">${label(party)}</th>`).join('')}</tr></thead>
+      <tbody>${parties.map(party => {
+        const links = parties.map(other => coalitionWeight(party.letters, other.letters));
+        const divisor = scores.length ? links.reduce((sum, link) => sum + link.weight, 0) : 1;
+        return `<tr><th scope="row">${label(party)}</th>${links.map((link, index) => {
+          const value = link.weight / divisor;
+          const blocked = !link.weight && link.basis.startsWith('סירוב');
+          const kind = value > 0 ? 'positive' : blocked ? 'blocked' : 'unknown';
+          return `<td class="matrix-${kind}" data-value="${value}" title="${escape(party.name)} ← ${escape(parties[index].name)}: ${escape(link.basis)}"><bdi>${number(value)}</bdi></td>`;
+        }).join('')}</tr>`;
+      }).join('')}</tbody></table></div>
+    <p class="matrix-legend">ירוק: משקל חיובי · אדום: קשר חסום, במשקל 0 · אפור: קשר שלא מופה, במשקל 0.</p>
+    <p class="matrix-legend">${scores.length ? 'כל שורה מסתכמת ל־1 לפני עיגול. מוצגות המפלגות שקיבלו ציון ישיר.' : 'כאן מוצגים משקלי הקשרים; אחרי מענה לשאלות מנרמלים את השורות לפי המפלגות שקיבלו ציון.'}</p>
+    <p class="matrix-key">${parties.map(party => `<span><b>${escape(party.letters)}</b> ${escape(party.name)}</span>`).join('')}</p>
+  </figure>`;
+}
+
 function coalitionScoreView() {
   const scores = state.authority ? [] : scoreCoalitions(currentScoreContext().scores);
   const positive = scores.filter(party => party.points > 0);
@@ -458,8 +482,10 @@ function coalitionScoreView() {
   const rows = parties => parties.map(party => `<li data-coalition-party="${escape(party.letters)}"><div class="coalition-score-heading"><strong>${escape(party.name)}</strong><bdi>${number(party.points)}</bdi></div><details><summary>איך השותפות משפיעות?</summary><p>הציון הישיר: <bdi>${number(party.directPoints)}</bdi>. אחרי שקלול:</p>${party.terms.map(term => `<p>${escape(term.name)}: <bdi>${number(term.points)} × ${term.weight}</bdi> · ${escape(term.basis)}${term.sources.map(source => ` · <a href="${source}" target="_blank" rel="noopener noreferrer">מקור</a>`).join('')}</p>`).join('')}<p>מחלקים בסכום המשקלים: <bdi>${party.terms.reduce((sum, term) => sum + term.weight, 0)}</bdi>.</p></details></li>`).join('');
   const group = (parties, label, kind) => parties.length ? `<section class="coalition-score-group" data-coalition-group="${kind}"><h3>${label}</h3><ol class="coalition-ranking" aria-label="${label}">${rows(parties)}</ol></section>` : '';
   return `<p class="description">כדי להקים ממשלה, מפלגות חוברות לקואליציה. לכן הפתק שלך משפיע גם על השותפות שיצטרפו לממשלה.</p>
-    <p class="coalition-punchline"><em>פשוט.</em> מכפילים את וקטור הציונים שלך במטריצת השותפויות.</p>
+    <p class="coalition-question">אז איך מבינים איזו מפלגה תקדם קואליציה שמתאימה לך?</p>
+    <p class="coalition-punchline">פשוט. מכפילים את וקטור הציונים שלך במטריצת השותפויות.</p>
     <p class="selection-note">כלומר, הציון של כל מפלגה מושפע גם מההתאמה שלך לשותפות האפשריות שלה.</p>
+    ${coalitionMatrixView(scores)}
     ${positive.length ? group(positive, 'התאמה דרך שותפות', 'positive') : `<p class="result-status">${scores.length ? 'גם אחרי שקלול השותפות, לא נמצאה התאמה חיובית.' : 'צריך לענות על שאלות העמדות כדי לחשב התאמה דרך שותפות.'}</p>`}
     ${group(neutral, 'ללא יתרון בניקוד', 'neutral')}
     ${group(negative, 'פער דרך שותפות', 'negative')}

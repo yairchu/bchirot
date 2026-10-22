@@ -1221,6 +1221,14 @@ for (const mouseAvailable of [true, false]) {
     click('coalitions');
     assert.match($('h2').textContent, /ממשלה שמתאימה לך/);
     assert.ok($('.coalition-ranking'));
+    const matrixRows = [...document.querySelectorAll('.coalition-matrix tbody tr')];
+    assert.equal(matrixRows.length, document.querySelectorAll('[data-coalition-party]').length);
+    for (const row of matrixRows) {
+      const cells = [...row.querySelectorAll('[data-value]')];
+      assert.equal(cells.length, matrixRows.length);
+      assert.ok(Math.abs(cells.reduce((sum, cell) => sum + Number(cell.dataset.value), 0) - 1) < 1e-12);
+    }
+    assert.match($('.coalition-matrix .matrix-unknown').textContent, /0/);
     assert.equal($('.coalition-map').open, false);
     assert.ok($('[data-coalition-group="positive"]'));
     assert.ok($('[data-coalition-group="negative"]'));

@@ -34,3 +34,12 @@ A candidate without mapped scored partners retains its direct score; its expande
 ### Why eigenvectors do not enumerate compatible coalitions
 
 A concrete counterexample is A = [[1,1,0],[1,1,1],[0,1,1]]. Parties 1 and 2 accept each other; so do 2 and 3; parties 1 and 3 refuse each other. The vector (1, sqrt(2), 1) is an eigenvector with eigenvalue 1 + sqrt(2). It has positive entries for all three parties despite their incompatibility. Conversely, the compatible pair (1,1,0) is not an eigenvector: A times this vector is (2,2,1). This example is already symmetric, so allowing directed matrices cannot establish a general identification of eigenvectors with feasible coalitions. Spectral patterns can remain useful for identifying broad affinities or clusters; pairwise vetoes require separate constraints.
+
+
+## Visible matrix
+
+A compact table displays the same normalized coefficients used in the score-vector transformation, restricted to parties with direct scores and kept in ballot-catalog order on both axes. Every row sums to one before display rounding. When no scores exist, the table instead labels and shows the unnormalized base weights for all covered parties.
+
+Positive weights are green. A documented veto is displayed as red zero; an unmapped connection is gray zero. These are distinct evidence states with the same zero propagation coefficient. No negative coefficients are invented for visualization: negative result scores still originate in the signed input vector. Headers have full accessible party names plus a visible ballot-letter key; a keyboard-focusable scrolling region contains the wide table on mobile.
+
+A question directly precedes the plain “פשוט.” punchline, which carries no special color or emphasis.
