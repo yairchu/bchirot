@@ -705,16 +705,19 @@ test('service follows the opening dream with the requested option order, a live 
   assert.deepEqual([...document.querySelectorAll('[name="burden-answer"]')].map(input => input.closest('label').textContent), ['גברים לא חרדים', 'נשים', 'חרדים']);
   assert.equal(document.querySelectorAll('input:checked').length, 0);
   assert.equal($('[name="burden-tasks-answer"]'), null);
-  assert.ok($('.burden-meter'));
+  assert.equal($('.burden-meter'), null);
+  assert.match($('.no-army-warning').textContent, /אף אחד לא בתורנות/);
   assert.equal($('.button-label').textContent, 'דלג');
   assert.equal($('[data-action="skip"]'), null);
   choose('[value="serve-other-men"]');
+  assert.equal($('.no-army-warning'), null);
   const narrow = Number($('#burden-gauge').getAttribute('aria-valuenow'));
   assert.equal($('.button-label').textContent, 'ממשיכים');
   choose('[value="serve-women"]');
   assert.ok(Number($('#burden-gauge').getAttribute('aria-valuenow')) < narrow);
   choose('[value="serve-other-men"]', false); choose('[value="serve-women"]', false);
-  assert.ok($('.burden-meter'));
+  assert.equal($('.burden-meter'), null);
+  assert.match($('.no-army-warning').textContent, /אף אחד לא בתורנות/);
   assert.equal($('.button-label').textContent, 'דלג');
   t.mock.timers.tick(10000);
   assert.equal(window.history.state.bchirot.step, 'burden');
@@ -786,7 +789,8 @@ test('return from no-army permits a new service choice and restores the normal r
   click('start'); choose('[value="religion-transport"]'); click('next'); click('next');
   assert.equal($('.step-label').textContent, 'שאלה 3 מתוך 6');
   click('choose-service');
-  assert.ok($('#burden-gauge'));
+  assert.equal($('#burden-gauge'), null);
+  assert.ok($('.no-army-warning'));
   choose('[value="serve-haredim"]');
   assert.equal(window.history.state.bchirot.noArmy, false);
   assert.equal($('.step-label').textContent, 'שאלה 2 מתוך 5');
@@ -805,7 +809,10 @@ test('switching to no-army excludes previously saved mission answers from the re
   assert.equal($('[data-party-id="democrats"] .score').textContent, '+2');
   click('review-questions');
   click('next'); // Dream.
-  choose('[value="serve-haredim"]', false); click('next'); click('no-army-faith');
+  choose('[value="serve-haredim"]', false);
+  assert.equal($('#burden-gauge'), null, 'saved task choices must not show a meter without service');
+  assert.ok($('.no-army-warning'));
+  click('next'); click('no-army-faith');
   assert.deepEqual(window.history.state.bchirot.burdenTasksAnswer, ['limit-outposts']);
   click('next'); click('next');
   assert.equal($('.score-table'), null);
@@ -829,4 +836,23 @@ test('native radio clicks select and clear an answer while the focused action an
   assert.equal($('.button-label').textContent, 'ממשיכים');
   await traverse('forward');
   assert.equal($('.button-label').textContent, 'דלג');
+});
+
+test('browser history restores the warning versus meter without losing service choices', async t => {
+  const { $, click, choose, traverse } = await setup(t, false);
+  click('start'); choose('[value="war-dream"]'); click('next'); click('next');
+  assert.equal($('#burden-gauge'), null);
+  assert.ok($('.no-army-warning'));
+  const button = $('[data-action="next"]');
+  button.focus();
+  choose('[value="serve-other-men"]');
+  const level = $('#burden-gauge').getAttribute('aria-valuenow');
+  assert.equal($('.no-army-warning'), null);
+  assert.equal(document.activeElement, button);
+  await traverse('back');
+  assert.equal($('#burden-gauge'), null);
+  assert.ok($('.no-army-warning'));
+  await traverse('forward');
+  assert.equal($('#burden-gauge').getAttribute('aria-valuenow'), level);
+  assert.equal($('[value="serve-other-men"]').checked, true);
 });

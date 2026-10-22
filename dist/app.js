@@ -158,12 +158,26 @@ function burdenMeterView() {
   </section>`;
 }
 
+function burdenDisplayView() {
+  return `<div id="burden-meter-slot">${serviceAnswer().length ? burdenMeterView() : noArmyWarning()}</div>`;
+}
+
+function noArmyWarning() {
+  return '<p class="no-army-warning" role="status">כרגע אף אחד לא בתורנות. זה משאיר אותנו קצת חשופים.</p>';
+}
+
 function burdenMeterLabel({ value, baseline, answered, total }) {
   const direction = !answered ? 'בחרו עמדה כדי להזיז את המד' : value < baseline ? 'כיוון של הקלה בנטל' : value > baseline ? 'כיוון של הכבדה בנטל' : 'הבחירות מושכות לכיוונים מנוגדים';
   return `${direction}. נבחרו ${answered} מתוך ${total} נושאים.`;
 }
 
 function updateBurdenMeter(previousValue) {
+  const host = app.querySelector('#burden-meter-slot');
+  if (!serviceAnswer().length) {
+    host.innerHTML = noArmyWarning();
+    return;
+  }
+  if (!host.querySelector('.burden-meter')) host.innerHTML = burdenMeterView();
   const level = currentBurdenLevel();
   const meter = app.querySelector('.burden-meter');
   const gauge = app.querySelector('#burden-gauge');
@@ -191,7 +205,7 @@ function burdenView() {
       <div class="service-options">${SERVICE_CHOICES.map(choice => `<label class="choice burden-choice"><input type="checkbox" name="burden-answer" data-burden-group="service" value="${choice.id}" ${selected.includes(choice.id) ? 'checked' : ''}><span class="choice-copy"><strong>${escape(choice.label)}</strong></span></label>`).join('')}</div>
       <p class="selection-note">בתרחיש שלך ישרתו הקבוצות שסומנו, לפי התאמה לתפקיד. המשך בלי סימון מוביל לתרחיש ללא צבא.</p>
     </fieldset>
-    ${burdenMeterView()}<p class="sr-only" id="burden-impact" role="status">${burdenImpact()}</p>
+    ${burdenDisplayView()}<p class="sr-only" id="burden-impact" role="status">${burdenImpact()}</p>
     ${burdenDetails(false)}${questionActions()}` }, { className: 'burden-screen' });
 }
 
@@ -199,7 +213,7 @@ function burdenTasksView() {
   const selected = tasksAnswer();
   return frame({ title: 'אילו משימות הצבא צריך לשאת?', body: `
     ${BURDEN_GROUPS.map(group => `<fieldset class="burden-group"><legend>${escape(group.title)}</legend>${group.note ? `<p class="selection-note">${escape(group.note)}</p>` : ''}<div class="burden-options">${group.options.map(option => `<label class="choice burden-choice"><input type="checkbox" name="burden-tasks-answer" data-burden-group="${group.id}" value="${option.id}" ${selected.includes(option.id) ? 'checked' : ''}><span class="choice-copy"><strong>${escape(option.label)}</strong></span></label>`).join('')}</div></fieldset>`).join('')}
-    ${burdenMeterView()}<p class="sr-only" id="burden-impact" role="status">${burdenImpact()}</p>
+    ${burdenDisplayView()}<p class="sr-only" id="burden-impact" role="status">${burdenImpact()}</p>
     ${burdenDetails(true)}${questionActions()}` }, { className: 'burden-screen' });
 }
 
