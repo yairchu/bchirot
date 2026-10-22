@@ -1,3 +1,4 @@
+import { createQuizAnalytics } from './analytics.js';
 import { CUTSCENE_DURATION, MOBILE_CONFIRM_DELAY, EASTER_EGG_DURATION, NO_TOPICS_DURATION, TOPIC_CHOICES, QUESTIONS, questionRoute, questionnaireQuestions, additionalQuestionCount, afterRobot, progress } from './flow.js';
 import { BALLOT_CHOICES, BLANK_BALLOT, BLANK_BALLOT_SOURCE, FAKE_BALLOT, PARTY_NOTICES } from './parties.js';
 import { BRIDGE_DILEMMA, WEEKEND_DILEMMA, EMERGENCY_DILEMMA, DREAM_QUESTION } from './dilemmas.js';
@@ -6,6 +7,7 @@ import { REPRESENTATION_DILEMMA, ACADEMIA_DILEMMA, WOMEN_SERVICE_DILEMMA, SIDEWA
 import { BASIS_LABELS } from './scoring.js';
 import { scoreCurrentReligion, unscoredCurrentLists, UNMAPPED_HISTORY, MAPPING_CHECKED_ON } from './current-lists.js';
 
+const analytics = createQuizAnalytics(window);
 const app = document.querySelector('#app');
 const main = document.querySelector('#main');
 const mouseAvailable = matchMedia('(hover: hover) and (pointer: fine)').matches;
@@ -42,6 +44,7 @@ function back() {
 
 function restart(step = 'topics') {
   clearTimers();
+  analytics.reset();
   Object.assign(state, { step, topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null, emergencyAnswer: null, dreamAnswer: null, draftAnswer: null, representationAnswer: null, academiaAnswer: null, womenServiceAnswer: null, sidewalkAnswer: null, burdenAnswer: null, burdenTasksAnswer: null, noArmy: false, noArmyAnswer: null, threatAnswer: null });
   saveHistory();
   render();
@@ -432,6 +435,7 @@ function independentView() {
 function render() {
   const views = { welcome: welcomeView, topics: topicsView, 'no-topics': noTopicsView, dream: dreamView, threat: threatView, draft: draftView, representation: representationView, academia: academiaView, sidewalk: sidewalkView, 'women-service': womenServiceView, burden: burdenView, 'burden-tasks': burdenTasksView, 'no-army': noArmyView, bridge: bridgeView, weekend: weekendView, emergency: emergencyView, 'bridge-result': bridgeResultView, party: partyView, 'fake-ballot': fakeBallotView, robot: robotView, 'robot-thanks': robotThanksView, sure: sureView, loading: loadingView, result: resultView, independent: independentView };
   app.innerHTML = views[state.step]();
+  analytics.view(state.step);
   if (state.step === 'no-topics') timers.push(setTimeout(() => go(currentQuestions()[0], true), NO_TOPICS_DURATION));
   if (state.step === 'fake-ballot') {
     timers.push(setTimeout(() => {
@@ -529,7 +533,10 @@ app.addEventListener('click', event => {
         state.noArmy = !hasAnswer('burden');
         state.noArmyAnswer = null;
       }
-      if (!hasAnswer(state.step)) state[QUESTIONS[state.step].answerKey] = null;
+      if (!hasAnswer(state.step)) {
+        analytics.skip(state.step);
+        state[QUESTIONS[state.step].answerKey] = null;
+      }
       advanceQuestion();
     }
   } else if (action === 'robot-no' || action === 'robot-yes') {

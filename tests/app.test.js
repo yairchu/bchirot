@@ -1118,3 +1118,25 @@ for (const mouseAvailable of [true, false]) {
     assert.equal(window.history.state.bchirot.sidewalkAnswer, null);
   });
 }
+
+test('quiz analytics observes progress and skips without sending answers or duplicating browser history views', async t => {
+  const { $, click, choose, traverse } = await setup(t);
+  const events = [];
+  window.plausible = (...args) => events.push(args);
+  click('start'); choose('[value="modesty-partnership"]'); click('next');
+  choose('[name="representation-answer"][value="men-only"]');
+  await traverse('back'); await traverse('forward');
+  click('next'); click('next'); click('next'); click('next');
+  assert.equal(window.history.state.bchirot.step, 'bridge-result');
+  assert.deepEqual(events, [
+    ['Quiz Started'], ['Question Viewed: representation'], ['Question Viewed: academia'],
+    ['Question Skipped: academia'], ['Question Viewed: women-service'],
+    ['Question Skipped: women-service'], ['Question Viewed: sidewalk'],
+    ['Question Skipped: sidewalk'], ['Quiz Completed'],
+  ]);
+  await traverse('back'); await traverse('forward');
+  assert.equal(events.filter(([event]) => event === 'Quiz Completed').length, 1);
+  click('restart');
+  assert.equal(events.filter(([event]) => event === 'Quiz Started').length, 2);
+  assert.equal($('h2').textContent, 'מה הכי חשוב לך?');
+});
