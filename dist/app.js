@@ -458,13 +458,14 @@ function coalitionScoreView() {
   const rows = parties => parties.map(party => `<li data-coalition-party="${escape(party.letters)}"><div class="coalition-score-heading"><strong>${escape(party.name)}</strong><bdi>${number(party.points)}</bdi></div><details><summary>איך השותפות משפיעות?</summary><p>הציון הישיר: <bdi>${number(party.directPoints)}</bdi>. אחרי שקלול:</p>${party.terms.map(term => `<p>${escape(term.name)}: <bdi>${number(term.points)} × ${term.weight}</bdi> · ${escape(term.basis)}${term.sources.map(source => ` · <a href="${source}" target="_blank" rel="noopener noreferrer">מקור</a>`).join('')}</p>`).join('')}<p>מחלקים בסכום המשקלים: <bdi>${party.terms.reduce((sum, term) => sum + term.weight, 0)}</bdi>.</p></details></li>`).join('');
   const group = (parties, label, kind) => parties.length ? `<section class="coalition-score-group" data-coalition-group="${kind}"><h3>${label}</h3><ol class="coalition-ranking" aria-label="${label}">${rows(parties)}</ol></section>` : '';
   return `<p class="description">כדי להקים ממשלה, מפלגות חוברות לקואליציה. לכן הפתק שלך משפיע גם על השותפות שיצטרפו לממשלה.</p>
-    <p class="selection-note">הציונים כאן משקללים גם את ההתאמה שלך לשותפות האפשריות של כל מפלגה.</p>
+    <p class="coalition-punchline"><em>פשוט.</em> מכפילים את וקטור הציונים שלך במטריצת השותפויות.</p>
+    <p class="selection-note">כלומר, הציון של כל מפלגה מושפע גם מההתאמה שלך לשותפות האפשריות שלה.</p>
     ${positive.length ? group(positive, 'התאמה דרך שותפות', 'positive') : `<p class="result-status">${scores.length ? 'גם אחרי שקלול השותפות, לא נמצאה התאמה חיובית.' : 'צריך לענות על שאלות העמדות כדי לחשב התאמה דרך שותפות.'}</p>`}
     ${group(neutral, 'ללא יתרון בניקוד', 'neutral')}
     ${group(negative, 'פער דרך שותפות', 'negative')}
     <p class="selection-note">הערכה ראשונית לפי הקשרים שמופו; בלי מנדטים או הערכת סיכוי להקמת ממשלה.</p>
     ${scores.length ? '' : '<button class="primary" data-action="independent">בואו נבדוק לפי העמדות שלי</button>'}
-    <details class="score-method"><summary>מה ההתמרה עושה?</summary><p>ממוצע משוקלל: הציון של המפלגה עצמה במשקל 1, שותפות בתיאום בגוש במשקל ½ ושותפות בקואליציה בעבר במשקל ¼. סירוב מתועד מצד כלשהו חוסם קשר בהרכב ההנהגה הנוכחי. קשר או ציון שלא מופו אינם נכנסים לממוצע.</p><p>אלה משקלי המודל, לא הסתברויות. החישוב הוא כפל מטריצה מנורמלת בווקטור הציונים; גם ציונים שליליים עוברים בהתמרה. מוצגות רק מפלגות שיש להן ציון ישיר, ואין כאן בדיקה שכל השותפות יכולות לשבת יחד או מי תעמוד בראשות הממשלה.</p></details>`;
+    <details class="score-method"><summary>רגע, איזו מטריצה?</summary><p>מטריצת משקלים פשוטה שמבוססת על תיאום בגושים ועל שותפות בקואליציות בעבר. היא נותנת משקל גם למפלגה עצמה וגם לשותפות שמופו לה.</p><p>ממוצע משוקלל: הציון של המפלגה עצמה במשקל 1, שותפות בתיאום בגוש במשקל ½ ושותפות בקואליציה בעבר במשקל ¼. סירוב מתועד מצד כלשהו חוסם קשר בהרכב ההנהגה הנוכחי. קשר או ציון שלא מופו אינם נכנסים לממוצע.</p><p>אלה משקלי המודל, לא הסתברויות. החישוב הוא כפל מטריצה מנורמלת בווקטור הציונים; גם ציונים שליליים עוברים בהתמרה. מוצגות רק מפלגות שיש להן ציון ישיר, ואין כאן בדיקה שכל השותפות יכולות לשבת יחד או מי תעמוד בראשות הממשלה.</p></details>`;
 }
 
 function coalitionsView() {

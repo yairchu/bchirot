@@ -236,3 +236,6 @@ p { margin: 0 0 28px; }
 .coalition-score-group { width: 100%; }
 .coalition-score-group > h3 { font-size: 23px; margin: 16px 0 0; }
 [data-coalition-group="negative"] .coalition-score-heading > bdi { color: #935035; }
+
+.coalition-punchline { font-size: clamp(24px, 3vw, 36px); line-height: 1.5; text-wrap: balance; }
+.coalition-punchline em { font-weight: 800; color: var(--orange); }
