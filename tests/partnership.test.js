@@ -110,18 +110,24 @@ test('withdrawn ballots do not receive either partnership contribution', t => {
   assert.equal(scoreWomenService('serve').some(item => item.id === 'democrats'), false);
 });
 
-test('sidewalk scoring follows the documented petition without inferring other party positions', () => {
+test('sidewalk scores distinguish petition evidence from one-sided ministerial responsibility', () => {
   for (const [answer, points] of [['free-choice', 1], ['separate', -1]]) {
     const evidence = scoreSidewalk(answer);
-    assert.equal(evidence.length, 1);
+    assert.equal(evidence.length, answer === 'free-choice' ? 2 : 1);
     assert.equal(evidence[0].id, 'democrats');
     assert.equal(evidence[0].points, points);
     assert.equal(evidence[0].basis, 'partial-action');
     const scores = scoreCurrentReligion(null, null, null, null, { sidewalkAnswer: answer });
-    assert.equal(scores.length, 1);
-    assert.equal(scores[0].points, points);
-    assert.equal(scores[0].contributions.length, 1);
-    assert.equal(scores[0].contributions[0].evidence[0].source, evidence[0].source);
+    assert.equal(scores.length, answer === 'free-choice' ? 2 : 1);
+    const democrats = scores.find(item => item.id === 'democrats');
+    assert.equal(democrats.points, points);
+    assert.equal(democrats.contributions.length, 1);
+    assert.equal(democrats.contributions[0].evidence[0].source, evidence[0].source);
+    const responsibility = scores.find(item => item.id === 'otzma-yehudit');
+    if (answer === 'free-choice') {
+      assert.equal(responsibility.points, -1);
+      assert.equal(responsibility.contributions[0].evidence[0].basis, 'responsibility');
+    } else assert.equal(responsibility, undefined);
   }
   for (const answer of [null, undefined, '', 'unknown']) assert.deepEqual(scoreSidewalk(answer), []);
 });

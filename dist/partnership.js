@@ -103,6 +103,8 @@ export function scoreAcademia(answer) {
 }
 
 const sidewalkPetitionSource = 'https://www.inn.co.il/news/701567';
+const sidewalkResponsibilitySource = 'https://www.idi.org.il/articles/63046';
+const sidewalkMinisterSource = 'https://www.gov.il/BlobFolder/reports/planjob040526/he/planjob2026.pdf';
 const sidewalkUpdateSource = 'https://www.israelhayom.co.il/news/local/article/21290484';
 
 export const SIDEWALK_DILEMMA = {
@@ -115,14 +117,20 @@ export const SIDEWALK_DILEMMA = {
   timeline: [
     { text: 'בבית שמש תועד ב־2011 שלט שהורה לנשים לחצות לצד השני של הכביש מטעמי צניעות.', url: 'https://www.mako.co.il/news-israel/local/Article-ed2d260c8816431017.htm', source: 'השלט בבית שמש, N12, ‏2011' },
     { text: 'ביולי 2026 דווח על שילוט להפרדה במדרכות בבני ברק. העירייה מסרה שהקריאה היא יוזמת רבני העיר, שהיא סייעה בהרחבת התשתיות בגלל הצפיפות, ושאין מדובר בהנחיה או באכיפה עירונית. השאלה עוסקת בהכוונה במדרכה ציבורית, ולא בהפרדה בתוך אולם פרטי.', url: sidewalkPetitionSource, source: 'המקרה ותגובת העירייה, ערוץ 7, 15.7.2026' },
-    { text: 'יאיא פינק ומיכל רוזין הגישו עתירה נגד ההפרדה. הפעולה מעניקה לדמוקרטים נקודת זיקה אחת נגד ההכוונה המגדרית, על בסיס פעילות אישים במפלגה ולא הצבעה של סיעה שלמה. אין כרגע ניקוד לרשימות אחרות בשאלה הזו.', url: sidewalkPetitionSource, source: 'העתירה נגד ההפרדה וגבולות הניקוד' },
+    { text: 'יאיא פינק ומיכל רוזין הגישו עתירה נגד ההפרדה. הפעולה מעניקה לדמוקרטים נקודת זיקה אחת נגד ההכוונה המגדרית, על בסיס פעילות אישים במפלגה ולא הצבעה של סיעה שלמה. לעוצמה יהודית יש ניקוד נפרד על בסיס הערכת אחריות מיניסטריאלית לאכיפה.', url: sidewalkPetitionSource, source: 'העתירה נגד ההפרדה וגבולות הניקוד' },
+    { text: 'בן גביר הוא השר לביטחון לאומי הממונה על המשטרה. הניקוד לעוצמה יהודית משקף הערכה עריכתית של אחריותו לטיפול בתופעה בתקופתו, ולא עדות שהורה לאפשר הפרדה או מנע אכיפה.', url: sidewalkMinisterSource, source: 'זהות השר, תוכנית העבודה של המשרד ל־2026' },
+    { text: 'לשר סמכות לקבוע מדיניות כללית וסדרי עדיפויות ולפקח על המשטרה, לצד עצמאותה בהחלטות מבצעיות ובחקירות מסוימות. בבחירה נגד ההפרדה מופחתת נקודה לעוצמה יהודית כהערכת אחריות; בבחירה בעד הפרדה אין לה נקודת זכות.', url: sidewalkResponsibilitySource, source: 'סמכות השר וגבולות האחריות, המכון הישראלי לדמוקרטיה' },
     { text: 'לאחר הסרת שלטים ביולי, דווח ב־27 באוגוסט על הצבתם מחדש. לכן אין כאן טענה שההפרדה בוטלה סופית או שבית המשפט כבר הכריע בעתירה.', url: sidewalkUpdateSource, source: 'השלטים הוצבו מחדש, ישראל היום, 27.8.2026' },
   ],
 };
 
 export function scoreSidewalk(answer) {
   if (!['separate', 'free-choice'].includes(answer)) return [];
-  return records([
+  const result = records([
     { id: 'democrats', letters: 'אמת', position: 1, basis: 'partial-action', reason: 'יאיא פינק ומיכל רוזין הגישו ביולי 2026 עתירה נגד ההפרדה במדרכות בני ברק. זו פעילות של אישים במפלגה, ולא הצבעה של הסיעה כולה.', source: sidewalkPetitionSource, component: 'הפרדה במדרכות' },
   ], answer === 'free-choice' ? 1 : -1);
+  if (answer === 'free-choice') result.push(...records([
+    { id: 'otzma-yehudit', letters: 'ב', position: -1, basis: 'responsibility', reason: 'מינוס נקודה לעוצמה יהודית משקף הערכה עריכתית של אחריות השר לביטחון לאומי בן גביר לטיפול בהפרדה במדרכות בתקופתו. זו אחריות למדיניות כללית ולפיקוח על המשטרה; לא נמצאה כאן ראיה שהורה להתיר הפרדה או מנע אכיפה. אין ניקוד זכות לחלופה התומכת בהפרדה.', source: sidewalkResponsibilitySource, followupSource: sidewalkUpdateSource, followupLabel: 'התופעה בתקופת כהונת השר', component: 'הפרדה במדרכות' },
+  ], 1));
+  return result;
 }

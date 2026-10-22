@@ -1097,13 +1097,16 @@ for (const mouseAvailable of [true, false]) {
     assert.equal($('.button-label').textContent, 'לתוצאות');
     click('next');
     assert.equal($('[data-party-id="democrats"] .score').textContent, '+1');
-    assert.equal(document.querySelectorAll('[data-party-id]').length, 1);
+    assert.equal(document.querySelectorAll('[data-party-id]').length, 2);
+    assert.equal($('[data-party-id="otzma-yehudit"] .score').textContent, '−1');
+    assert.match($('[data-party-id="otzma-yehudit"] details').textContent, /הערכת אחריות מיניסטריאלית/);
     assert.match($('.description').textContent, /1 מתוך 4/);
     await traverse('back');
     assert.equal($('[name="sidewalk-answer"]:checked').value, 'free-choice');
     choose('[name="sidewalk-answer"][value="separate"]'); click('next');
     assert.equal($('h2').textContent, 'עדיין לא נמצאה התאמה חיובית');
     assert.equal($('[data-party-id="democrats"] .score').textContent, '−1');
+    assert.equal($('[data-party-id="otzma-yehudit"]'), null);
     await traverse('back');
     $('[name="sidewalk-answer"]:checked').click();
     assert.equal($('.button-label').textContent, 'דלג');
