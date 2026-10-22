@@ -137,15 +137,21 @@ test('minors protection distinguishes sustained work, partial legislation and mi
   const combined = scoreCurrentReligion(null, null, null, null, { childProtectionAnswer: 'enforce' });
   assert.deepEqual(Object.fromEntries(combined.map(item => [item.id, item.points])), {
     beyachad: 2, 'yisrael-beitenu': 1, democrats: 1, 'joint-list': 1,
-    likud: 0, shas: -1, utj: -1, 'otzma-yehudit': -1,
+    likud: 0, shas: -2, utj: -2, 'otzma-yehudit': -1,
   });
   assert.equal(records.find(item => item.id === 'beyachad').basis, 'sustained-action');
   const likud = combined.find(item => item.id === 'likud');
   assert.equal(likud.contributions.length, 1);
   assert.equal(likud.contributions[0].evidence.length, 2);
   assert.deepEqual(likud.contributions[0].evidence.map(item => item.basis), ['partial-action', 'responsibility']);
-  for (const id of ['yisrael-beitenu', 'democrats', 'joint-list', 'shas', 'utj']) {
+  for (const id of ['yisrael-beitenu', 'democrats', 'joint-list']) {
     assert.equal(records.find(item => item.id === id).basis, 'partial-action');
+  }
+  for (const id of ['shas', 'utj']) {
+    const opposition = records.find(item => item.id === id);
+    assert.equal(opposition.basis, 'legislative-opposition');
+    assert.equal(opposition.points, -2);
+    assert.ok(Math.abs(opposition.points) > Math.abs(records.find(item => item.id === 'otzma-yehudit').points));
   }
   const alternative = scoreMinorsProtection('community-first');
   assert.deepEqual(Object.fromEntries(alternative.map(item => [item.id, item.points])), {

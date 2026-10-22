@@ -1174,8 +1174,8 @@ for (const mouseAvailable of [true, false]) {
     assert.equal($('[data-party-id="likud"] .score').textContent, '0');
     assert.equal($('[data-party-id="likud"]').closest('[data-score-group]').dataset.scoreGroup, 'neutral');
     for (const id of ['yisrael-beitenu', 'democrats', 'joint-list']) assert.equal($(`[data-party-id="${id}"] .score`).textContent, '+1');
-    assert.equal($('[data-party-id="shas"] .score').textContent, '−1');
-    assert.equal($('[data-party-id="utj"] .score').textContent, '−1');
+    assert.equal($('[data-party-id="shas"] .score').textContent, '−2');
+    assert.equal($('[data-party-id="utj"] .score').textContent, '−2');
     assert.match($('.description').textContent, /1 מתוך 5/);
     await traverse('back');
     assert.equal($('[name="child-protection-answer"]:checked').value, 'enforce');
