@@ -96,3 +96,16 @@ test('Likud and Raam negotiations are sourced and weaker than actual coalition m
   const scores = scoreCoalitions([{ letters: 'מחל', points: 1 }, { letters: 'עם', points: -8 }]);
   assert.equal(scores.find(party => party.letters === 'מחל').points, 0);
 });
+
+
+test('Smotrich refusal blocks both covered Arab lists without erasing Likud–Raam talks', () => {
+  for (const letters of ['עם', 'ודם']) {
+    assert.equal(coalitionRelation('ט', letters).kind, 'veto');
+    assert.equal(coalitionRelation(letters, 'ט'), null);
+    assert.equal(coalitionWeight('ט', letters).weight, 0);
+    assert.equal(coalitionWeight(letters, 'ט').weight, 0);
+    assert.match(coalitionWeight('ט', letters).basis, /^סירוב/);
+  }
+  assert.equal(coalitionWeight('מחל', 'עם').weight, 0.125);
+  assert.equal(coalitionWeight('מחל', 'ט').weight, 0.25);
+});

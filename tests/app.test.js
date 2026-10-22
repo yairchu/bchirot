@@ -1254,4 +1254,12 @@ test('authority results also link to the coalition map', async t => {
   click('coalitions');
   assert.ok($('.coalition-matrix'));
   assert.equal($('.coalitions-screen details'), null);
+  const columns = [...document.querySelectorAll('.coalition-matrix thead th')].map(cell => cell.textContent);
+  const smotrichRow = [...document.querySelectorAll('.coalition-matrix tbody tr')].find(row => row.querySelector('th').textContent === 'ט');
+  for (const letters of ['עם', 'ודם']) {
+    const cell = smotrichRow.querySelectorAll('td')[columns.indexOf(letters)];
+    assert.equal(cell.dataset.value, '0');
+    assert.ok(cell.classList.contains('matrix-blocked'));
+    assert.match(cell.title, /סירוב/);
+  }
 });

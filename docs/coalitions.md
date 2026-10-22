@@ -54,3 +54,14 @@ The initial map omitted explicit refusals and treated the 2021 coalition as a po
 - [ynet interview with Abbas, 2022-09-02](https://www.ynet.co.il/news/article/rkez4110ks): Abbas described negotiations in 2021, coalition-agreement offers and meetings with Netanyahu. He also described Likud's account that the talks concerned direct prime-ministerial elections, disputing that this was their sole purpose. Record this as attributed historical negotiation evidence, not co-membership or proof of present willingness. The model assigns a base weight of 1/8, below the 1/4 used for actual historical co-membership. This is an editorial weight, not an estimated probability. A sourced current refusal would take precedence over it.
 
 These changes correct the specified connections and a directly related Bennett omission. They do not establish exhaustive coverage of every current commitment, veto or condition. No score is propagated indirectly through a third party to bypass a veto; the model remains one matrix multiplication rather than a feasibility check for an entire coalition.
+
+
+## Smotrich refusal (2026-10-22 correction)
+
+The Religious Zionism–Zehut ballot (ט), under Smotrich's leadership, now has directed veto records toward Raam and the Joint List. Both directions of each resulting matrix link are blocked (red exact zeros), while the underlying declarations remain attributed to Smotrich alone. This does not alter the Likud–Raam negotiation record or the Likud–Religious Zionism historical link.
+
+- [Arutz 7, 2026-02-12, reporting his Knesset Channel interview](https://www.inn.co.il/news/689844): Smotrich took credit for preventing a government with Abbas, including standing against others on the right. The publication timestamp is February 12; the page header's date is not the article publication date.
+- [Walla, 2021-04-02](https://elections.walla.co.il/item/3427058): his refusal explicitly covered reliance on Raam through active support or abstention, not just cabinet membership.
+- [Walla, 2022-10-23](https://elections.walla.co.il/item/3536505): reported recordings in which Smotrich described blocking Netanyahu's attempt to cooperate with Raam.
+
+The direct evidence names Raam. Applying the same veto to the Joint List is an explicit modeling interpretation of his principled rejection of Arab-party coalition partnership, as requested in this iteration; it is not presented as a separate quotation naming today's Joint List. These leader-based records do not assert an independently verified statement by Zehut.
