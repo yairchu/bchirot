@@ -1,3 +1,4 @@
+import { COALITION_PARTIES, COALITIONS_CHECKED_ON, GOVERNMENT_EXPLAINER, coalitionRelation, coalitionHistory } from './coalitions.js';
 import { createQuizAnalytics } from './analytics.js';
 import { CUTSCENE_DURATION, MOBILE_CONFIRM_DELAY, EASTER_EGG_DURATION, NO_TOPICS_DURATION, TOPIC_CHOICES, QUESTIONS, questionRoute, questionnaireQuestions, additionalQuestionCount, afterRobot, progress } from './flow.js';
 import { BALLOT_CHOICES, BLANK_BALLOT, BLANK_BALLOT_SOURCE, FAKE_BALLOT, PARTY_NOTICES } from './parties.js';
@@ -11,7 +12,7 @@ const analytics = createQuizAnalytics(window);
 const app = document.querySelector('#app');
 const main = document.querySelector('#main');
 const mouseAvailable = matchMedia('(hover: hover) and (pointer: fine)').matches;
-const state = { step: 'welcome', topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null, emergencyAnswer: null, dreamAnswer: null, draftAnswer: null, representationAnswer: null, academiaAnswer: null, womenServiceAnswer: null, sidewalkAnswer: null, childProtectionAnswer: null, burdenAnswer: null, burdenTasksAnswer: null, noArmy: false, noArmyAnswer: null, threatAnswer: null };
+const state = { step: 'welcome', coalitionParty: 'מחל', topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null, emergencyAnswer: null, dreamAnswer: null, draftAnswer: null, representationAnswer: null, academiaAnswer: null, womenServiceAnswer: null, sidewalkAnswer: null, childProtectionAnswer: null, burdenAnswer: null, burdenTasksAnswer: null, noArmy: false, noArmyAnswer: null, threatAnswer: null };
 let timers = [];
 const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 
@@ -45,7 +46,7 @@ function back() {
 function restart(step = 'topics') {
   clearTimers();
   analytics.reset();
-  Object.assign(state, { step, topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null, emergencyAnswer: null, dreamAnswer: null, draftAnswer: null, representationAnswer: null, academiaAnswer: null, womenServiceAnswer: null, sidewalkAnswer: null, childProtectionAnswer: null, burdenAnswer: null, burdenTasksAnswer: null, noArmy: false, noArmyAnswer: null, threatAnswer: null });
+  Object.assign(state, { step, coalitionParty: 'מחל', topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null, emergencyAnswer: null, dreamAnswer: null, draftAnswer: null, representationAnswer: null, academiaAnswer: null, womenServiceAnswer: null, sidewalkAnswer: null, childProtectionAnswer: null, burdenAnswer: null, burdenTasksAnswer: null, noArmy: false, noArmyAnswer: null, threatAnswer: null });
   saveHistory();
   render();
   focusQuestion();
@@ -335,7 +336,7 @@ function resultView() {
     <div class="result-ballot">${blank ? '<span class="sr-only">פתק לבן ריק</span>' : `<strong>${escape(letters)}</strong><span>${escape(name)}</span>`}</div>
     <p class="reason"><strong>השיקול שהוביל לתוצאה</strong>זו ההמלצה של האדם שבחרת לסמוך עליו.</p>
     ${blank ? blankBallotNote() : ''}
-    <button class="primary" data-action="independent">בואו נבדוק גם לפי העמדות שלי <span aria-hidden="true">↻</span></button><button class="text-button" data-action="restart">להתחיל מחדש</button>` }, { stage: 'התוצאה שלך' });
+    <button class="primary" data-action="independent">בואו נבדוק גם לפי העמדות שלי <span aria-hidden="true">↻</span></button>${coalitionsButton()}<button class="text-button" data-action="restart">להתחיל מחדש</button>` }, { stage: 'התוצאה שלך' });
 }
 
 function withdrawnResultView(name, notice) {
@@ -415,8 +416,8 @@ function bridgeResultView() {
   const partnersAnswered = burdenSelections.some(id => ['seek-partners', 'self-reliance'].includes(id));
   const noArmyNote = questions.includes('no-army') ? '<p class="selection-note">מסלול ״בלי צבא״ הוא קטע הומוריסטי ואינו מקבל ניקוד מפלגתי.</p>' : '';
   const burdenNote = serviceAnswered || partnersAnswered ? `<p class="selection-note burden-score-note">${serviceAnswered ? 'ניקוד השירות מתייחס לגיוס חרדים ולשירות נשים, לפי הקבוצות שסימנת; בכל רכיב משקל נקודה אחת. ' : ''}${partnersAnswered ? 'בחירת השותפים משפיעה על מד ההמחשה בלבד, ללא ניקוד מפלגתי.' : ''}</p>` : '';
-  if (!answered) return frame({ title: 'עוד אין לנו מספיק חומר.', body: `${dream}${womenServiceSummary}${noArmyNote}<p class="description">לא נענו שאלות עם ניקוד מפלגתי. נשאיר את האפשרויות פתוחות.</p><button class="primary" data-action="review-questions">בחזרה לשאלות <span aria-hidden="true">↻</span></button><button class="text-button" data-action="restart">להתחיל מחדש</button>` });
-  if (!scores.length) return frame({ title: 'לתשובה הזו אין ניקוד מפלגתי.', body: `${dream}${womenServiceSummary}${noArmyNote}${burdenNote}<p class="description">${partnersAnswered ? 'התשובות שלך נשמרו. לבחירת השותפים אין כרגע ניקוד מפלגתי.' : 'התשובה שלך נשמרה. לחלופה של ריכוז הדרישות בידי מערכת הביטחון לא ייחסנו עמדה של מפלגה או נקודות זכות.'} אפשר לחזור לשאלות האחרות כדי לקבל השוואה.</p><button class="primary" data-action="review-questions">בחזרה לשאלות</button><button class="text-button" data-action="restart">להתחיל מחדש</button>` });
+  if (!answered) return frame({ title: 'עוד אין לנו מספיק חומר.', body: `${dream}${womenServiceSummary}${noArmyNote}<p class="description">לא נענו שאלות עם ניקוד מפלגתי. נשאיר את האפשרויות פתוחות.</p><button class="primary" data-action="review-questions">בחזרה לשאלות <span aria-hidden="true">↻</span></button>${coalitionsButton()}<button class="text-button" data-action="restart">להתחיל מחדש</button>` });
+  if (!scores.length) return frame({ title: 'לתשובה הזו אין ניקוד מפלגתי.', body: `${dream}${womenServiceSummary}${noArmyNote}${burdenNote}<p class="description">${partnersAnswered ? 'התשובות שלך נשמרו. לבחירת השותפים אין כרגע ניקוד מפלגתי.' : 'התשובה שלך נשמרה. לחלופה של ריכוז הדרישות בידי מערכת הביטחון לא ייחסנו עמדה של מפלגה או נקודות זכות.'} אפשר לחזור לשאלות האחרות כדי לקבל השוואה.</p><button class="primary" data-action="review-questions">בחזרה לשאלות</button>${coalitionsButton()}<button class="text-button" data-action="restart">להתחיל מחדש</button>` });
   const hasPositive = scores.some(party => party.points > 0);
   return frame({ title: hasPositive ? 'איפה התשובה שלך פוגשת את המפלגות?' : 'עדיין לא נמצאה התאמה חיובית', body: `
     <p class="description">ענית על ${answered} מתוך ${scoredQuestions.length} דילמות. דילוגים לא נכללים בניקוד.${state.emergencyAnswer === 'central-request' ? ' לחלופה שבחרת בשאלת 7 באוקטובר אין ניקוד מפלגתי.' : ''}</p>
@@ -426,7 +427,37 @@ function bridgeResultView() {
     ${scoreGroupsView(scores, answered)}
     <details class="score-method"><summary>איך הניקוד עובד?</summary><p>בשאלת הגשר: משקל 2 לעמדה מתועדת ומשקל 1 להתנהלות מעורבת או להערכת אחריות קואליציונית. בנעים בסופ״ש: ציר של איסור, מצב קיים והרחבה. עמדה באותה קטגוריה מקבלת 2, קטגוריה סמוכה 0, והקצה ההפוך מינוס 2. בשאלת בוקר 7 באוקטובר, העדפת יוזמה מיידית מורידה נקודה אחת לליכוד כהערכת אחריות מיניסטריאלית להיערכות משרד התחבורה. בחלופה השנייה אין ניקוד; אין נקודת זכות לאף מפלגה או הערכה איך שר אחר היה פועל. בשאלות הייצוג וההפרדה בצניעות ושותפות: משקל 1 לפי הייצוג בפועל או מעשה החקיקה שנבדק. בהפרדה באקדמיה הכיסוי הראשוני כולל רק את עוצמה יהודית והדמוקרטים; היעדר מקור לרשימה אחרת אינו עמדה נייטרלית. בשאלת המדרכות: נקודה אחת לדמוקרטים בכיוון ההתנגדות להכוונה מגדרית, לפי העתירה של פינק ורוזין, ומינוס נקודה לעוצמה יהודית כהערכת אחריות מיניסטריאלית של בן גביר לאכיפה. אין בכך קביעה שהורה לאפשר הפרדה; לחלופה התומכת בהפרדה אין נקודת זכות לעוצמה יהודית. בשאלת ההגנה על קטינות: שתי נקודות לביחד על פעילות מירב כהן. נקודה לישראל ביתנו, לדמוקרטים ולמשותפת על פעילות חקיקתית נגד נישואי קטינים; מינוס שתי נקודות לש״ס וליהדות התורה על התנגדות פעילה לקידום החוק, במשקל גבוה מהערכת אחריות מיניסטריאלית. לליכוד נקודת זכות לחקיקה ומינוס נקודה על אחריות יואב קיש לפיקוח, ובסך הכול אפס עם התנהלות מעורבת. לעוצמה יהודית מינוס נקודה על אחריות בן גביר לאכיפה. בחלופת מנהגי הקהילה מתהפכים רק ציוני הפעילות לקידום ההגנה; אין נקודות זכות על כשלי אכיפה או על התנגדות להגבלת נישואי קטינים. המקורות החקיקתיים הם עדות חלקית, ולא קביעה על עמדה בכל פרט בפרשה. שאלת החלום מוסיפה נקודת זיקה אחת לרשימות שעבורן נמצא חזון תואם. אין הפחתת נקודות לחלום האחר, ואין קביעה שרשימות שלא נבדקו אינן שותפות לאותו חלום. בשתי שאלות הנטל, גיוס חרדים, שירות נשים והמאחזים תורמים כל אחד נקודה לחיוב או לשלילה, עד שלוש נקודות יחד. בבחירת קבוצות השירות, הניקוד מתייחס להכללת חרדים ונשים ברשימת הקבוצות שסומנו או לאי־הכללתם. לשירות נשים משקל חלש לפי פעילות מיכאלי לקידום השילוב וניסיון סמוטריץ׳ להסיר הגנה עליו; המקורות אינם מכסים כל פרט בחובת הגיוס. בחירה בתרחיש ללא צבא אינה מקבלת ניקוד מפלגתי. שירות גברים לא חרדים ובחירת שותפים משפיעים על המד בלבד. לשאלת שירות הנשים הנפרדת אותו ניקוד כמו לרכיב המקביל בשאלת הנטל, בלי לספור אותו פעמיים. שאלת חמאס והרשות נשענת על מעשים: משקל 2 להחלטת ממשלת נתניהו להכניס כסף קטארי, ומשקל 1 לקיזוז כספי הרשות בידי סמוטריץ׳ ולפרישת ליברמן במחאה על המדיניות. שתי האחרונות משקפות רכיב אחד של הדילמה; אין ניקוד על הבטחה או הבהרה. השיוך לכיוון המדיניות הוא פרשנות למעשים המתועדים. הקטגוריות והמשקלים הם פרשנות במודל.</p><p>אפס הוא ציון של מרחק בין החלופות במודל, לא קביעה שהמפלגה נייטרלית. דילוג או היעדר מקור אינם מוסיפים ציון כלל. ההשוואה בנעים בסופ״ש עוסקת בכיוון המדיניות, ולא בהסכמה נפרדת לכל פרט כמו תעריף או סוג רכבת. באיחוד רשימות מחושב ממוצע הציונים ההיסטוריים לכל שאלה, כדי לא להכפיל את משקלה. המקורות והשיוך ההיסטורי מפורטים תחת ״למה?״.</p></details>
     <details class="score-method"><summary>מי עדיין לא נכלל בהשוואה?</summary><p>לרשימות הבאות אין כרגע ניקוד לתשובות שלך; היעדר מידע אינו עמדה נייטרלית:</p><p>${unscoredCurrentLists(scores).map(([letters, name]) => `${escape(name)} (${escape(letters)})`).join(' · ')}</p>${UNMAPPED_HISTORY.map(item => `<p>${escape(item.reason)}</p>`).join('')}<p>המיפוי נבדק ב־${MAPPING_CHECKED_ON}. רשימות שהודיעו על פרישה אינן נכללות בתוצאות.</p></details>
-    <div class="actions"><button class="primary" data-action="review-questions">לעבור שוב על השאלות <span aria-hidden="true">↻</span></button><button class="back" data-action="back">חזרה</button></div><button class="text-button" data-action="restart">להתחיל מחדש</button>` }, { stage: 'התוצאות שלך' });
+    <div class="actions"><button class="primary" data-action="review-questions">לעבור שוב על השאלות <span aria-hidden="true">↻</span></button><button class="back" data-action="back">חזרה</button></div>${coalitionsButton()}<button class="text-button" data-action="restart">להתחיל מחדש</button>` }, { stage: 'התוצאות שלך' });
+}
+
+function coalitionsButton() {
+  return '<button class="primary coalition-next" data-action="coalitions">ועם מי הפתק הזה יושב? <span aria-hidden="true">←</span></button>';
+}
+
+function coalitionEvidence(from, to) {
+  const relation = coalitionRelation(from, to);
+  if (!relation) return '<span class="coalition-unknown">טרם מופה</span>';
+  return `<span class="coalition-${relation.kind}">${escape(relation.label)}</span><small>${escape(relation.detail)} <a href="${relation.source}" target="_blank" rel="noopener noreferrer">מקור · <bdi>${relation.date}</bdi></a></small>`;
+}
+
+function coalitionPast(from, to) {
+  return coalitionHistory(from, to).map(item => `<p class="coalition-past"><strong>שותפות בעבר · ${escape(item.government)}</strong><small>${escape(item.detail)} <a href="${item.source}" target="_blank" rel="noopener noreferrer">מקור · <bdi>${item.date}</bdi></a></small></p>`).join('');
+}
+
+function coalitionsView() {
+  const selected = COALITION_PARTIES.find(party => party.letters === state.coalitionParty) || COALITION_PARTIES[0];
+  return frame({ title: 'בחרת מפלגה. קיבלת גם שותפים?', body: `
+    <p class="description">הצבעה למפלגה היא גם הצבעה עקיפה לממשלות שהיא עשויה לקחת בהן חלק. קרבה בעמדות לא מבטיחה ישיבה משותפת.</p>
+    <label class="coalition-picker">בודקים את <select id="coalition-party" name="coalition-party">${COALITION_PARTIES.map(party => `<option value="${escape(party.letters)}" ${party.letters === selected.letters ? 'selected' : ''}>${escape(party.name)}</option>`).join('')}</select></label>
+    <p class="selection-note">מיפוי ראשוני וחלקי, נבדק ב־${COALITIONS_CHECKED_ON}. ״טרם מופה״ אינו הסכמה, סירוב או נייטרליות. הרשימות הקטנות אינן מכוסות עדיין.</p>
+    <div class="coalition-connections">${COALITION_PARTIES.filter(party => party !== selected).map(party => `<section class="coalition-connection"><h3>${escape(party.name)}</h3><p><strong>מה מופה בכיוון של ${escape(selected.name)} אליה?</strong>${coalitionEvidence(selected.letters, party.letters)}</p><p><strong>ומה הכיוון ההפוך?</strong>${coalitionEvidence(party.letters, selected.letters)}</p>${coalitionPast(selected.letters, party.letters)}</section>`).join('')}</div>
+    <details class="dilemma-details"><summary>וקטורים עצמיים? קודם שיסכימו לשבת יחד.</summary><div class="dilemma-background">
+      <p>המפה כיוונית: א׳ יכולה להסכים לשבת עם ב׳, גם אם ב׳ מסרבת. במטריצה ממשית, מטריצה הרמיטית היא סימטרית — וכאן אין סיבה להניח סימטריה.</p>
+      <p>וקטורים עצמיים יכולים לעזור לחשוף דפוסים במטריצה מספרית מתאימה. הם אינם הקואליציות האפשריות. במפה הזו מוצגות עדויות מילוליות; אין בה חישוב של וקטורים עצמיים.</p>
+      <p>כדי לבחון ממשלה צריך גם מנדטים, הסכמות על ההרכב והמדיניות, ולעיתים תמיכה מבחוץ. אפילו הסכמה של כל זוג מפלגות אינה מבטיחה הסכמה על ההרכב כולו. 61 מנדטים נותנים רוב קואליציוני; תיתכן גם ממשלת מיעוט. <a href="${GOVERNMENT_EXPLAINER}" target="_blank" rel="noopener noreferrer">איך זה עובד?</a></p>
+      <p>ישיבה משותפת בעבר, תיאום בגוש והצהרת בחירות הם סוגים שונים של מידע. התיאום וההצהרות שמופו כאן אינם תחזית ואינם משנים את ניקוד העמדות שלך.</p>
+    </div></details>
+    <div class="actions"><button class="back" data-action="back">חזרה לתוצאות</button><button class="text-button" data-action="restart">להתחיל מחדש</button></div>` }, { stage: 'אחרי הפתק: הגושים', className: 'coalitions-screen' });
 }
 
 function independentView() {
@@ -437,7 +468,7 @@ function independentView() {
 }
 
 function render() {
-  const views = { welcome: welcomeView, topics: topicsView, 'no-topics': noTopicsView, dream: dreamView, threat: threatView, draft: draftView, representation: representationView, academia: academiaView, sidewalk: sidewalkView, 'child-protection': minorsProtectionView, 'women-service': womenServiceView, burden: burdenView, 'burden-tasks': burdenTasksView, 'no-army': noArmyView, bridge: bridgeView, weekend: weekendView, emergency: emergencyView, 'bridge-result': bridgeResultView, party: partyView, 'fake-ballot': fakeBallotView, robot: robotView, 'robot-thanks': robotThanksView, sure: sureView, loading: loadingView, result: resultView, independent: independentView };
+  const views = { coalitions: coalitionsView, welcome: welcomeView, topics: topicsView, 'no-topics': noTopicsView, dream: dreamView, threat: threatView, draft: draftView, representation: representationView, academia: academiaView, sidewalk: sidewalkView, 'child-protection': minorsProtectionView, 'women-service': womenServiceView, burden: burdenView, 'burden-tasks': burdenTasksView, 'no-army': noArmyView, bridge: bridgeView, weekend: weekendView, emergency: emergencyView, 'bridge-result': bridgeResultView, party: partyView, 'fake-ballot': fakeBallotView, robot: robotView, 'robot-thanks': robotThanksView, sure: sureView, loading: loadingView, result: resultView, independent: independentView };
   app.innerHTML = views[state.step]();
   analytics.view(state.step);
   if (state.step === 'no-topics') timers.push(setTimeout(() => go(currentQuestions()[0], true), NO_TOPICS_DURATION));
@@ -467,6 +498,14 @@ function render() {
 }
 
 app.addEventListener('change', event => {
+  if (state.step === 'coalitions' && event.target.name === 'coalition-party') {
+    if (!COALITION_PARTIES.some(party => party.letters === event.target.value)) return;
+    state.coalitionParty = event.target.value;
+    saveHistory(true);
+    render();
+    app.querySelector('#coalition-party').focus();
+    return;
+  }
   const input = event.target;
   if (input.name === 'authority') {
     state.authority = input.checked;
@@ -513,6 +552,10 @@ app.addEventListener('click', event => {
   }
   const action = event.target.closest('[data-action]')?.dataset.action;
   if (action === 'back') back();
+  else if (action === 'coalitions' && ['result', 'bridge-result'].includes(state.step)) {
+    if (state.step === 'result' && COALITION_PARTIES.some(party => party.letters === state.party?.[0])) state.coalitionParty = state.party[0];
+    go('coalitions');
+  }
   else if (action === 'start') go('topics');
   else if (action === 'restart') restart();
   else if (action === 'independent') restart();

@@ -1208,3 +1208,41 @@ test('a restored minors protection answer is excluded if its category is no long
   assert.equal(window.history.state.bchirot.step, 'bridge-result');
   assert.equal($('.score-table'), null);
 });
+
+for (const mouseAvailable of [true, false]) {
+  test(`coalition map preserves results and browser navigation (${mouseAvailable ? 'desktop' : 'mobile'})`, async t => {
+    const { $, click, choose, traverse } = await setup(t, mouseAvailable);
+    click('start'); choose('[value="modesty-partnership"]');
+    click('next');
+    choose('[name="representation-answer"][value="men-only"]');
+    for (let i = 0; i < 5; i++) click('next');
+    const answer = window.history.state.bchirot.representationAnswer;
+    const results = $('#app').textContent;
+    click('coalitions');
+    assert.match($('h2').textContent, /בחרת מפלגה/);
+    assert.match($('.coalition-connections').textContent, /לא עם נתניהו/);
+    assert.match($('.coalition-connections').textContent, /שותפות בעבר/);
+    // Selects dispatch change on the select itself, unlike radio answers.
+    const select = $('#coalition-party');
+    select.value = 'רק';
+    select.dispatchEvent(new window.Event('change', { bubbles: true }));
+    assert.equal(window.history.state.bchirot.coalitionParty, 'רק');
+    assert.ok(document.querySelectorAll('.coalition-connection a').length);
+    await traverse('back');
+    assert.equal($('#app').textContent, results);
+    assert.equal(window.history.state.bchirot.representationAnswer, answer);
+    await traverse('forward');
+    assert.equal($('#coalition-party').value, 'רק');
+    assert.equal($('.step-label').textContent, 'אחרי הפתק: הגושים');
+  });
+}
+
+test('authority results also link to the coalition map', async t => {
+  const { $, click, robotQuestion } = await setup(t);
+  robotQuestion(); click('robot-yes');
+  t.mock.timers.tick(CUTSCENE_DURATION);
+  t.mock.timers.tick(2500);
+  assert.equal(window.history.state.bchirot.step, 'result');
+  click('coalitions');
+  assert.ok($('#coalition-party'));
+});

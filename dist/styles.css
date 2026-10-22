@@ -211,3 +211,18 @@ p { margin: 0 0 28px; }
 
 #burden-meter-slot { width: 100%; }
 .no-army-warning { font-size: clamp(22px, 2.5vw, 30px); color: #935035; line-height: 1.6; margin: 20px 0; }
+
+.coalition-next { margin-top: 24px; }
+.coalitions-screen { justify-content: flex-start; }
+.coalition-picker { font-size: 24px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 18px; }
+.coalition-picker select { font: inherit; color: inherit; background: transparent; border: 1px solid var(--border); padding: 10px; max-width: 100%; border-radius: 8px; }
+.coalition-picker select:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+.coalition-connections { width: 100%; }
+.coalition-connection { padding: 20px 0; border-bottom: 1px solid var(--border); }
+.coalition-connection h3 { font-size: 28px; margin: 0 0 14px; }
+.coalition-connection p { font-size: 20px; margin: 0 0 16px; line-height: 1.6; }
+.coalition-connection strong, .coalition-connection small { display: block; }
+.coalition-connection small { font-size: 16px; color: var(--muted); max-width: 65ch; }
+.coalition-veto { color: #935035; font-weight: 700; }
+.coalition-coordination { font-weight: 700; }
+.coalition-unknown { color: var(--muted); }
