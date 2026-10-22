@@ -6,7 +6,7 @@ export const NO_TOPICS_DURATION = 1800;
 export const TOPIC_CHOICES = [
   { id: 'religion-transport', label: 'דת ותחבורה' },
   { id: 'war-dream', label: 'מלחמה וחלום' },
-  { id: 'todo-2', label: 'צניעות ושותפות' },
+  { id: 'modesty-partnership', label: 'צניעות ושותפות' },
 ];
 
 // Ordering, shared membership, answer keys and progress use one question catalog.
@@ -20,6 +20,8 @@ export const QUESTIONS = {
   weekend: { topics: ['religion-transport'], answerKey: 'weekendAnswer', inputName: 'weekend-answer', scored: true },
   emergency: { topics: ['religion-transport', 'war-dream'], answerKey: 'emergencyAnswer', inputName: 'emergency-answer', scored: true },
   draft: { topics: ['religion-transport'], answerKey: 'draftAnswer', inputName: 'draft-answer', condition: 'no-security', scored: true },
+  representation: { topics: ['modesty-partnership'], answerKey: 'representationAnswer', inputName: 'representation-answer', scored: true },
+  academia: { topics: ['modesty-partnership'], answerKey: 'academiaAnswer', inputName: 'academia-answer', scored: true },
 };
 
 export function questionRoute(topics, { noArmy = false } = {}) {

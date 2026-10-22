@@ -27,11 +27,11 @@ test('the shared question appears once for either topic or both and routes have 
   assert.deepEqual(questionRoute(['religion-transport', 'war-dream']), both);
   assert.deepEqual(questionRoute([]), []);
   assert.deepEqual(questionnaireQuestions([]), ['bridge', 'weekend', 'emergency', 'draft']);
-  assert.deepEqual(questionnaireQuestions(['todo-2']), []);
+  assert.deepEqual(questionnaireQuestions(['modesty-partnership']), ['representation', 'academia']);
 });
 
 test('compact draft replaces the roster only without security and never adds a no-army branch', () => {
-  for (const topics of [[], ['religion-transport'], ['religion-transport', 'todo-2']]) {
+  for (const topics of [[], ['religion-transport']]) {
     for (const noArmy of [false, true]) {
       assert.deepEqual(questionnaireQuestions(topics, { noArmy }), ['bridge', 'weekend', 'emergency', 'draft']);
     }
@@ -50,9 +50,25 @@ test('incremental costs reflect overlap and selected contributions sum to the ac
   assert.equal(additionalQuestionCount('war-dream'), 5);
   assert.equal(additionalQuestionCount('war-dream', ['religion-transport']), 3);
   assert.equal(additionalQuestionCount('religion-transport', ['war-dream']), 2);
-  for (const selected of [['religion-transport', 'war-dream'], ['war-dream', 'religion-transport'], ['todo-2', 'war-dream']]) {
+  for (const selected of [['religion-transport', 'war-dream'], ['war-dream', 'religion-transport'], ['modesty-partnership', 'war-dream']]) {
     assert.equal(selected.reduce((sum, topic) => sum + additionalQuestionCount(topic, selected), 0), questionRoute(selected).length);
   }
+});
+
+test('partnership adds two questions to every route without disturbing the existing order', () => {
+  const added = ['representation', 'academia'];
+  assert.equal(additionalQuestionCount('modesty-partnership'), 2);
+  for (const topics of [[], ['religion-transport'], ['war-dream'], ['religion-transport', 'war-dream']]) {
+    for (const noArmy of [false, true]) {
+      const before = questionRoute(topics, { noArmy });
+      assert.deepEqual(questionRoute([...topics, 'modesty-partnership'], { noArmy }), [...before, ...added]);
+      assert.deepEqual(questionRoute(['modesty-partnership', ...topics], { noArmy }), [...before, ...added]);
+      assert.equal(additionalQuestionCount('modesty-partnership', topics), 2);
+    }
+  }
+  const topics = ['modesty-partnership'];
+  assert.deepEqual(progress('representation', { topics }), { current: 2, total: 3 });
+  assert.deepEqual(progress('academia', { topics }), { current: 3, total: 3 });
 });
 
 test('progress follows the selected union and updates the topic screen total', () => {
