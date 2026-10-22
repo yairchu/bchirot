@@ -57,7 +57,7 @@ function frame(content, { stage = '', heading = 'h2', className = '' } = {}) {
 }
 
 function actions(nextLabel = 'ממשיכים', disabled = false) {
-  return `<div class="actions"><button class="primary" data-action="next" ${disabled ? 'disabled' : ''}>${nextLabel}<span aria-hidden="true">←</span></button><button class="back" data-action="back">חזרה</button></div>`;
+  return `<div class="actions"><button class="primary" data-action="next" ${disabled ? 'disabled' : ''}><span class="button-label">${nextLabel}</span><span aria-hidden="true">←</span></button><button class="back" data-action="back">חזרה</button></div>`;
 }
 
 function welcomeView() {
@@ -160,14 +160,14 @@ function burdenView() {
   const groups = BURDEN_GROUPS.slice(0, expanded ? BURDEN_GROUPS.length : 1);
   return frame({
     title: expanded ? 'הנטל ומי נושא בו' : 'גיוס חרדים — מי נושא בנטל?',
-    body: `<p class="description">${expanded ? 'את הנטל אפשר לשנות גם דרך מי שמשרת וגם דרך המשימות שמטילים על צה״ל. מה נכון בעיניך?' : 'האם חובת השירות צריכה לחול גם על צעירים חרדים, או לשמר פטור לתלמידי ישיבות?'}</p>
-      ${expanded ? '<p class="selection-note">אפשר לבחור עמדה בכל נושא, או רק באחד מהם. נושא שלא סומן אינו מקבל ניקוד.</p>' : ''}
+    body: `<p class="description">${expanded ? 'מי משרת, ואילו משימות נותנים לצה״ל?' : 'האם חובת השירות צריכה לחול גם על צעירים חרדים, או לשמר פטור לתלמידי ישיבות?'}</p>
+      ${expanded ? '<p class="selection-note">אפשר לענות על חלק מהנושאים.</p>' : ''}
       ${burdenMeterView()}
-      ${groups.map(group => `<fieldset class="burden-group"><legend>${escape(group.title)}</legend>${group.note ? `<p class="selection-note">${escape(group.note)}</p>` : ''}${group.options.map(option => `<label class="choice dilemma-option"><input type="${expanded ? 'checkbox' : 'radio'}" name="burden-answer" data-burden-group="${group.id}" value="${option.id}" ${selected.includes(option.id) ? 'checked' : ''}><span class="choice-copy"><strong>${escape(option.label)}</strong><small>${escape(option.detail)}</small></span></label>`).join('')}</fieldset>`).join('')}
-      <p class="selection-note" id="burden-impact" role="status">${burdenImpact()}</p>
+      ${groups.map(group => `<fieldset class="burden-group"><legend>${escape(group.title)}</legend>${group.note ? `<p class="selection-note">${escape(group.note)}</p>` : ''}<div class="burden-options">${group.options.map(option => `<label class="choice dilemma-option"><input type="${expanded ? 'checkbox' : 'radio'}" name="burden-answer" data-burden-group="${group.id}" value="${option.id}" ${selected.includes(option.id) ? 'checked' : ''}><span class="choice-copy"><strong>${escape(option.label)}</strong><small>${escape(option.detail)}</small></span></label>`).join('')}</div></fieldset>`).join('')}
+      <p class="sr-only" id="burden-impact" role="status">${burdenImpact()}</p>
       <details class="dilemma-details"><summary>לפרטים נוספים</summary><div class="dilemma-background">${BURDEN_TIMELINE.slice(0, expanded ? BURDEN_TIMELINE.length : 1).map(item => `<p>${escape(item.text)} <a href="${item.url}" target="_blank" rel="noopener noreferrer">${escape(item.source)}</a>.</p>`).join('')}</div></details>
-      ${actions('ממשיכים', !selected.length)}<button class="text-button" data-action="skip">לדלג על השאלה</button>`,
-  });
+      ${actions(selected.length ? 'ממשיכים' : 'דלג')}`,
+  }, { className: 'burden-screen' });
 }
 
 function threatView() {
@@ -394,7 +394,9 @@ app.addEventListener('change', event => {
       app.querySelector('#burden-impact').textContent = burdenImpact();
       updateBurdenMeter(previousValue);
     } else state[question.answerKey] = input.value;
-    document.querySelector('[data-action="next"]').disabled = !hasAnswer(state.step);
+    const next = document.querySelector('[data-action="next"]');
+    next.disabled = state.step !== 'burden' && !hasAnswer(state.step);
+    if (state.step === 'burden') next.querySelector('.button-label').textContent = hasAnswer(state.step) ? 'ממשיכים' : 'דלג';
   }
   if (['authority', 'topic'].includes(input.name)) updateTopicSummary();
   if (['authority', 'topic', 'party', ...Object.values(QUESTIONS).map(question => question.inputName)].includes(input.name)) saveHistory();
@@ -421,7 +423,10 @@ app.addEventListener('click', event => {
   else if (action === 'next') {
     if (state.step === 'topics') go(state.authority ? 'party' : !state.topics.length ? 'no-topics' : currentQuestions()[0] || 'independent');
     else if (state.step === 'party' && state.party) go(state.party[0] === FAKE_BALLOT[0] ? 'fake-ballot' : 'robot');
-    else if (currentQuestions().includes(state.step) && hasAnswer(state.step)) advanceQuestion();
+    else if (currentQuestions().includes(state.step) && (hasAnswer(state.step) || state.step === 'burden')) {
+      if (!hasAnswer(state.step)) state[QUESTIONS[state.step].answerKey] = null;
+      advanceQuestion();
+    }
   } else if (action === 'robot-no' || action === 'robot-yes') {
     state.robot = action === 'robot-no' ? 'no' : 'yes';
     go(afterRobot(state.robot));

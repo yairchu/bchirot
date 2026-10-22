@@ -184,3 +184,33 @@ p { margin: 0 0 28px; }
 @media (prefers-reduced-motion: reduce) {
   .burden-meter *, .burden-meter { animation: none !important; transition: none !important; }
 }
+
+.burden-screen { justify-content: flex-start; }
+.burden-screen h2 { font-size: clamp(38px, 5vw, 60px); margin-bottom: 16px; }
+.burden-screen .step-label { margin-bottom: 14px; }
+.burden-screen > .description { font-size: clamp(20px, 2.2vw, 26px); margin-bottom: 4px; }
+.burden-screen > .selection-note { margin-top: 4px; }
+.burden-screen .burden-group { margin-top: 16px; }
+.burden-screen .burden-group legend { font-size: 22px; margin-bottom: 8px; }
+.burden-screen .burden-group > .selection-note { margin: 0 0 8px; font-size: 16px; min-height: 0; }
+.burden-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.burden-options .choice { padding: 14px 16px; gap: 12px; align-items: flex-start; }
+.burden-options .choice + .choice { margin-top: 0; }
+.burden-options .choice-copy { gap: 4px; }
+.burden-options .choice-copy strong { font-size: clamp(19px, 2.3vw, 26px); line-height: 1.35; }
+.burden-options .choice-copy small { font-size: clamp(16px, 1.7vw, 19px); line-height: 1.45; }
+.burden-options input { width: 26px; height: 26px; }
+.burden-options input:checked::after { font: 21px/22px Arial, sans-serif; }
+.burden-screen .burden-meter { margin-top: 16px; padding: 14px 18px; }
+.burden-screen .burden-meter h3 { font-size: 23px; margin-bottom: 10px; }
+.burden-screen .burden-meter .selection-note { font-size: 16px; margin-top: 6px; min-height: 0; }
+.burden-screen .burden-scenes { flex-direction: row; flex-wrap: wrap; gap: 0 14px; margin-top: 6px; font-size: 18px; }
+.burden-screen .burden-disclaimer { font-size: 14px; margin-top: 4px; }
+.burden-screen .dilemma-details { margin-top: 12px; font-size: 18px; }
+@media (max-width: 520px) {
+  .burden-options { gap: 8px; }
+  .burden-options .choice { padding: 12px 10px; gap: 8px; }
+  .burden-options input { width: 22px; height: 22px; }
+  .burden-options input:checked::after { font: 18px/18px Arial, sans-serif; }
+}
+@media (max-width: 360px) { .burden-options { grid-template-columns: 1fr; } }
