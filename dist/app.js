@@ -187,7 +187,8 @@ function updateBurdenMeter(previousValue) {
   app.querySelector('#burden-meter-status').textContent = burdenMeterLabel(level);
   meter.classList.remove('is-entering', 'is-rising', 'is-falling');
   const scenes = meter.querySelector('.burden-scenes');
-  const lines = level.value < previousValue ? ['יותר כתפיים, או פחות משימות.', 'קצת יותר מקום לעסק ולבית.'] : ['עוד סבב. העסק מחכה.', 'עוד סבב. בבית מסתדרים בלעדיך.'];
+  const relief = state.step === 'burden' ? 'יותר כתפיים לחלוק בנטל.' : 'פחות משימות על אותן כתפיים.';
+  const lines = level.value < previousValue ? [relief, 'קצת יותר מקום לעסק ולבית.'] : ['עוד סבב. העסק מחכה.', 'עוד סבב. בבית מסתדרים בלעדיך.'];
   [...scenes.children].forEach((scene, index) => { scene.textContent = lines[index]; });
   // Restart the brief scene on each actual increase/decrease, including fast changes.
   void meter.offsetWidth;
