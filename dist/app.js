@@ -5,7 +5,7 @@ import { BALLOT_CHOICES, BLANK_BALLOT, BLANK_BALLOT_SOURCE, FAKE_BALLOT, PARTY_N
 import { BRIDGE_DILEMMA, WEEKEND_DILEMMA, EMERGENCY_DILEMMA, DREAM_QUESTION } from './dilemmas.js';
 import { SERVICE_CHOICES, BURDEN_GROUPS, BURDEN_TIMELINE, DRAFT_DILEMMA, THREAT_DILEMMA, normalizeBurdenAnswer, burdenLevel } from './policy-questions.js';
 import { REPRESENTATION_DILEMMA, ACADEMIA_DILEMMA, WOMEN_SERVICE_DILEMMA, SIDEWALK_DILEMMA, MINORS_PROTECTION_DILEMMA } from './partnership.js';
-import { BASIS_LABELS } from './scoring.js';
+import { basisLabel } from './scoring.js';
 import { scoreCurrentReligion, unscoredCurrentLists, MAPPING_CHECKED_ON } from './current-lists.js';
 
 const analytics = createQuizAnalytics(window);
@@ -376,7 +376,7 @@ function dilemmaView(dilemma, answerKey, inputName, backgroundTitle) {
 }
 
 function currentContributionView(item) {
-  return `<p><b>${escape(item.question)}: ${item.points > 0 ? '+' : ''}${item.points} נקודות.</b></p>${item.evidence.map(evidence => `<p><strong>${escape(evidence.name)} ${evidence.basis === 'vision' ? 'בחזון המוצהר' : ['action', 'partial-action', 'sustained-action', 'legislative-opposition'].includes(evidence.basis) ? 'במעשה המתועד' : ['policy', 'interpretation'].includes(evidence.basis) ? 'בעמדה המתועדת' : 'במקור ההיסטורי'}:</strong> ${evidence.component ? `${escape(evidence.component)} (${evidence.points > 0 ? '+' : ''}${evidence.points}): ` : ''}${escape(evidence.reason)}</p><p>${BASIS_LABELS[evidence.basis]} · <a href="${evidence.source}" target="_blank" rel="noopener noreferrer">מקור</a>${evidence.followupSource ? ` · <a href="${evidence.followupSource}" target="_blank" rel="noopener noreferrer">${escape(evidence.followupLabel || 'חידוש העבודות')}</a>` : ''}</p>`).join('')}`;
+  return `<p><b>${escape(item.question)}: ${item.points > 0 ? '+' : ''}${item.points} נקודות.</b></p>${item.evidence.map(evidence => `<p><strong>${escape(evidence.name)} ${evidence.basis === 'vision' ? 'בחזון המוצהר' : evidence.basis === 'composition' ? 'ברשימה שהוגשה' : ['action', 'partial-action', 'sustained-action', 'legislative-opposition'].includes(evidence.basis) ? 'במעשה המתועד' : ['policy', 'interpretation'].includes(evidence.basis) ? 'בעמדה המתועדת' : 'במקור ההיסטורי'}:</strong> ${evidence.component ? `${escape(evidence.component)} (${evidence.points > 0 ? '+' : ''}${evidence.points}): ` : ''}${escape(evidence.reason)}</p><p>${basisLabel(evidence)} · <a href="${evidence.source}" target="_blank" rel="noopener noreferrer">מקור</a>${evidence.followupSource ? ` · <a href="${evidence.followupSource}" target="_blank" rel="noopener noreferrer">${escape(evidence.followupLabel || 'חידוש העבודות')}</a>` : ''}</p>`).join('')}`;
 }
 
 function dreamSummary() {

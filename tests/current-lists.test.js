@@ -19,12 +19,12 @@ test('ministerial responsibility is preserved once through current-list mapping'
   }
   const likud = after.find(party => party.id === 'likud');
   assert.equal(likud.points, -2);
-  assert.equal(likud.contributions.length, 2);
+  assert.equal(likud.contributions.length, 3); // Bridge, the status-quo weekend record, and October 7.
 });
 
 test('mapped results use unique present ballots and exclude old standalone parties', () => {
   const results = scoreCurrentReligion('shabbat', 'expand');
-  assert.equal(results.length, 6);
+  assert.equal(results.length, 7);
   assert.equal(new Set(results.map(party => party.letters)).size, results.length);
   for (const party of results) {
     assert.ok(PARTIES.some(([letters, name]) => letters === party.letters && name === party.name));
@@ -48,6 +48,15 @@ test('mergers get one contribution per question without doubling scores or cover
   assert.equal(likud.contributions[0].evidence.length, 2);
 });
 
+test('Religious Zionism carries the Tkuma component of the Jewish Home coalition responsibility', () => {
+  const religiousZionism = scoreCurrentReligion('shabbat', null).find(party => party.letters === 'ט');
+  assert.equal(religiousZionism.id, 'religious-zionism');
+  assert.equal(religiousZionism.points, -1);
+  assert.deepEqual(religiousZionism.contributions[0].evidence.map(item => item.id), ['tkuma']);
+  const merged = scoreCurrentReligion('shabbat', null, null, null, { threatAnswer: 'hamas' }).filter(party => party.letters === 'ט');
+  assert.equal(merged.length, 1); // Historical and current evidence share one row.
+});
+
 test('disagreement between predecessors is averaged within a question', () => {
   const historical = ['labor', 'meretz'].map((id, index) => ({
     id, contributions: [{ question: 'test', id, points: index ? -2 : 2 }],
@@ -69,11 +78,11 @@ test('Beyachad averages Lapid evidence with Bennett-led Jewish Home coalition re
 test('skips, missing evidence, and withdrawal notices do not become zero-point recommendations', () => {
   assert.deepEqual(scoreCurrentReligion(null, null), []);
   const weekend = scoreCurrentReligion(null, 'keep');
-  assert.equal(weekend.length, 4);
-  assert.ok(weekend.every(party => party.points === 0 && party.contributions.length === 1));
+  assert.equal(weekend.length, 5);
+  assert.ok(weekend.every(party => party.points === (party.id === 'likud' ? 2 : 0) && party.contributions.length === 1));
   const unscored = unscoredCurrentLists(weekend);
   assert.ok(unscored.some(([letters]) => letters === 'דרך'));
-  assert.ok(unscored.some(([letters]) => letters === 'מחל'));
+  assert.ok(unscored.some(([letters]) => letters === 'ט'));
   assert.equal(unscored.some(([letters]) => ['כן', 'אמת', 'blank', 'קקה'].includes(letters)), false);
   const notice = PARTY_NOTICES['שס'];
   PARTY_NOTICES['שס'] = { kind: 'withdrawn' };
@@ -90,6 +99,6 @@ test('mapping preserves source data and keeps partial coverage below complete co
   const before = structuredClone(historical);
   const results = mapHistoricalScores(historical);
   assert.deepEqual(historical, before);
-  assert.ok(results.slice(0, 4).every(party => party.contributions.length === 2));
-  assert.ok(results.slice(4).every(party => party.contributions.length === 1));
+  assert.ok(results.slice(0, 5).every(party => party.contributions.length === 2));
+  assert.ok(results.slice(5).every(party => party.contributions.length === 1));
 });

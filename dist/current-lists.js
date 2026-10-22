@@ -14,6 +14,7 @@ export const CURRENT_LIST_MAPPINGS = [
   { id: 'likud', letters: 'מחל', historical: ['likud', 'kulanu'], note: 'כולנו התאחדה עם הליכוד. המקורות של שתי המפלגות משוקללים פעם אחת לכל שאלה.', source: `${idi}kulanu/` },
   { id: 'democrats', letters: 'אמת', historical: ['labor', 'meretz'], note: 'הדמוקרטים הם איחוד העבודה ומרצ. המקורות של שתיהן משוקללים פעם אחת לכל שאלה.', source: `${idi}democrats/` },
   { id: 'beyachad', letters: 'רק', historical: ['yesh-atid', 'jewish-home'], note: 'ביחד כוללת את יש עתיד ואת בנט 2026. עדויות היסטוריות של יש עתיד ושל הבית היהודי בראשות בנט משוקללות פעם אחת לכל שאלה.', source: `${idi}beyachad/` },
+  { id: 'religious-zionism', letters: 'ט', historical: ['tkuma'], note: 'הציונות הדתית היא המשך של האיחוד הלאומי–תקומה, שסמוטריץ׳ נבחר לעמוד בראשו בינואר 2019. העדות ההיסטורית מתייחסת לרכיב זה בלבד, ולא לזהות.', source: 'https://en.wikipedia.org/wiki/Bezalel_Smotrich' },
   { id: 'yisrael-beitenu', letters: 'ל', historical: ['yisrael-beitenu'], note: 'המשך של ישראל ביתנו.', source: 'https://bechirot.fyi/lists/26' },
 ];
 

@@ -214,15 +214,15 @@ for (const mouseAvailable of [true, false]) {
   test(`standalone women service restores, reverses and clears its party scores on ${mouseAvailable ? 'desktop' : 'mobile'}`, async t => {
     const { $, click, choose, traverse, skipSidewalk, skipMinors } = await setup(t, mouseAvailable);
     click('start'); choose('[value="modesty-partnership"]'); click('next'); click('next'); click('next');
-    assert.equal($('h2').textContent, 'האם נשים צריכות לשרת בצה״ל?');
+    assert.equal($('h2').textContent, 'האם נשים צריכות להיות שותפות שוות בשירות?');
     assert.equal($('.step-label').textContent, 'שאלה 4 מתוך 6');
     assert.equal($('.button-label').textContent, 'דלג');
-    assert.equal(document.querySelectorAll('[name="women-service-answer"]').length, 2);
+    assert.equal(document.querySelectorAll('[name="women-service-answer"]').length, 3);
     assert.equal($('.burden-meter'), null);
     assert.ok([...document.querySelectorAll('.dilemma-background a')].some(link => link.hostname === 'www.idf.il'));
     $('[name="women-service-answer"][value="serve"]').click();
     assert.equal($('.button-label').textContent, 'ממשיכים'); click('next'); skipSidewalk(); skipMinors();
-    assert.match($('.women-service-summary').textContent, /כן, שירות צבאי לפי התאמה לתפקיד/);
+    assert.match($('.women-service-summary').textContent, /שותפות מלאה/);
     assert.equal($('[data-party-id="democrats"] .score').textContent, '+1');
     assert.equal($('[data-party-id="religious-zionism"] .score').textContent, '−1');
     assert.match($('.description').textContent, /1 מתוך 5/);
@@ -431,7 +431,7 @@ test('weekend transit offers three policies after the bridge and has one active 
   assert.match($('.description').textContent, /1 מתוך 4/);
   assert.equal($('[data-party-id="democrats"] .score').textContent, '+2');
   assert.equal($('[data-party-id="shas"] .score').textContent, '−2');
-  assert.equal($('[data-party-id="likud"]'), null);
+  assert.equal($('[data-party-id="likud"] .score').textContent, '0'); // Its record kept the status quo.
 });
 
 test('clicking an already selected answer clears it for skip, and browser Back restores the choice', async t => {
@@ -463,10 +463,11 @@ test('skipping all scored dilemmas gives no ranking and status quo remains a rea
   assert.equal($('.score-table'), null);
   click('review-questions'); click('next');
   choose('[name="weekend-answer"][value="keep"]'); click('next'); click('next'); skipDraft();
-  assert.ok([...document.querySelectorAll('.score')].every(score => score.textContent === '0'));
-  assert.equal($('[data-score-group="positive"]'), null);
-  assert.ok($('[data-score-group="neutral"]'));
-  assert.equal($('h2').textContent, 'עדיין לא נמצאה התאמה חיובית');
+  // Keeping the status quo matches Likud's executed decision; the other researched parties stay at zero.
+  assert.equal($('[data-party-id="likud"] .score').textContent, '+2');
+  assert.ok([...document.querySelectorAll('[data-score-group="neutral"] .score')].every(score => score.textContent === '0'));
+  assert.ok($('[data-score-group="positive"]'));
+  assert.notEqual($('h2').textContent, 'עדיין לא נמצאה התאמה חיובית');
 });
 
 test('wartime transit retains the morning background and only negative Likud responsibility points', async t => {
@@ -877,7 +878,7 @@ test('threat question retains its sourced actions after the service and missions
   assert.equal($('[name="threat-answer"]:checked').value, 'pa');
   click('next'); click('next');
   assert.equal($('[data-party-id="democrats"] .score').textContent, '+1');
-  assert.equal($('[data-party-id="likud"] .score').textContent, '+2');
+  assert.equal($('[data-party-id="likud"] .score').textContent, '0'); // Threat +2, outposts −2.
   assert.match($('.description').textContent, /3 מתוך 5/);
 });
 
@@ -1171,10 +1172,10 @@ for (const mouseAvailable of [true, false]) {
     assert.equal($('.button-label').textContent, 'לתוצאות'); click('next');
     assert.equal($('[data-party-id="beyachad"] .score').textContent, '+2');
     assert.equal($('[data-party-id="otzma-yehudit"] .score').textContent, '−1');
-    assert.equal($('[data-party-id="likud"] .score').textContent, '0');
-    assert.equal($('[data-party-id="likud"]').closest('[data-score-group]').dataset.scoreGroup, 'neutral');
+    assert.equal($('[data-party-id="likud"] .score').textContent, '−1'); // Levin +1, education −1, welfare −1.
+    assert.equal($('[data-party-id="likud"]').closest('[data-score-group]').dataset.scoreGroup, 'negative');
     for (const id of ['yisrael-beitenu', 'democrats', 'joint-list']) assert.equal($(`[data-party-id="${id}"] .score`).textContent, '+1');
-    assert.equal($('[data-party-id="shas"] .score').textContent, '−2');
+    assert.equal($('[data-party-id="shas"] .score').textContent, '−3'); // Legislative opposition −2, welfare −1.
     assert.equal($('[data-party-id="utj"] .score').textContent, '−2');
     assert.match($('.description').textContent, /1 מתוך 5/);
     await traverse('back');

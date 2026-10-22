@@ -46,9 +46,13 @@ test('compact draft answers retain the full roster question weights without scor
 
 test('outpost direction still scores one component, while partners add no invented party evidence', () => {
   const limit = scoreBurden(['limit-outposts']);
-  assert.equal(limit.length, 2);
+  assert.equal(limit.length, 4);
   assert.equal(limit.find(item => item.id === 'democrats').points, 1);
   assert.equal(limit.find(item => item.id === 'religious-zionism').points, -1);
+  // The 2023 cabinet decision weighs more than the list that preceded it.
+  assert.equal(limit.find(item => item.id === 'likud').points, -2);
+  assert.equal(limit.find(item => item.id === 'likud').basis, 'action');
+  assert.equal(limit.find(item => item.id === 'otzma-yehudit').points, -1);
   for (const item of limit) assert.equal(scoreBurden(['protect-outposts']).find(other => other.id === item.id).points, -item.points);
   assert.deepEqual(scoreBurden(['limit-outposts', 'seek-partners']), limit);
   assert.deepEqual(scoreBurden(['self-reliance']), []);
@@ -69,13 +73,18 @@ test('threat scores use executed decisions and resignation, with no platform-bas
   assert.deepEqual(scoreThreat(null), []);
   assert.deepEqual(scoreThreat('unknown'), []);
   const hamas = scoreThreat('hamas');
-  assert.equal(hamas.length, 3);
+  assert.equal(hamas.length, 4);
   assert.equal(hamas.find(item => item.id === 'likud').points, -2);
   assert.equal(hamas.some(item => item.id === 'democrats'), false);
-  assert.equal(hamas.find(item => item.id === 'yisrael-beitenu').points, 1);
+  assert.equal(hamas.find(item => item.id === 'yisrael-beitenu').points, 2);
   assert.equal(hamas.find(item => item.id === 'religious-zionism').points, -1);
-  for (const item of hamas) {
-    assert.equal(item.basis, item.id === 'likud' ? 'action' : 'partial-action');
+  // Continuing the funding is a weaker, penalty-only responsibility assessment.
+  const beyachad = hamas.find(item => item.id === 'beyachad');
+  assert.equal(beyachad.points, -1);
+  assert.equal(beyachad.basis, 'responsibility');
+  assert.equal(scoreThreat('pa').some(item => item.id === 'beyachad'), false);
+  for (const item of hamas.filter(item => item.id !== 'beyachad')) {
+    assert.equal(item.basis, item.id === 'religious-zionism' ? 'partial-action' : 'action');
     assert.match(item.reason, /2018|2023/);
     assert.ok(item.source.startsWith('https://'));
     assert.equal(scoreThreat('pa').find(other => other.id === item.id).points, -item.points);

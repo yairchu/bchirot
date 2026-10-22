@@ -13,25 +13,34 @@ export const BRIDGE_POSITIONS = [
   { id: 'likud', name: 'הליכוד', position: -1, basis: 'mixed', reason: 'שר התחבורה ישראל כץ הקפיא את העבודות בעקבות המחאה; בהמשך המדינה אפשרה את חידושן בשבתות.', source: oppositionSource, followupSource: 'https://www.mako.co.il/news-israel/local-q1_2019/Article-83d23b914067861004.htm' },
   { id: 'kulanu', name: 'כולנו', position: -1, basis: 'coalition', reason: 'משקל חלש של אחריות קואליציונית לממשלה שהקפיאה את העבודות. זו הערכת המודל, ללא עמדה ישירה שאותרה בפרשה.', source: coalitionSource },
   { id: 'jewish-home', name: 'הבית היהודי', position: -1, basis: 'coalition', reason: 'הבית היהודי בראשות בנט הייתה בקואליציה בזמן ההקפאה ב־2018. הציון משקף אחריות קואליציונית חלשה, ללא עמדה ישירה שאותרה בפרשה.', source: coalitionSource },
+  { id: 'tkuma', name: 'האיחוד הלאומי–תקומה', position: -1, basis: 'coalition', reason: 'תקומה, בראשות אורי אריאל ועם בצלאל סמוטריץ׳, הייתה רכיב בסיעת הבית היהודי בזמן ההקפאה ב־2018, ואריאל כיהן כשר החקלאות בממשלה. הציון משקף את אותה אחריות קואליציונית חלשה שניתנה לבית היהודי, ללא עמדה ישירה שאותרה בפרשה.', source: 'https://en.wikipedia.org/wiki/Uri_Ariel', followupSource: coalitionSource, followupLabel: 'הרכב הממשלה' },
   { id: 'yesh-atid', name: 'יש עתיד', position: 2, basis: 'direct', reason: 'יאיר לפיד התנגד להקפאת העבודות בעקבות דרישת המפלגות החרדיות.', source: harediSource },
   { id: 'labor', name: 'העבודה / המחנה הציוני', position: 2, basis: 'direct', reason: 'אבי גבאי וציפי לבני ביקרו את ההקפאה ואת הפגיעה בציבור הנהגים.', source: oppositionSource },
   { id: 'meretz', name: 'מרצ', position: 2, basis: 'direct', reason: 'מרצ דרשה להעדיף את צורכי התחבורה ויזמה דיון בכנסת נגד ההקפאה.', source: oppositionSource },
   { id: 'yisrael-beitenu', name: 'ישראל ביתנו', position: 2, basis: 'direct', reason: 'בינואר 2019 ליברמן הגן על העבודות החיוניות בגשר בשבת והתנגד לניסיונות לאסור אותן.', source: 'https://www.kore.co.il/viewArticle/48258' },
 ];
 
+// Labels name the kind of evidence; the weight shown comes from the points
+// actually given, so a label can never disagree with its score.
 export const BASIS_LABELS = {
   direct: 'עמדה מתועדת',
   mixed: 'התנהלות מעורבת',
   coalition: 'הערכת אחריות קואליציונית',
-  responsibility: 'הערכת אחריות מיניסטריאלית — משקל 1',
-  vision: 'זיקה לחזון מוצהר — משקל 1',
-  policy: 'עמדה מתועדת — נקודה לכל רכיב שנענה',
-  action: 'החלטה שבוצעה — משקל 2',
-  'legislative-opposition': 'התנגדות פעילה להרחבת ההגנה בחקיקה — משקל 2',
-  'sustained-action': 'פעילות מתמשכת בנושא — משקל 2',
-  'partial-action': 'מעשה מתועד ברכיב אחד של הדילמה — משקל 1',
-  interpretation: 'פרשנות לסדר עדיפויות מוצהר — משקל 1',
+  responsibility: 'הערכת אחריות מיניסטריאלית',
+  vision: 'זיקה לחזון מוצהר',
+  policy: 'עמדה מתועדת',
+  action: 'החלטה שבוצעה',
+  composition: 'הרכב הרשימה שהוגשה',
+  'legislative-opposition': 'התנגדות פעילה להרחבת ההגנה בחקיקה',
+  'sustained-action': 'פעילות מתמשכת בנושא',
+  'partial-action': 'מעשה מתועד ברכיב אחד של הדילמה',
+  interpretation: 'פרשנות לסדר עדיפויות מוצהר',
 };
+
+export function basisLabel(evidence) {
+  const label = BASIS_LABELS[evidence.basis];
+  return evidence.points ? `${label} — משקל ${Math.abs(evidence.points)}` : label;
+}
 
 export function scoreBridge(answer) {
   if (!['shabbat', 'weekdays'].includes(answer)) return [];
@@ -44,10 +53,12 @@ export function scoreBridge(answer) {
 // expand regulated Saturday transit = 2. Distance gives +2 / 0 / -2.
 // These are editorial policy categories, not claims that every detail (fares,
 // rail, local routing) was individually endorsed. Unresearched parties are omitted.
+// Keeping the status quo by an executed decision is a position too, not inaction.
 const transportPlatformSource = 'https://www.ynet.co.il/articles/0,7340,L-5490792,00.html';
 export const WEEKEND_POSITIONS = [
   { id: 'shas', name: 'ש״ס', position: 0, basis: 'direct', reason: 'חברי כנסת מש״ס הציעו להרחיב את הסמכות לאסור תחבורה בשבת. המודל מסווג זאת לכיוון איסור; ההצעה אינה חוק שהתקבל.', source: 'https://www.zman.co.il/366642/' },
   { id: 'utj', name: 'יהדות התורה', position: 0, basis: 'direct', reason: 'במענה לשאלון ב־2019 המפלגה הודיעה שתיאבק ביוזמות תחבורה ציבורית בשבת.', source: transportPlatformSource },
+  { id: 'likud', name: 'הליכוד', position: 1, basis: 'action', reason: 'ב־2023 משרד התחבורה בראשות מירי רגב לא הפעיל את הקו האדום של הרכבת הקלה בשבת, ורגב הסבירה שהמדינה פועלת לפי החוק והסטטוס קוו. זו החלטה שבוצעה לשמור על המצב הקיים; היא אינה איסור על ההסעות העירוניות.', source: 'https://www.mako.co.il/news-money/2023_q3/Article-8f407146fecf981027.htm' },
   { id: 'labor', name: 'העבודה / המחנה הציוני', position: 2, basis: 'direct', reason: 'ב־2019 העבודה התחייבה לתחבורה ציבורית בשבת, לרבות רכבת, במתכונת מצומצמת ומוסדרת.', source: transportPlatformSource },
   { id: 'meretz', name: 'מרצ', position: 2, basis: 'direct', reason: 'ב־2019 מרצ תמכה בתחבורה ציבורית בכל ימות השבוע. הניקוד מתייחס להרחבת השירות, ולא להתחייבות נפרדת לכל פרט בחלופה.', source: transportPlatformSource },
   { id: 'yisrael-beitenu', name: 'ישראל ביתנו', position: 2, basis: 'direct', reason: 'ב־2019 ליברמן הציב תחבורה ציבורית בשבת בין דרישותיו לממשלה. המודל מסווג זאת לכיוון הרחבה, בלי להסיק הסכמה לכל פרט בחלופה.', source: 'https://shiftshatil.org.il/publictransport/' },

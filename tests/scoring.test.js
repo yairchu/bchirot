@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { BRIDGE_POSITIONS, WEEKEND_POSITIONS, scoreBridge, scoreWeekend, scoreEmergency, scoreReligion } from '../dist/scoring.js';
+import { BRIDGE_POSITIONS, WEEKEND_POSITIONS, basisLabel, scoreBridge, scoreWeekend, scoreEmergency, scoreReligion } from '../dist/scoring.js';
 
 test('October 7 preparedness gives at most one negative Likud point and no positive points', () => {
   const critical = scoreEmergency('immediate');
@@ -22,6 +22,7 @@ test('weekdays gives strongest alignment to explicit opponents and less to coali
   assert.equal(points.likud, 1);
   assert.equal(points.kulanu, 1);
   assert.equal(points['jewish-home'], 1);
+  assert.equal(points.tkuma, 1); // The same coalition standard for both Jewish Home components.
   assert.equal(points.meretz, -2);
   assert.equal(points['yesh-atid'], -2);
   assert.equal(points['yisrael-beitenu'], -2);
@@ -35,7 +36,10 @@ test('weekend policy options use distance between ban, current arrangement, and 
   assert.equal(points('ban').shas, 2);
   assert.equal(points('ban').meretz, -2);
   assert.equal(scoreWeekend('keep').length, WEEKEND_POSITIONS.length);
-  assert.ok(scoreWeekend('keep').every(party => party.points === 0));
+  // Likud kept the status quo by an executed decision; the other researched parties sit at the extremes.
+  assert.ok(scoreWeekend('keep').every(party => party.points === (party.id === 'likud' ? 2 : 0)));
+  assert.equal(points('expand').likud, 0);
+  assert.equal(points('ban').likud, 0);
   assert.deepEqual(scoreWeekend(null), []);
   assert.deepEqual(scoreWeekend('unknown'), []);
 });
@@ -45,7 +49,7 @@ test('skipped answers add no contributions and do not invent scores for unresear
   const weekendOnly = scoreReligion(null, 'expand');
   assert.equal(weekendOnly.length, WEEKEND_POSITIONS.length);
   assert.ok(weekendOnly.every(party => party.contributions.length === 1));
-  assert.equal(weekendOnly.some(party => party.id === 'likud'), false);
+  assert.equal(weekendOnly.some(party => party.id === 'kulanu'), false);
   const bridgeOnly = scoreReligion('shabbat', null);
   assert.equal(bridgeOnly.length, BRIDGE_POSITIONS.length);
   assert.equal(bridgeOnly.find(party => party.id === 'meretz').points, 2);
@@ -65,7 +69,7 @@ test('combined results sum both answers and distinguish full from partial eviden
   assert.equal(results.find(party => party.id === 'meretz').points, 4);
   assert.equal(results.find(party => party.id === 'shas').points, -4);
   assert.equal(results.find(party => party.id === 'meretz').contributions.length, 2);
-  assert.equal(results.find(party => party.id === 'likud').contributions.length, 1);
+  assert.equal(results.find(party => party.id === 'kulanu').contributions.length, 1);
   const firstPartial = results.findIndex(party => party.contributions.length === 1);
   assert.ok(results.slice(0, firstPartial).every(party => party.contributions.length === 2));
   assert.equal(scoreReligion('shabbat', 'ban').find(party => party.id === 'meretz').points, 0);
@@ -88,4 +92,10 @@ test('no answer yields no ranking, and computing does not mutate source position
   scoreBridge('shabbat');
   scoreBridge('weekdays');
   assert.deepEqual(BRIDGE_POSITIONS, before);
+});
+
+test('the displayed weight comes from the points given, not from the basis label', () => {
+  assert.equal(basisLabel({ basis: 'action', points: 1 }), 'החלטה שבוצעה — משקל 1');
+  assert.equal(basisLabel({ basis: 'action', points: -2 }), 'החלטה שבוצעה — משקל 2');
+  assert.equal(basisLabel({ basis: 'composition', points: 0 }), 'הרכב הרשימה שהוגשה');
 });

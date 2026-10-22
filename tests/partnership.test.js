@@ -13,7 +13,7 @@ test('partnership evidence refers to current ballots and actions, and answers re
     assert.equal(new Set(forward.map(item => item.letters)).size, forward.length);
     for (const item of forward) {
       assert.ok(PARTIES.some(([letters, name]) => letters === item.letters && name === item.name));
-      assert.ok(['action', 'partial-action'].includes(item.basis));
+      assert.ok(['action', 'composition', 'partial-action'].includes(item.basis));
       assert.equal(Math.abs(item.points), 1);
       assert.equal(reverse.find(other => other.id === item.id).points, -item.points);
       assert.ok(item.source.startsWith('https://'));
@@ -31,6 +31,8 @@ test('women service uses weak parliamentary evidence and reverses one point for 
     assert.equal(exempt.find(other => other.id === item.id).points, -item.points);
     assert.ok(PARTIES.some(([letters, name]) => letters === item.letters && name === item.name));
   }
+  // Both answers that open every role match the integration evidence; only the duty differs.
+  assert.deepEqual(scoreWomenService('volunteer'), serve);
   for (const invalid of [null, undefined, '', 'unknown']) assert.deepEqual(scoreWomenService(invalid), []);
 });
 
@@ -61,8 +63,8 @@ test('academia scores only the researched legislative actions and preserve limit
   assert.equal(democrats.basis, 'partial-action');
   assert.match(democrats.reason, /פרסום המפלגה/);
   const representation = scoreRepresentation('inclusive');
-  assert.equal(representation.find(item => item.id === 'beyachad').basis, 'action');
-  assert.equal(representation.find(item => item.id === 'democrats').basis, 'action');
+  assert.equal(representation.find(item => item.id === 'beyachad').basis, 'composition');
+  assert.equal(representation.find(item => item.id === 'democrats').basis, 'composition');
 });
 
 test('opposing all separated tracks does not infer full opposition from a vote against expansion', () => {
@@ -137,13 +139,15 @@ test('minors protection distinguishes sustained work, partial legislation and mi
   const combined = scoreCurrentReligion(null, null, null, null, { childProtectionAnswer: 'enforce' });
   assert.deepEqual(Object.fromEntries(combined.map(item => [item.id, item.points])), {
     beyachad: 2, 'yisrael-beitenu': 1, democrats: 1, 'joint-list': 1,
-    likud: 0, shas: -2, utj: -2, 'otzma-yehudit': -1,
+    likud: -1, shas: -3, utj: -2, 'otzma-yehudit': -1,
   });
   assert.equal(records.find(item => item.id === 'beyachad').basis, 'sustained-action');
   const likud = combined.find(item => item.id === 'likud');
   assert.equal(likud.contributions.length, 1);
-  assert.equal(likud.contributions[0].evidence.length, 2);
-  assert.deepEqual(likud.contributions[0].evidence.map(item => item.basis), ['partial-action', 'responsibility']);
+  assert.equal(likud.contributions[0].evidence.length, 3);
+  assert.deepEqual(likud.contributions[0].evidence.map(item => item.basis), ['partial-action', 'responsibility', 'responsibility']);
+  // Welfare responsibility is counted per ministry, separately from legislative opposition.
+  assert.deepEqual(records.filter(item => item.id === 'shas').map(item => [item.basis, item.points]), [['legislative-opposition', -2], ['responsibility', -1]]);
   for (const id of ['yisrael-beitenu', 'democrats', 'joint-list']) {
     assert.equal(records.find(item => item.id === id).basis, 'partial-action');
   }

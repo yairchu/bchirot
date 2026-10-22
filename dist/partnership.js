@@ -12,18 +12,19 @@ const womenProtectionSource = 'https://www.mako.co.il/news-military/politics-q3_
 const womenCommitteeSource = 'https://oknesset.org/meetings/2/2/2229819.html';
 
 export const WOMEN_SERVICE_DILEMMA = {
-  title: 'האם נשים צריכות לשרת בצה״ל?',
-  context: 'ב־2022 צה״ל החליט לשבץ נשים באופן קבוע כלוחמות טנקים בהגנת הגבולות, לאחר התנסות ובדיקת התאמה מקצועית. מעבר לפתיחת תפקידים, האם נשים צריכות להיות שותפות בחובת השירות?',
-  note: 'השאלה עוסקת בחובת שירות לפי התאמה לתפקיד, ולא בחובת לחימה לכולן. פטור מחובה אינו איסור להתנדב.',
+  title: 'האם נשים צריכות להיות שותפות שוות בשירות?',
+  context: 'ב־2022 צה״ל החליט לשבץ נשים באופן קבוע כלוחמות טנקים בהגנת הגבולות, לאחר התנסות ובדיקת התאמה מקצועית. האם נשים צריכות להיות חייבות בשירות, והאם כל התפקידים, כולל הקרביים, צריכים להיות פתוחים בפניהן?',
+  note: 'פתיחת תפקיד לפי התאמה אינה חובת לחימה לכולן.',
   options: [
-    { id: 'serve', label: 'כן, שירות צבאי לפי התאמה לתפקיד' },
-    { id: 'exempt', label: 'לא, לפטור נשים משירות צבאי' },
+    { id: 'serve', label: 'שותפות מלאה: חובת שירות, וכל התפקידים, כולל קרביים, פתוחים לפי התאמה' },
+    { id: 'volunteer', label: 'בלי חובה, אבל מי שמתגייסת יכולה להגיע לכל תפקיד לפי התאמה' },
+    { id: 'exempt', label: 'לפטור נשים ולהגביל את שילובן ביחידות קרביות' },
   ],
   timeline: [
     { text: 'באוקטובר 2022 צה״ל קבע שהתנסות לוחמות הטנקים בהגנת הגבולות הצליחה ושהשיבוץ יהפוך לקבוע. ההחלטה התבססה על עמידה בקריטריונים מקצועיים ומבצעיים; היא עסקה בהגנת גבולות, ולא בכל תפקידי השריון המתמרן.', url: womenServiceSource, source: 'החלטת צה״ל על לוחמות הטנקים, 27.10.2022' },
     { text: 'בדיוני חוק הגיוס ב־2018 סמוטריץ׳ דרש להסיר סעיף שנועד להגן על מעמד הנשים ושילובן בצה״ל בעת גיוס חרדים. זהו ניסיון לשנות הגנה על שילוב נשים, ולא חוק שביטל את שירותן. הניקוד לציונות הדתית מבוסס על פעילותו, בלי לייחס עמדה אחידה לכל ישיבות ההסדר או לכל הציבור הדתי.', url: womenProtectionSource, source: 'הדרישה להסרת ההגנה, N12, ‏2018' },
     { text: 'בדיון ועדת הכנסת ב־7.5.2025 מרב מיכאלי מהעבודה דרשה לקדם שיבוץ לפי כישורים ולהסיר חסמים בפני נשים. זו פעילות פרלמנטרית לקידום השילוב; היא משויכת לרכיב העבודה בדמוקרטים.', url: womenCommitteeSource, source: 'פרוטוקול הוועדה, 7.5.2025' },
-    { text: 'הניקוד הוא נקודה אחת בכיוון השילוב או נגדו, על בסיס פעילות פרלמנטרית מוגבלת. אין כאן הוכחה לתמיכה או להתנגדות לכל פטור מגיוס או לכל תפקיד לחימה. ההחלטה המקצועית של צה״ל אינה מקור לניקוד מפלגתי.', url: womenCommitteeSource, source: 'הדיון וגבולות ההשוואה' },
+    { text: 'הניקוד הוא נקודה אחת בכיוון השילוב או נגדו, על בסיס פעילות פרלמנטרית מוגבלת. העדויות עוסקות בפתיחת תפקידים ובהגנה על שילוב נשים, ולא בחובת השירות עצמה, ולכן שתי האפשרויות הראשונות מקבלות אותו ניקוד. ההחלטה המקצועית של צה״ל אינה מקור לניקוד מפלגתי.', url: womenCommitteeSource, source: 'הדיון וגבולות ההשוואה' },
   ],
 };
 
@@ -34,12 +35,12 @@ export const REPRESENTATION_DILEMMA = {
   options: [
     { id: 'men-only', label: 'רשימה של גברים בלבד' },
     { id: 'inclusive', label: 'רשימה שמשלבת נשים וגברים' },
-    { id: 'equal', label: 'רשימה שפועלת לייצוג שוויוני יותר' },
+    { id: 'equal', label: 'רשימה שבה נשים וגברים מיוצגים באופן שווה בערך' },
   ],
   timeline: [
     { text: 'רשימות ש״ס ויהדות התורה לכנסת מורכבות מגברים בלבד לאורך השנים, ללא מועמדות גם במקומות שאינם ריאליים.', url: representationHistorySource, source: 'הרשימות לאורך השנים, זמן ישראל, 27.9.2026' },
     { text: 'סקירת רשימות 2026 מצאה ייצוג קרוב לאיזון אצל הדמוקרטים, ישר וביחד, לעומת ייצוג מצומצם בליכוד. ההשוואה מתייחסת למקומות שהוגדרו כריאליים לפי סקרים; היא אינה תוצאת הבחירות.', url: representationSource, source: 'הרכב הרשימות שהוגשו, 22.9.2026' },
-    { text: 'בהעדפה לשילוב שוויוני יותר, רשימות קרובות לאיזון מקבלות נקודת התאמה, רשימות ללא נשים נקודת מחלוקת, וליכוד מקבל אפס: יש בו נשים, אך הרכבו שנבדק רחוק מאיזון. הניקוד נשען על הרכב הרשימה, ולא על הבטחה לשינוי בעתיד.', url: representationSource, source: 'הבסיס להבחנה בין נוכחות לאיזון' },
+    { text: 'בהעדפה לייצוג שווה בערך, רשימות קרובות לאיזון מקבלות נקודת התאמה, רשימות ללא נשים נקודת מחלוקת, וליכוד מקבל אפס: יש בו נשים, אך הרכבו שנבדק רחוק מאיזון. הניקוד נשען על הרכב הרשימה, ולא על הבטחה לשינוי בעתיד.', url: representationSource, source: 'הבסיס להבחנה בין נוכחות לאיזון' },
   ],
 };
 
@@ -69,23 +70,25 @@ function records(positions, direction) {
   });
 }
 
+// The evidence concerns opening roles and protecting integration, not the duty
+// to serve, so both answers that open every role share one direction.
 export function scoreWomenService(answer) {
-  if (!['serve', 'exempt'].includes(answer)) return [];
+  if (!['serve', 'volunteer', 'exempt'].includes(answer)) return [];
   return records([
     { id: 'democrats', letters: 'אמת', position: 1, basis: 'partial-action', reason: 'מרב מיכאלי מהעבודה פעלה בדיון ועדת הכנסת במאי 2025 להסרת חסמים ולשיבוץ נשים לפי כישורים. זהו רכיב העבודה בדמוקרטים ועדות לכיוון השילוב, ללא מסקנה על כל פרט בחובת השירות.', source: womenCommitteeSource, component: 'שירות נשים בצה״ל' },
     { id: 'religious-zionism', letters: 'ט', position: -1, basis: 'partial-action', reason: 'סמוטריץ׳ דרש ב־2018 להסיר מחוק הגיוס הגנה על מעמד הנשים ושילובן. זהו ניסיון לשינוי חקיקה, לא ביטול שירות נשים בפועל; השיוך לרשימה מבוסס על רכיב הציונות הדתית.', source: womenProtectionSource, component: 'שירות נשים בצה״ל' },
-  ], answer === 'serve' ? 1 : -1);
+  ], answer === 'exempt' ? -1 : 1);
 }
 
 export function scoreRepresentation(answer) {
   if (!['inclusive', 'men-only', 'equal'].includes(answer)) return [];
   const positions = [
-    { id: 'likud', letters: 'מחל', position: 1, balanced: false, basis: 'action', reason: 'בליכוד 13% נשים במקומות שנבדקו בסקירת רשימות 2026; זהו שילוב נשים, אך הרכב רחוק מאיזון.' },
-    { id: 'beyachad', letters: 'רק', position: 1, balanced: true, basis: 'action', reason: 'ברשימת ביחד 46% נשים במקומות שנבדקו בסקירת רשימות 2026.' },
-    { id: 'democrats', letters: 'אמת', position: 1, balanced: true, basis: 'action', reason: 'ברשימת הדמוקרטים 50% נשים במקומות שנבדקו בסקירת רשימות 2026.' },
-    { id: 'yashar', letters: 'דרך', position: 1, balanced: true, basis: 'action', reason: 'ברשימת ישר 48% נשים במקומות שנבדקו בסקירת רשימות 2026.' },
-    { id: 'shas', letters: 'שס', position: -1, basis: 'action', reason: 'ש״ס לא הציבה מעולם נשים ברשימותיה לכנסת.', source: representationHistorySource },
-    { id: 'utj', letters: 'ג', position: -1, basis: 'action', reason: 'יהדות התורה לא הציבה מעולם נשים ברשימותיה לכנסת.', source: representationHistorySource },
+    { id: 'likud', letters: 'מחל', position: 1, balanced: false, basis: 'composition', reason: 'בליכוד 13% נשים במקומות שנבדקו בסקירת רשימות 2026; זהו שילוב נשים, אך הרכב רחוק מאיזון.' },
+    { id: 'beyachad', letters: 'רק', position: 1, balanced: true, basis: 'composition', reason: 'ברשימת ביחד 46% נשים במקומות שנבדקו בסקירת רשימות 2026.' },
+    { id: 'democrats', letters: 'אמת', position: 1, balanced: true, basis: 'composition', reason: 'ברשימת הדמוקרטים 50% נשים במקומות שנבדקו בסקירת רשימות 2026.' },
+    { id: 'yashar', letters: 'דרך', position: 1, balanced: true, basis: 'composition', reason: 'ברשימת ישר 48% נשים במקומות שנבדקו בסקירת רשימות 2026.' },
+    { id: 'shas', letters: 'שס', position: -1, basis: 'composition', reason: 'ש״ס לא הציבה מעולם נשים ברשימותיה לכנסת.', source: representationHistorySource },
+    { id: 'utj', letters: 'ג', position: -1, basis: 'composition', reason: 'יהדות התורה לא הציבה מעולם נשים ברשימותיה לכנסת.', source: representationHistorySource },
   ].map(position => ({ ...position, source: position.source || representationSource, component: 'ייצוג נשים בכנסת' }));
   if (answer === 'equal') return records(positions.map(position => ({ ...position, position: position.position < 0 ? -1 : position.balanced ? 1 : 0 })), 1);
   return records(positions, answer === 'inclusive' ? 1 : -1);
@@ -147,6 +150,8 @@ const minorsTestimonySource = 'https://www.mako.co.il/news-politics/2026_q3/Arti
 const minorsConnectionsSource = 'https://www.ynet.co.il/judaism/discourse/article/hkcvrxf4ze';
 const minorsLikudSource = 'https://13tv.co.il/item/news/politics/politics/k02un-905367863/';
 const minorsEducationSource = 'https://www.israelhayom.co.il/news/local/article/21261772';
+const welfareShasSource = 'https://www.timesofisrael.com/liveblog_entry/shas-ministers-file-resignations-as-party-withdraws-from-government';
+const welfareLikudSource = 'https://www.timesofisrael.com/ministries-previously-held-by-shas-transferred-to-pair-of-likud-ministers/';
 
 export const MINORS_PROTECTION_DILEMMA = {
   title: 'מי שומר על הילדות?',
@@ -162,6 +167,7 @@ export const MINORS_PROTECTION_DILEMMA = {
     { text: 'בדיון בכנסת בספטמבר 2026 נשמעו עדויות של הורים ויוצאות הקהילה על נישואים בכפייה ופגיעות מיניות בילדים. אלו עדויות המחייבות בדיקה והגנה, ולא פסקי דין נגד כל חברי הקהילה. השאלה אינה מייחסת מעשים לכל חסידי ברסלב או לכל תושבי יבנאל.', url: minorsTestimonySource, source: 'העדויות בוועדה, N12, ‏23.9.2026' },
     { text: 'לפי סיכום ועדה בין־משרדית שפורסם באוקטובר 2026, בשנים 2024–2025 לא נפתחו ביבנאל תיקים בגין נישואי קטינים, וב־2026 נפתחו תשעה תיקים שהיו בחקירה בעת הכנת הדוח. המשטרה גם עצרה טקסים חשודים. פעולות נקודתיות אינן מעידות שהתופעה נעצרה; הביקורת בשאלה היא על היעדר אכיפה מספקת שמגינה על הילדות.', url: minorsReportSource, source: 'ממצאי הוועדה והחקירות, ynet, ‏19.10.2026' },
     { text: 'מירב כהן מיש עתיד כינסה דיונים ודיוני מעקב, דרשה נתונים ופעלה לקידום טיפול מערכתי. שתי הנקודות לביחד נשענות על פעילותה המתמשכת ברכיב יש עתיד, ולא על פעולה אישית של בנט. נקודות המחלוקת לעוצמה יהודית ולליכוד הן הערכת אחריות של השרים לביטחון לאומי ולחינוך, ולא קביעה שהם הורו למנוע אכיפה.', url: minorsCommitteeSource, source: 'דיון המעקב בכנסת, 1.7.2026' },
+    { text: 'משרד הרווחה אחראי להגנה על ילדים בסיכון: פקידי סעד לפי חוק הנוער רשאים לבקש מבית המשפט צווי הגנה, כולל הוצאה דחופה של ילד מהבית. יעקב מרגי מש״ס כיהן כשר הרווחה עד התפטרות שרי ש״ס ביולי 2025, ומאז הופקד על המשרד חיים כץ מהליכוד. הניקוד לשניהם הוא הערכת אחריות מיניסטריאלית, ולא קביעה שהורו להימנע מטיפול.', url: welfareLikudSource, source: 'העברת משרד הרווחה, טיימס אוף ישראל, יולי 2025' },
     { text: 'באוגוסט 2026 פנתה כהן לשר החינוך יואב קיש בדרישה להתערב, בעקבות דיווח על מנהלת החשודה בהשאת בנותיה הקטינות וממשיכה בתפקידה. זו עדות להתרעה בנושא שבאחריות המשרד, ולא הרשעה של המנהלת.', url: minorsEducationSource, source: 'הפנייה לשר החינוך, ישראל היום, 23.8.2026' },
     { text: 'תחקיר שומרים תיאר קשרים בין הנהגת הקהילה לאריה דרעי וש״ס, ותרומות של יצחק מירילשוילי, מבעלי ערוץ 14, לעמותה הקשורה לקהילה. קשרים ותרומות אינם כשלעצמם הוכחה לידיעה על עבירות או להתערבות בחקירות. שתי נקודות המחלוקת לש״ס נשענות על התנגדותה הפרלמנטרית להרחבת ההגנה על קטינים, המתועדת בהמשך.', url: minorsConnectionsSource, source: 'תחקיר שומרים על הקשרים והמימון, פורסם ב־ynet' },
     { text: 'ב־2012 קידמו את העלאת גיל הנישואים יריב לוין מהליכוד, זהבה גלאון ממרצ, דב חנין מחד״ש ונציגי בל״ד, לצד אורית זוארץ מקדימה. זו פעילות נגד נישואי קטינים בכלל, ולא אכיפה ביבנאל או עמדה בכל טענת פגיעה מינית. קדימה אינה משויכת כאן לרשימה נוכחית.', url: minorsLawInitiativesSource, source: 'יוזמי החקיקה, הכנסת, 6.3.2012' },
@@ -186,6 +192,8 @@ export function scoreMinorsProtection(answer) {
     { id: 'utj', letters: 'ג', position: -2, basis: 'legislative-opposition', reason: 'יהדות התורה ערערה נגד קידום העלאת גיל הנישואים ב־2013. זו עדות חלקית להתנגדות להגבלה חוקית, ולא ראיה לתמיכה בפגיעה מינית בילדים.', source: minorsLawOppositionSource, component },
     { id: 'otzma-yehudit', letters: 'ב', position: -1, basis: 'responsibility', reason: 'מינוס נקודה לעוצמה יהודית כהערכת אחריות מיניסטריאלית של בן גביר למדיניות ולפיקוח על המשטרה מול כשלי האכיפה. לכך מצטרפת טענת שרה מימוני לניסיון להשתיקה בעקבות חשיפת הכשלים, שהמשטרה מציגה כחקירה מבוססת חשד. זו אחריות מיניסטריאלית, ולא ראיה להוראה אישית של השר להתנכל לה.', source: minorsReportSource, followupSource: minorsPoliceRetaliationSource, followupLabel: 'טענת מימוני ותגובת המשטרה', component },
     { id: 'likud', letters: 'מחל', position: -1, basis: 'responsibility', reason: 'הערכת אחריות מיניסטריאלית של יואב קיש לפיקוח על מוסדות החינוך, לאחר התרעות בנושא נישואי קטינות והפנייה אליו באוגוסט 2026. הניקוד אינו מבוסס על התפקדות לליכוד ואינו קביעה שהשר הגן על עבריינים.', source: minorsEducationSource, component },
+    { id: 'shas', letters: 'שס', position: -1, basis: 'responsibility', reason: 'הערכת אחריות מיניסטריאלית של שר הרווחה יעקב מרגי, עד התפטרותו ביולי 2025, להגנה על הילדות באמצעות פקידי הסעד, בתקופה שבה לא נפתחו תיקים ביבנאל. זו אחריות נפרדת מההתנגדות לחקיקה, ולא קביעה שהשר הורה להימנע מטיפול.', source: welfareShasSource, followupSource: minorsReportSource, followupLabel: 'ממצאי הוועדה', component },
+    { id: 'likud', letters: 'מחל', position: -1, basis: 'responsibility', reason: 'הערכת אחריות מיניסטריאלית של חיים כץ, שהופקד על משרד הרווחה מיולי 2025, להגנה על הילדות באמצעות פקידי הסעד. זו אחריות למשרד נוסף, נפרדת מאחריות משרד החינוך, ולא קביעה שהשר הורה להימנע מטיפול.', source: welfareLikudSource, followupSource: minorsReportSource, followupLabel: 'ממצאי הוועדה', component },
   ], 1));
   return result;
 }

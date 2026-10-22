@@ -8,7 +8,9 @@ const cashSource = 'https://www.timesofisrael.com/en-route-to-paris-netanyahu-de
 const aidCardsSource = 'https://cdn.wfp.org/2016/solutions/';
 const cashRiskSource = 'https://www.ynetnews.com/article/bjyl2ji6u';
 const paFundsSource = 'https://www.timesofisrael.com/liveblog_entry/smotrich-formally-withholds-millions-from-pa-says-he-has-no-interest-for-it-to-exist/';
+const continuationSource = 'https://www.aljazeera.com/news/2021/9/12/un-to-distribute-cash-aid-to-gaza-families-envoy-says';
 const resignationSource = 'https://www.calcalist.co.il/articles/0%2C7340%2CL-3749788%2C00.html';
+const outpostsDecisionSource = 'https://www.ynetnews.com/article/rkbtr0ipj';
 const outpostBurdenSource = 'https://www.mako.co.il/news-military/2026_q3/Article-d2e9ea66e62af91027.htm';
 
 export const WOMEN_SERVICE_SOURCE = 'https://www.ynet.co.il/news/article/rj1zgtdej';
@@ -35,6 +37,7 @@ export const BURDEN_TIMELINE = [
   { text: 'לפי דיווח N12, הגנה על נקודות מבודדות דורשת לעיתים ליווי, סיורים ותגבורי כוחות, ובמקרים מסוימים מסיטה כוחות ממשימות אחרות. אין כאן אומדן של מספר ימי המילואים שייחסכו.', url: outpostBurdenSource, source: 'משימות ההגנה בפועל, N12' },
   { text: 'הדמוקרטים מציגים את צמצום המאחזים והחוות המבודדים כדרך להפחית את משימות ההגנה ואת עומס המילואים. זהו טיעון המפלגה, ולא חישוב של מספר ימי מילואים שייחסכו.', url: democratsSource, source: 'עמדת הדמוקרטים' },
   { text: 'הציונות הדתית מציגה את החוות כאמצעי לאחיזה במרחב ומתארת מעטפת ביטחון ותיאום עם הגורמים הממונים. השאלה בוחנת את העדיפות בין האחיזה בשטח למשאבי ההגנה הנדרשים.', url: farmsSource, source: 'עמדת הציונות הדתית' },
+  { text: 'ב־12 בפברואר 2023 הקבינט החליט להכשיר תשעה מאחזים ולהפוך אותם ליישובים, לראשונה מאז 2012. בן גביר הציג לקראת ההחלטה רשימה של 77 מאחזים. ההחלטה מתועדת; אין כאן אומדן של כוחות ההגנה שנדרשו בעקבותיה.', url: outpostsDecisionSource, source: 'החלטת הקבינט, ynet, ‏12.2.2023' },
   { text: 'באוקטובר 2022 החליט צה״ל לקבע את שירות לוחמות הטנקים בהגנת הגבולות, אחרי התנסות והערכת עמידה בקריטריונים מקצועיים ומבצעיים. מדובר בהגנת גבולות, ולא בפתיחת כל תפקידי השריון המתמרן.', url: WOMEN_SERVICE_SOURCE, source: 'החלטת צה״ל על לוחמות הטנקים, 27.10.2022' },
   { text: 'הבחירה כאן עוסקת בחובת שירות לקבוצות שסומנו, ולא באיסור על אחרות להתנדב או בזכאות לתפקיד קרבי. השיבוץ לפי התאמה; מי שאינו נדרש לצבא יכול לשרת בשירות אזרחי. המשך בלי סימון מוביל לשאלת המשך הומוריסטית בתרחיש ללא צבא; אין לכך ניקוד מפלגתי.', url: WOMEN_SERVICE_SOURCE, source: 'פרטי ההחלטה והקריטריונים' },
   { text: 'בנובמבר 2025 מועצת הביטחון אישרה מסגרת למועצת השלום ולכוח ייצוב בינלאומי בעזה. אישור מסגרת אינו מבטיח פריסה, הצלחה או החלפה מלאה של משימות צה״ל.', url: 'https://www.un.org/unispal/document/security-council-meeting-coverage-17nov25/', source: 'מועצת הביטחון, החלטה 2803' },
@@ -66,6 +69,7 @@ export const THREAT_DILEMMA = {
     { text: 'מזומן מאפשר שימושים רחבים יותר מכרטיסי סיוע. ביולי 2021 הוצג החשש מהפנייתו להתחמשות כנימוק להצעה להעביר סיוע בשוברים. זהו סיכון של המתווה, ולא הוכחה שכל הכסף שהועבר שימש לרכישת נשק.', url: cashRiskSource, source: 'החשש מהסטת הסיוע לנשק, רויטרס, 13.7.2021' },
     { text: 'בינואר 2023 סמוטריץ׳ חתם על צו שמנע העברה של 139 מיליון ש״ח מכספי המסים שישראל גובה עבור הרשות, והעביר אותם למשפחות נפגעי טרור. המהלך בוצע בעקבות פניית הרשות לערכאות בינלאומיות. הוא צמצם את הכספים שהגיעו לרשות, אך לא עצר את כל ההעברות אליה.', url: paFundsSource, source: 'חתימת הצו, 8.1.2023' },
     { text: 'בנובמבר 2018 ליברמן התפטר מתפקיד שר הביטחון. הוא מנה את העברת הכסף ואת הפסקת האש עם חמאס כשתי נקודות המפנה. זו פעולה פוליטית מתועדת, ללא הסקת תמיכה שלו בחיזוק הרשות.', url: resignationSource, source: 'התפטרות ליברמן, 14.11.2018' },
+    { text: 'בספטמבר 2021 ממשלת בנט–לפיד החליפה את הכנסת המזומן בחלוקה של הכסף הקטארי דרך האו״ם, ובמקביל המשיכה לאפשר את המימון. השינוי צמצם את המזומן הישיר, אך לא עצר את המדיניות.', url: continuationSource, source: 'המנגנון החדש, אל־ג׳זירה, 12.9.2021' },
     { text: 'ביסוס שלטון חמאס והחלשת הרשות הם האופן שבו השאלון מפרש את כיוון הצעדים. ההחלטות והתאריכים מתועדים; אין כאן קביעה שכל הכסף שימש ללחימה, שכל ממשלות נתניהו פעלו באופן זהה, או שכל שותפה בממשלה תמכה בכל צעד.', url: cashSource, source: 'פרטי העברת הכסף' },
   ],
 };
@@ -131,6 +135,10 @@ export function scoreBurden(answer) {
       'הדמוקרטים מתחייבים לצמצם מאחזים וחוות מבודדים כדי להפחית משימות הגנה ועומס מילואים.', democratsSource, 'משימות הגנה'));
     results.push(...evidence({ id: 'religious-zionism', letters: 'ט' }, outposts === 'protect-outposts' ? 1 : -1,
       'הציונות הדתית מציגה את הרחבת החוות ואת מעטפת הביטחון שלהן כהישג אסטרטגי. השיוך לרשימה המשותפת מבוסס על מרכיב הציונות הדתית.', farmsSource, 'משימות הגנה'));
+    results.push(...evidence({ id: 'likud', letters: 'מחל' }, outposts === 'protect-outposts' ? 2 : -2,
+      'בפברואר 2023 הקבינט בראשות נתניהו החליט להכשיר תשעה מאחזים שהוקמו ללא היתר ולהפוך אותם ליישובים, לראשונה מאז 2012. משקל 2 להחלטת ממשלה שבוצעה.', outpostsDecisionSource, 'משימות הגנה').map(item => ({ ...item, basis: 'action' })));
+    results.push(...evidence({ id: 'otzma-yehudit', letters: 'ב' }, outposts === 'protect-outposts' ? 1 : -1,
+      'לקראת אותה החלטה הציג בן גביר רשימה של 77 מאחזים להכשרה. משקל 1 לפעולה שקידמה את ההחלטה; ההחלטה עצמה התקבלה בקבינט.', outpostsDecisionSource, 'משימות הגנה').map(item => ({ ...item, basis: 'partial-action' })));
   }
   return results;
 }
@@ -143,7 +151,10 @@ export function scoreThreat(answer) {
       'ממשלת נתניהו אישרה בנובמבר 2018 הכנסת כסף קטארי ששימש בין היתר למשכורות במנגנון שלטון חמאס. משקל 2 להחלטת ממשלה מתועדת; אין טענה שכל הכסף שימש למטרות צבאיות.', cashSource, 'מימון שלטון חמאס').map(item => ({ ...item, basis: 'action' })),
     ...evidence({ id: 'religious-zionism', letters: 'ט' }, direction,
       'סמוטריץ׳ חתם בינואר 2023 על קיזוז 139 מיליון ש״ח מכספי הרשות לטובת משפחות נפגעי טרור. משקל 1 לרכיב החלשת הרשות בלבד; אין כאן ייחוס של החלטת הכסף הקטארי מ־2018 לרשימה הנוכחית.', paFundsSource, 'קיזוז כספי הרשות').map(item => ({ ...item, basis: 'partial-action' })),
-    ...evidence({ id: 'yisrael-beitenu', letters: 'ל' }, -direction,
-      'ליברמן התפטר מתפקיד שר הביטחון בנובמבר 2018 במחאה על המדיניות מול חמאס, וציין את העברת הכסף ואת הפסקת האש. משקל 1 להתנגדות שהובילה לפרישה; אין בכך קביעה שתמך בחיזוק הרשות.', resignationSource, 'פרישה במחאה על המדיניות').map(item => ({ ...item, basis: 'partial-action' })),
+    ...evidence({ id: 'yisrael-beitenu', letters: 'ל' }, -2 * direction,
+      'ליברמן התפטר מתפקיד שר הביטחון בנובמבר 2018 במחאה על המדיניות מול חמאס, וציין את העברת הכסף ואת הפסקת האש. משקל 2 להתפטרות במחאה, מעשה שבוצע ולא הצהרה; אין בכך קביעה שתמך בחיזוק הרשות.', resignationSource, 'פרישה במחאה על המדיניות').map(item => ({ ...item, basis: 'action' })),
+    // Continuing a policy is weaker than initiating it: a penalty only, with no credit for the other answer.
+    ...(answer === 'hamas' ? evidence({ id: 'beyachad', letters: 'רק' }, -1,
+      'ב־2021 ממשלת בנט–לפיד שינתה את מנגנון הכסף הקטארי לעזה, מהכנסת מזוודות מזומן לחלוקה דרך האו״ם, אך לא עצרה את המימון. מינוס נקודה כהערכת אחריות של ראשי הממשלה להמשך המדיניות, חלשה מהניקוד לממשלה שיזמה אותה; אין ניקוד זכות לחלופה השנייה.', continuationSource, 'המשך המימון במנגנון מתוקן').map(item => ({ ...item, basis: 'responsibility' })) : []),
   ];
 }
