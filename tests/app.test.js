@@ -1155,7 +1155,8 @@ for (const mouseAvailable of [true, false]) {
     assert.equal($('h2').textContent, 'מי שומר על הילדות?');
     assert.equal($('.step-label').textContent, 'שאלה 6 מתוך 6');
     assert.equal($('.button-label').textContent, 'דלג');
-    assert.match($('.description').textContent, /פורסמו עדויות/);
+    assert.match($('.description').textContent, /עדות על אונס כבר בגיל הגן/);
+    assert.match($('.description').textContent, /אין אכיפה מספקת/);
     const background = $('.dilemma-background');
     assert.match(background.textContent, /תשעה תיקים/);
     assert.match(background.textContent, /דרעי/);

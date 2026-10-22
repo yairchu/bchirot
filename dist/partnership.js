@@ -137,6 +137,7 @@ export function scoreSidewalk(answer) {
 
 const minorsCommitteeSource = 'https://main.knesset.gov.il/News/PressReleases/Pages/press01072026v.aspx';
 const minorsReportSource = 'https://www.ynet.co.il/judaism/article/s1b00k00xnfl';
+const minorsDocumentarySource = 'https://www.kan.org.il/content/kan/kan-11/p-11454/';
 const minorsTestimonySource = 'https://www.mako.co.il/news-politics/2026_q3/Article-55b17c44bedc0a1027.htm';
 const minorsConnectionsSource = 'https://www.ynet.co.il/judaism/discourse/article/hkcvrxf4ze';
 const minorsLikudSource = 'https://13tv.co.il/item/news/politics/politics/k02un-905367863/';
@@ -144,14 +145,15 @@ const minorsEducationSource = 'https://www.israelhayom.co.il/news/local/article/
 
 export const MINORS_PROTECTION_DILEMMA = {
   title: 'מי שומר על הילדות?',
-  context: 'על קהילת ״היכל הקודש״ ביבנאל פורסמו עדויות על נישואי קטינות בכפייה ועל פגיעות מיניות בילדות. למרות חשיפות ופעולות אכיפה, התופעה נמשכת. איך המדינה צריכה לפעול?',
+  context: 'בסדרה ״בשם האב״ הובאה עדות על אונס כבר בגיל הגן בקהילת ״היכל הקודש״ ביבנאל. לצד זאת נחשפו נישואי קטינות בכפייה. למרות החשיפות, אין אכיפה מספקת שעוצרת את התופעה. איך המדינה צריכה לפעול?',
   options: [
     { id: 'enforce', label: 'אכיפה יזומה והגנה על הקטינות, גם מול התנגדות הנהגת הקהילה', detail: 'משטרה, רווחה ופיקוח על מוסדות החינוך — בלי לחכות להסכמת ההנהגה.' },
     { id: 'community-first', label: 'להמתין להסכמות עם הנהגת הקהילה לפני צעדי אכיפה', detail: 'לתת עדיפות להידברות ולפתרון מתוך הקהילה.' },
   ],
   timeline: [
+    { text: 'בסדרה התיעודית ״בשם האב״ של כאן 11 מרואיינת אישה המעידה שנאנסה כשהייתה ילדה בגן, ומתארת פגיעות בילדות נוספות. העדות עוסקת בפגיעה בגיל הרך, בנפרד מעדויות על השאת נערות קטינות בכפייה.', url: minorsDocumentarySource, source: 'בשם האב, כאן 11, ‏2023' },
     { text: 'בדיון בכנסת בספטמבר 2026 נשמעו עדויות של הורים ויוצאות הקהילה על נישואים בכפייה ופגיעות מיניות בילדים. אלו עדויות המחייבות בדיקה והגנה, ולא פסקי דין נגד כל חברי הקהילה. השאלה אינה מייחסת מעשים לכל חסידי ברסלב או לכל תושבי יבנאל.', url: minorsTestimonySource, source: 'העדויות בוועדה, N12, ‏23.9.2026' },
-    { text: 'לפי סיכום ועדה בין־משרדית שפורסם באוקטובר 2026, בשנים 2024–2025 לא נפתחו ביבנאל תיקים בגין נישואי קטינים, וב־2026 נפתחו תשעה תיקים שהיו בחקירה בעת הכנת הדוח. המשטרה גם עצרה טקסים חשודים. לכן אין כאן טענה שלא נעשתה כל פעולת אכיפה.', url: minorsReportSource, source: 'ממצאי הוועדה והחקירות, ynet, ‏19.10.2026' },
+    { text: 'לפי סיכום ועדה בין־משרדית שפורסם באוקטובר 2026, בשנים 2024–2025 לא נפתחו ביבנאל תיקים בגין נישואי קטינים, וב־2026 נפתחו תשעה תיקים שהיו בחקירה בעת הכנת הדוח. המשטרה גם עצרה טקסים חשודים. פעולות נקודתיות אינן מעידות שהתופעה נעצרה; הביקורת בשאלה היא על היעדר אכיפה מספקת שמגינה על הילדות.', url: minorsReportSource, source: 'ממצאי הוועדה והחקירות, ynet, ‏19.10.2026' },
     { text: 'מירב כהן מיש עתיד כינסה דיונים ודיוני מעקב, דרשה נתונים ופעלה לקידום טיפול מערכתי. הניקוד לביחד נשען על פעילותה ברכיב יש עתיד. נקודות המחלוקת לעוצמה יהודית ולליכוד הן הערכת אחריות של השרים לביטחון לאומי ולחינוך, ולא קביעה שהם הורו למנוע אכיפה.', url: minorsCommitteeSource, source: 'דיון המעקב בכנסת, 1.7.2026' },
     { text: 'באוגוסט 2026 פנתה כהן לשר החינוך יואב קיש בדרישה להתערב, בעקבות דיווח על מנהלת החשודה בהשאת בנותיה הקטינות וממשיכה בתפקידה. זו עדות להתרעה בנושא שבאחריות המשרד, ולא הרשעה של המנהלת.', url: minorsEducationSource, source: 'הפנייה לשר החינוך, ישראל היום, 23.8.2026' },
     { text: 'תחקיר שומרים תיאר קשרים בין הנהגת הקהילה לאריה דרעי וש״ס, ותרומות של יצחק מירילשוילי, מבעלי ערוץ 14, לעמותה הקשורה לקהילה. קשרים ותרומות אינם כשלעצמם הוכחה לידיעה על עבירות או להתערבות בחקירות, ולכן לא ניתן עליהם ניקוד.', url: minorsConnectionsSource, source: 'תחקיר שומרים על הקשרים והמימון, פורסם ב־ynet' },
@@ -165,7 +167,7 @@ export function scoreMinorsProtection(answer) {
     { id: 'beyachad', letters: 'רק', position: 1, basis: 'partial-action', reason: 'מירב כהן מיש עתיד כינסה דיוני מעקב, דרשה נתונים ופעלה לטיפול בנישואי הקטינות ביבנאל. זהו רכיב יש עתיד בביחד, ולא עמדה מתועדת של כל רכיבי הרשימה.', source: minorsCommitteeSource, component: 'הגנה על קטינות ביבנאל' },
   ], answer === 'enforce' ? 1 : -1);
   if (answer === 'enforce') result.push(...records([
-    { id: 'otzma-yehudit', letters: 'ב', position: -1, basis: 'responsibility', reason: 'הערכת אחריות מיניסטריאלית של בן גביר למדיניות ולפיקוח על המשטרה מול כשל האכיפה המתמשך. ב־2026 תועדו גם חקירות ופעולות אכיפה; אין כאן טענה שהשר מנע חקירה או שכל המשטרה נמנעה מפעולה.', source: minorsReportSource, followupSource: sidewalkResponsibilitySource, followupLabel: 'סמכות השר וגבולותיה', component: 'הגנה על קטינות ביבנאל' },
+    { id: 'otzma-yehudit', letters: 'ב', position: -1, basis: 'responsibility', reason: 'מינוס נקודה לעוצמה יהודית כהערכת אחריות מיניסטריאלית של בן גביר למדיניות ולפיקוח על המשטרה מול כשל האכיפה המתמשך. חקירות ופעולות נקודתיות ב־2026 אינן פוטרות מאחריות לטיפול שלא עצר את התופעה. זו הערכת אחריות, ולא קביעה שהשר חסם חקירה.', source: minorsReportSource, followupSource: sidewalkResponsibilitySource, followupLabel: 'סמכות השר וגבולותיה', component: 'הגנה על קטינות ביבנאל' },
     { id: 'likud', letters: 'מחל', position: -1, basis: 'responsibility', reason: 'הערכת אחריות מיניסטריאלית של יואב קיש לפיקוח על מוסדות החינוך, לאחר התרעות בנושא נישואי קטינות והפנייה אליו באוגוסט 2026. הניקוד אינו מבוסס על התפקדות לליכוד ואינו קביעה שהשר הגן על עבריינים.', source: minorsEducationSource, component: 'הגנה על קטינות ביבנאל' },
   ], 1));
   return result;
