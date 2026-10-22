@@ -73,18 +73,22 @@ test('threat scores use executed decisions and resignation, with no platform-bas
   assert.deepEqual(scoreThreat(null), []);
   assert.deepEqual(scoreThreat('unknown'), []);
   const hamas = scoreThreat('hamas');
-  assert.equal(hamas.length, 4);
+  assert.equal(hamas.length, 3);
   assert.equal(hamas.find(item => item.id === 'likud').points, -2);
   assert.equal(hamas.some(item => item.id === 'democrats'), false);
   assert.equal(hamas.find(item => item.id === 'yisrael-beitenu').points, 2);
-  assert.equal(hamas.find(item => item.id === 'religious-zionism').points, -1);
+  // PA-only evidence must not infer a position on either Hamas answer.
+  for (const answer of ['hamas', 'pa']) {
+    assert.equal(scoreThreat(answer).some(item => item.id === 'religious-zionism'), false);
+    assert.equal(currentScores({ threatAnswer: answer }).some(item => item.id === 'religious-zionism'), false);
+  }
   // Continuing the funding is a weaker, penalty-only responsibility assessment.
   const beyachad = hamas.find(item => item.id === 'beyachad');
   assert.equal(beyachad.points, -1);
   assert.equal(beyachad.basis, 'responsibility');
   assert.equal(scoreThreat('pa').some(item => item.id === 'beyachad'), false);
   for (const item of hamas.filter(item => item.id !== 'beyachad')) {
-    assert.equal(item.basis, item.id === 'religious-zionism' ? 'partial-action' : 'action');
+    assert.equal(item.basis, 'action');
     assert.match(item.reason, /2018|2023/);
     assert.ok(item.source.startsWith('https://'));
     assert.equal(scoreThreat('pa').find(other => other.id === item.id).points, -item.points);

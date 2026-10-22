@@ -44,12 +44,22 @@ test('weekend policy options use distance between ban, current arrangement, and 
   assert.deepEqual(scoreWeekend('unknown'), []);
 });
 
+test('the same Saturday-transport scale covers every added explicit party response', () => {
+  const expected = { kulanu: 2, 'yesh-atid': 2, hadash: 2, balad: 2, 'otzma-yehudit': -2 };
+  for (const [id, points] of Object.entries(expected)) {
+    assert.equal(scoreWeekend('expand').find(item => item.id === id).points, points);
+    assert.equal(scoreWeekend('ban').find(item => item.id === id).points, -points);
+    assert.equal(scoreWeekend('keep').find(item => item.id === id).points, 0);
+  }
+});
+
 test('skipped answers add no contributions and do not invent scores for unresearched parties', () => {
   assert.deepEqual(scoreReligion(null, null), []);
   const weekendOnly = scoreReligion(null, 'expand');
   assert.equal(weekendOnly.length, WEEKEND_POSITIONS.length);
   assert.ok(weekendOnly.every(party => party.contributions.length === 1));
-  assert.equal(weekendOnly.some(party => party.id === 'kulanu'), false);
+  assert.equal(weekendOnly.find(party => party.id === 'kulanu').points, 2);
+  assert.equal(weekendOnly.some(party => party.id === 'unresearched-party'), false);
   const bridgeOnly = scoreReligion('shabbat', null);
   assert.equal(bridgeOnly.length, BRIDGE_POSITIONS.length);
   assert.equal(bridgeOnly.find(party => party.id === 'meretz').points, 2);
@@ -69,7 +79,7 @@ test('combined results sum both answers and distinguish full from partial eviden
   assert.equal(results.find(party => party.id === 'meretz').points, 4);
   assert.equal(results.find(party => party.id === 'shas').points, -4);
   assert.equal(results.find(party => party.id === 'meretz').contributions.length, 2);
-  assert.equal(results.find(party => party.id === 'kulanu').contributions.length, 1);
+  assert.equal(results.find(party => party.id === 'kulanu').contributions.length, 2);
   const firstPartial = results.findIndex(party => party.contributions.length === 1);
   assert.ok(results.slice(0, firstPartial).every(party => party.contributions.length === 2));
   assert.equal(scoreReligion('shabbat', 'ban').find(party => party.id === 'meretz').points, 0);

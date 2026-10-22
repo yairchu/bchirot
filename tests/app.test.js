@@ -139,14 +139,14 @@ for (const mouseAvailable of [true, false]) {
     choose('[name="academia-answer"][value="limit"]');
     assert.equal($('.button-label').textContent, 'ממשיכים'); click('next'); skipWomenService(); skipSidewalk(); skipMinors();
     assert.equal($('[data-party-id="democrats"] .score').textContent, '+2');
-    assert.equal($('[data-party-id="otzma-yehudit"] .score').textContent, '−1');
+    assert.equal($('[data-party-id="otzma-yehudit"] .score').textContent, '0'); // Inclusion +1, academia −1.
     assert.equal($('[data-party-id="shas"] .score').textContent, '−1');
     assert.match($('.description').textContent, /2 מתוך 5/);
     await traverse('back'); await traverse('back'); await traverse('back'); await traverse('back');
     assert.equal($('[name="academia-answer"]:checked').value, 'limit');
     choose('[name="academia-answer"][value="expand"]'); click('next'); skipWomenService(); skipSidewalk(); skipMinors();
     assert.equal($('[data-party-id="democrats"] .score').textContent, '0');
-    assert.equal($('[data-party-id="otzma-yehudit"] .score').textContent, '+1');
+    assert.equal($('[data-party-id="otzma-yehudit"] .score').textContent, '+2'); // Inclusion +1, academia +1.
     click('restart');
     assert.equal(window.history.state.bchirot.representationAnswer, null);
     assert.equal(window.history.state.bchirot.academiaAnswer, null);
@@ -398,7 +398,7 @@ test('both topics ask service once, then follow the shared route without double 
   assert.equal($('.step-label').textContent, 'שאלה 7 מתוך 8');
   choose('[name="weekend-answer"][value="expand"]'); click('next');
   choose('[name="emergency-answer"][value="immediate"]'); click('next');
-  assert.equal($('[data-party-id="likud"] .score').textContent, '−2');
+  assert.equal($('[data-party-id="likud"] .score').textContent, '−1'); // Bridge −1, weekend +1, emergency −1.
   assert.equal($('[data-party-id="democrats"] .score').textContent, '+4');
   assert.match($('.description').textContent, /3 מתוך 6/);
 });
@@ -431,7 +431,7 @@ test('weekend transit offers three policies after the bridge and has one active 
   assert.match($('.description').textContent, /1 מתוך 4/);
   assert.equal($('[data-party-id="democrats"] .score').textContent, '+2');
   assert.equal($('[data-party-id="shas"] .score').textContent, '−2');
-  assert.equal($('[data-party-id="likud"] .score').textContent, '0'); // Its record kept the status quo.
+  assert.equal($('[data-party-id="likud"] .score').textContent, '+1'); // Average of Likud's status quo and Kulanu's expansion position.
 });
 
 test('clicking an already selected answer clears it for skip, and browser Back restores the choice', async t => {
@@ -464,7 +464,7 @@ test('skipping all scored dilemmas gives no ranking and status quo remains a rea
   click('review-questions'); click('next');
   choose('[name="weekend-answer"][value="keep"]'); click('next'); click('next'); skipDraft();
   // Keeping the status quo matches Likud's executed decision; the other researched parties stay at zero.
-  assert.equal($('[data-party-id="likud"] .score').textContent, '+2');
+  assert.equal($('[data-party-id="likud"] .score').textContent, '+1'); // Predecessor averaging also applies to the status-quo answer.
   assert.ok([...document.querySelectorAll('[data-score-group="neutral"] .score')].every(score => score.textContent === '0'));
   assert.ok($('[data-score-group="positive"]'));
   assert.notEqual($('h2').textContent, 'עדיין לא נמצאה התאמה חיובית');
@@ -1175,8 +1175,8 @@ for (const mouseAvailable of [true, false]) {
     assert.equal($('[data-party-id="likud"] .score').textContent, '−1'); // Levin +1, education −1, welfare −1.
     assert.equal($('[data-party-id="likud"]').closest('[data-score-group]').dataset.scoreGroup, 'negative');
     for (const id of ['yisrael-beitenu', 'democrats', 'joint-list']) assert.equal($(`[data-party-id="${id}"] .score`).textContent, '+1');
-    assert.equal($('[data-party-id="shas"] .score').textContent, '−3'); // Legislative opposition −2, welfare −1.
-    assert.equal($('[data-party-id="utj"] .score').textContent, '−2');
+    assert.equal($('[data-party-id="shas"] .score').textContent, '−2'); // Legislative opposition −1, welfare −1.
+    assert.equal($('[data-party-id="utj"] .score').textContent, '−1');
     assert.match($('.description').textContent, /1 מתוך 5/);
     await traverse('back');
     assert.equal($('[name="child-protection-answer"]:checked').value, 'enforce');
@@ -1263,4 +1263,22 @@ test('authority results also link to the coalition map', async t => {
     assert.ok(cell.classList.contains('matrix-blocked'));
     assert.match(cell.title, /סירוב/);
   }
+});
+
+test('method examples reflect the scored Yavneel totals and the two-point outpost decision', async t => {
+  const { $, click, choose } = await setup(t);
+  click('start'); choose('[value="modesty-partnership"]');
+  for (let step = 0; step < 5; step++) click('next');
+  choose('[name="child-protection-answer"][value="enforce"]'); click('next');
+  const method = [...document.querySelectorAll('.score-method')].find(item => item.querySelector('summary').textContent === 'איך הניקוד עובד?').textContent;
+  for (const [id, name, points] of [['likud', 'הליכוד', '−1'], ['shas', 'ש״ס', '−2'], ['utj', 'יהדות התורה', '−1']]) {
+    assert.equal($(`[data-party-id="${id}"] .score`).textContent, points);
+    assert.ok(method.includes(`${name}: ${points}`), `${name} method example must match the scored total`);
+  }
+  assert.ok(method.includes('חיים כץ'));
+  assert.ok(method.includes('יעקב מרגי'));
+  const outposts = method.split('הסכומים בבחירה להגביל נקודות מבודדות: ')[1];
+  assert.ok(outposts.includes('הליכוד: −2'));
+  assert.ok(outposts.includes('עוצמה יהודית: −1'));
+  assert.doesNotMatch(method, /בסך הכול אפס עם התנהלות מעורבת|עד שלוש נקודות יחד/);
 });

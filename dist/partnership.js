@@ -2,6 +2,8 @@ import { PARTIES, PARTY_NOTICES } from './parties.js';
 
 const representationSource = 'https://www.idi.org.il/articles/66220';
 const representationHistorySource = 'https://www.zman.co.il/727367/';
+// Editorial definition of approximately equal representation, applied to every list.
+export const REPRESENTATION_BALANCE = { min: 40, max: 60 };
 const lawSource = 'https://m.knesset.gov.il/EN/News/PressReleases/Pages/press16726w.aspx';
 const concernsSource = 'https://www.academy.ac.il/News/NewsItem.aspx?id=3386&nodeId=658';
 const democratsVoteSource = 'https://democrats.org.il/content/exclusion-of-women';
@@ -24,6 +26,7 @@ export const WOMEN_SERVICE_DILEMMA = {
     { text: 'באוקטובר 2022 צה״ל קבע שהתנסות לוחמות הטנקים בהגנת הגבולות הצליחה ושהשיבוץ יהפוך לקבוע. ההחלטה התבססה על עמידה בקריטריונים מקצועיים ומבצעיים; היא עסקה בהגנת גבולות, ולא בכל תפקידי השריון המתמרן.', url: womenServiceSource, source: 'החלטת צה״ל על לוחמות הטנקים, 27.10.2022' },
     { text: 'בדיוני חוק הגיוס ב־2018 סמוטריץ׳ דרש להסיר סעיף שנועד להגן על מעמד הנשים ושילובן בצה״ל בעת גיוס חרדים. זהו ניסיון לשנות הגנה על שילוב נשים, ולא חוק שביטל את שירותן. הניקוד לציונות הדתית מבוסס על פעילותו, בלי לייחס עמדה אחידה לכל ישיבות ההסדר או לכל הציבור הדתי.', url: womenProtectionSource, source: 'הדרישה להסרת ההגנה, N12, ‏2018' },
     { text: 'בדיון ועדת הכנסת ב־7.5.2025 מרב מיכאלי מהעבודה דרשה לקדם שיבוץ לפי כישורים ולהסיר חסמים בפני נשים. זו פעילות פרלמנטרית לקידום השילוב; היא משויכת לרכיב העבודה בדמוקרטים.', url: womenCommitteeSource, source: 'פרוטוקול הוועדה, 7.5.2025' },
+    { text: 'באותו דיון שרון ניר מישראל ביתנו דרשה לקדם התנסות בשילוב נשים בשריון מתמרן והצביעה על המחסור בכוח אדם. זו פעילות פרלמנטרית בכיוון הרחבת התפקידים, ולא עדות לעמדה על חובת שירות לכל אישה.', url: womenCommitteeSource, source: 'פעילות שרון ניר, פרוטוקול הוועדה, 7.5.2025' },
     { text: 'הניקוד הוא נקודה אחת בכיוון השילוב או נגדו, על בסיס פעילות פרלמנטרית מוגבלת. העדויות עוסקות בפתיחת תפקידים ובהגנה על שילוב נשים, ולא בחובת השירות עצמה, ולכן שתי האפשרויות הראשונות מקבלות אותו ניקוד. ההחלטה המקצועית של צה״ל אינה מקור לניקוד מפלגתי.', url: womenCommitteeSource, source: 'הדיון וגבולות ההשוואה' },
   ],
 };
@@ -40,7 +43,7 @@ export const REPRESENTATION_DILEMMA = {
   timeline: [
     { text: 'רשימות ש״ס ויהדות התורה לכנסת מורכבות מגברים בלבד לאורך השנים, ללא מועמדות גם במקומות שאינם ריאליים.', url: representationHistorySource, source: 'הרשימות לאורך השנים, זמן ישראל, 27.9.2026' },
     { text: 'סקירת רשימות 2026 מצאה ייצוג קרוב לאיזון אצל הדמוקרטים, ישר וביחד, לעומת ייצוג מצומצם בליכוד. ההשוואה מתייחסת למקומות שהוגדרו כריאליים לפי סקרים; היא אינה תוצאת הבחירות.', url: representationSource, source: 'הרכב הרשימות שהוגשו, 22.9.2026' },
-    { text: 'בהעדפה לייצוג שווה בערך, רשימות קרובות לאיזון מקבלות נקודת התאמה, רשימות ללא נשים נקודת מחלוקת, וליכוד מקבל אפס: יש בו נשים, אך הרכבו שנבדק רחוק מאיזון. הניקוד נשען על הרכב הרשימה, ולא על הבטחה לשינוי בעתיד.', url: representationSource, source: 'הבסיס להבחנה בין נוכחות לאיזון' },
+    { text: `בהעדפה לייצוג שווה בערך, שיעור נשים של ${REPRESENTATION_BALANCE.min}%–${REPRESENTATION_BALANCE.max}% במקומות שנבדקו מקבל נקודת התאמה. רשימות ללא נשים מקבלות נקודת מחלוקת, ושאר הרשימות שנבדקו מקבלות אפס. זהו סף עריכתי אחיד; הנתונים הם שיעור הנשים במקומות ריאליים לפי סקרים, ולא הבטחה לשינוי בעתיד.`, url: representationSource, source: 'הבסיס להבחנה בין נוכחות לאיזון' },
   ],
 };
 
@@ -76,6 +79,7 @@ export function scoreWomenService(answer) {
   if (!['serve', 'volunteer', 'exempt'].includes(answer)) return [];
   return records([
     { id: 'democrats', letters: 'אמת', position: 1, basis: 'partial-action', reason: 'מרב מיכאלי מהעבודה פעלה בדיון ועדת הכנסת במאי 2025 להסרת חסמים ולשיבוץ נשים לפי כישורים. זהו רכיב העבודה בדמוקרטים ועדות לכיוון השילוב, ללא מסקנה על כל פרט בחובת השירות.', source: womenCommitteeSource, component: 'שירות נשים בצה״ל' },
+    { id: 'yisrael-beitenu', letters: 'ל', position: 1, basis: 'partial-action', reason: 'שרון ניר מישראל ביתנו פעלה בדיון ועדת הכנסת במאי 2025 לקידום שילוב נשים בשריון מתמרן, על רקע המחסור בכוח אדם. זו עדות חלקית לכיוון פתיחת תפקידים, ללא מסקנה על חובת השירות עצמה.', source: womenCommitteeSource, component: 'שירות נשים בצה״ל' },
     { id: 'religious-zionism', letters: 'ט', position: -1, basis: 'partial-action', reason: 'סמוטריץ׳ דרש ב־2018 להסיר מחוק הגיוס הגנה על מעמד הנשים ושילובן. זהו ניסיון לשינוי חקיקה, לא ביטול שירות נשים בפועל; השיוך לרשימה מבוסס על רכיב הציונות הדתית.', source: womenProtectionSource, component: 'שירות נשים בצה״ל' },
   ], answer === 'exempt' ? -1 : 1);
 }
@@ -83,13 +87,25 @@ export function scoreWomenService(answer) {
 export function scoreRepresentation(answer) {
   if (!['inclusive', 'men-only', 'equal'].includes(answer)) return [];
   const positions = [
-    { id: 'likud', letters: 'מחל', position: 1, balanced: false, basis: 'composition', reason: 'בליכוד 13% נשים במקומות שנבדקו בסקירת רשימות 2026; זהו שילוב נשים, אך הרכב רחוק מאיזון.' },
-    { id: 'beyachad', letters: 'רק', position: 1, balanced: true, basis: 'composition', reason: 'ברשימת ביחד 46% נשים במקומות שנבדקו בסקירת רשימות 2026.' },
-    { id: 'democrats', letters: 'אמת', position: 1, balanced: true, basis: 'composition', reason: 'ברשימת הדמוקרטים 50% נשים במקומות שנבדקו בסקירת רשימות 2026.' },
-    { id: 'yashar', letters: 'דרך', position: 1, balanced: true, basis: 'composition', reason: 'ברשימת ישר 48% נשים במקומות שנבדקו בסקירת רשימות 2026.' },
-    { id: 'shas', letters: 'שס', position: -1, basis: 'composition', reason: 'ש״ס לא הציבה מעולם נשים ברשימותיה לכנסת.', source: representationHistorySource },
-    { id: 'utj', letters: 'ג', position: -1, basis: 'composition', reason: 'יהדות התורה לא הציבה מעולם נשים ברשימותיה לכנסת.', source: representationHistorySource },
-  ].map(position => ({ ...position, source: position.source || representationSource, component: 'ייצוג נשים בכנסת' }));
+    { id: 'likud', letters: 'מחל', womenPercent: 13, basis: 'composition', reason: 'בליכוד 13% נשים במקומות שנבדקו בסקירת רשימות 2026; זהו שילוב נשים, אך הרכב רחוק מאיזון.' },
+    { id: 'beyachad', letters: 'רק', womenPercent: 46, basis: 'composition', reason: 'ברשימת ביחד 46% נשים במקומות שנבדקו בסקירת רשימות 2026.' },
+    { id: 'democrats', letters: 'אמת', womenPercent: 50, basis: 'composition', reason: 'ברשימת הדמוקרטים 50% נשים במקומות שנבדקו בסקירת רשימות 2026.' },
+    { id: 'yashar', letters: 'דרך', womenPercent: 48, basis: 'composition', reason: 'ברשימת ישר 48% נשים במקומות שנבדקו בסקירת רשימות 2026.' },
+    { id: 'yisrael-beitenu', letters: 'ל', womenPercent: 33, basis: 'composition', reason: 'לפי סקירת רשימות 2026, שיעור הנשים במקומות שנבדקו הוא 33%.' },
+    { id: 'joint-list', letters: 'ודם', womenPercent: 12.5, basis: 'composition', reason: 'לפי סקירת רשימות 2026, שיעור הנשים במקומות שנבדקו הוא 12.5%.' },
+    { id: 'otzma-yehudit', letters: 'ב', womenPercent: 25, basis: 'composition', reason: 'לפי סקירת רשימות 2026, שיעור הנשים במקומות שנבדקו הוא 25%.' },
+    { id: 'religious-zionism', letters: 'ט', womenPercent: 17, basis: 'composition', reason: 'לפי סקירת רשימות 2026, שיעור הנשים במקומות שנבדקו הוא 17%.' },
+    { id: 'raam', letters: 'עם', womenPercent: 20, basis: 'composition', reason: 'לפי סקירת רשימות 2026, שיעור הנשים במקומות שנבדקו הוא 20%.' },
+    { id: 'amcha-yisrael', letters: 'ך', womenPercent: 25, basis: 'composition', reason: 'לפי סקירת רשימות 2026, שיעור הנשים במקומות שנבדקו הוא 25%.' },
+    { id: 'reservists-economy', letters: 'די', womenPercent: 25, basis: 'composition', reason: 'לפי סקירת רשימות 2026, שיעור הנשים במקומות שנבדקו הוא 25%.' },
+    { id: 'shas', letters: 'שס', womenPercent: 0, basis: 'composition', reason: 'ש״ס לא הציבה מעולם נשים ברשימותיה לכנסת.', source: representationHistorySource },
+    { id: 'utj', letters: 'ג', womenPercent: 0, basis: 'composition', reason: 'יהדות התורה לא הציבה מעולם נשים ברשימותיה לכנסת.', source: representationHistorySource },
+  ].map(position => ({
+    ...position,
+    position: position.womenPercent > 0 ? 1 : -1,
+    balanced: position.womenPercent >= REPRESENTATION_BALANCE.min && position.womenPercent <= REPRESENTATION_BALANCE.max,
+    source: position.source || representationSource, component: 'ייצוג נשים בכנסת',
+  }));
   if (answer === 'equal') return records(positions.map(position => ({ ...position, position: position.position < 0 ? -1 : position.balanced ? 1 : 0 })), 1);
   return records(positions, answer === 'inclusive' ? 1 : -1);
 }
@@ -172,7 +188,7 @@ export const MINORS_PROTECTION_DILEMMA = {
     { text: 'תחקיר שומרים תיאר קשרים בין הנהגת הקהילה לאריה דרעי וש״ס, ותרומות של יצחק מירילשוילי, מבעלי ערוץ 14, לעמותה הקשורה לקהילה. קשרים ותרומות אינם כשלעצמם הוכחה לידיעה על עבירות או להתערבות בחקירות. שתי נקודות המחלוקת לש״ס נשענות על התנגדותה הפרלמנטרית להרחבת ההגנה על קטינים, המתועדת בהמשך.', url: minorsConnectionsSource, source: 'תחקיר שומרים על הקשרים והמימון, פורסם ב־ynet' },
     { text: 'ב־2012 קידמו את העלאת גיל הנישואים יריב לוין מהליכוד, זהבה גלאון ממרצ, דב חנין מחד״ש ונציגי בל״ד, לצד אורית זוארץ מקדימה. זו פעילות נגד נישואי קטינים בכלל, ולא אכיפה ביבנאל או עמדה בכל טענת פגיעה מינית. קדימה אינה משויכת כאן לרשימה נוכחית.', url: minorsLawInitiativesSource, source: 'יוזמי החקיקה, הכנסת, 6.3.2012' },
     { text: 'דוד רותם מישראל ביתנו הוביל כיו״ר ועדת החוקה את הכנת החוק, שאושר ב־2013. נקודה לרשימה מבוססת על פעילות זו, ולא על השערה כיצד ליברמן היה מטפל ביבנאל כיום.', url: minorsLawPassageSource, source: 'אישור החוק והכנתו בוועדה, הכנסת, 4.11.2013' },
-    { text: 'ש״ס ויהדות התורה הגישו ערעור נגד החלת דין רציפות על הצעת החוק להעלאת גיל הנישואים. ההתנגדות מקבלת שתי נקודות מחלוקת בבחירה באכיפה, לעומת נקודה אחת להערכת אחריות מיניסטריאלית; אין בכך טענה שהמפלגות תמכו באונס או בנישואים בגיל הגן.', url: minorsLawOppositionSource, source: 'הערעור הפרלמנטרי, הכנסת, 26.6.2013' },
+    { text: 'ש״ס ויהדות התורה הגישו ערעור נגד החלת דין רציפות על הצעת החוק להעלאת גיל הנישואים. ההתנגדות מקבלת נקודת מחלוקת אחת בבחירה באכיפה, באותו משקל של הפעילות לקידום החוק, משום ששני סוגי העדויות עוסקים בחקיקה כללית ולא באכיפה ביבנאל; אין בכך טענה שהמפלגות תמכו באונס או בנישואים בגיל הגן.', url: minorsLawOppositionSource, source: 'הערעור הפרלמנטרי, הכנסת, 26.6.2013' },
     { text: 'חדשות 13 פרסמו עדויות על התפקדות מאורגנת לליכוד, ובהן טענות להבטחת סלי מזון ולרישום ללא ידיעת המתפקדות. מדובר בטענות שפורסמו בתחקיר; לא הוכח כאן שההתפקדות גרמה להימנעות מאכיפה.', url: minorsLikudSource, source: 'תחקיר ההתפקדות, חדשות 13, ‏23.9.2026' },
   ],
 };
@@ -188,8 +204,8 @@ export function scoreMinorsProtection(answer) {
     { id: 'likud', letters: 'מחל', position: 1, basis: 'partial-action', reason: 'יריב לוין מהליכוד היה מיוזמי העלאת גיל הנישואים. הפעילות החקיקתית מוצגת לצד האחריות המאוחרת לפיקוח על מוסדות החינוך.', source: minorsLawInitiativesSource, component },
   ], answer === 'enforce' ? 1 : -1);
   if (answer === 'enforce') result.push(...records([
-    { id: 'shas', letters: 'שס', position: -2, basis: 'legislative-opposition', reason: 'ש״ס הגישה ערעור נגד קידום העלאת גיל הנישואים ב־2013. זו התנגדות פרלמנטרית להגנה רחבה יותר, לא הוכחה לתמיכה בפגיעות מיניות. הקשרים המתועדים להנהגת הקהילה מובאים כרקע, ללא קביעה על חסימת חקירות.', source: minorsLawOppositionSource, followupSource: minorsConnectionsSource, followupLabel: 'תחקיר הקשרים להנהגת הקהילה', component },
-    { id: 'utj', letters: 'ג', position: -2, basis: 'legislative-opposition', reason: 'יהדות התורה ערערה נגד קידום העלאת גיל הנישואים ב־2013. זו עדות חלקית להתנגדות להגבלה חוקית, ולא ראיה לתמיכה בפגיעה מינית בילדים.', source: minorsLawOppositionSource, component },
+    { id: 'shas', letters: 'שס', position: -1, basis: 'legislative-opposition', reason: 'ש״ס הגישה ערעור נגד קידום העלאת גיל הנישואים ב־2013. זו התנגדות פרלמנטרית להגנה רחבה יותר, לא הוכחה לתמיכה בפגיעות מיניות. הקשרים המתועדים להנהגת הקהילה מובאים כרקע, ללא קביעה על חסימת חקירות.', source: minorsLawOppositionSource, followupSource: minorsConnectionsSource, followupLabel: 'תחקיר הקשרים להנהגת הקהילה', component },
+    { id: 'utj', letters: 'ג', position: -1, basis: 'legislative-opposition', reason: 'יהדות התורה ערערה נגד קידום העלאת גיל הנישואים ב־2013. זו עדות חלקית להתנגדות להגבלה חוקית, ולא ראיה לתמיכה בפגיעה מינית בילדים.', source: minorsLawOppositionSource, component },
     { id: 'otzma-yehudit', letters: 'ב', position: -1, basis: 'responsibility', reason: 'מינוס נקודה לעוצמה יהודית כהערכת אחריות מיניסטריאלית של בן גביר למדיניות ולפיקוח על המשטרה מול כשלי האכיפה. לכך מצטרפת טענת שרה מימוני לניסיון להשתיקה בעקבות חשיפת הכשלים, שהמשטרה מציגה כחקירה מבוססת חשד. זו אחריות מיניסטריאלית, ולא ראיה להוראה אישית של השר להתנכל לה.', source: minorsReportSource, followupSource: minorsPoliceRetaliationSource, followupLabel: 'טענת מימוני ותגובת המשטרה', component },
     { id: 'likud', letters: 'מחל', position: -1, basis: 'responsibility', reason: 'הערכת אחריות מיניסטריאלית של יואב קיש לפיקוח על מוסדות החינוך, לאחר התרעות בנושא נישואי קטינות והפנייה אליו באוגוסט 2026. הניקוד אינו מבוסס על התפקדות לליכוד ואינו קביעה שהשר הגן על עבריינים.', source: minorsEducationSource, component },
     { id: 'shas', letters: 'שס', position: -1, basis: 'responsibility', reason: 'הערכת אחריות מיניסטריאלית של שר הרווחה יעקב מרגי, עד התפטרותו ביולי 2025, להגנה על הילדות באמצעות פקידי הסעד, בתקופה שבה לא נפתחו תיקים ביבנאל. זו אחריות נפרדת מההתנגדות לחקיקה, ולא קביעה שהשר הורה להימנע מטיפול.', source: welfareShasSource, followupSource: minorsReportSource, followupLabel: 'ממצאי הוועדה', component },

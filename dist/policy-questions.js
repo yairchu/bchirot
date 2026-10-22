@@ -58,7 +58,7 @@ export const DRAFT_DILEMMA = {
 export const THREAT_DILEMMA = {
   title: 'חמאס הוא נכס?',
   context: 'ב־2018 ממשלת נתניהו אישרה הכנסת מזוודות דולרים מקטאר לעזה שבשליטת חמאס. בניגוד לכרטיסי סיוע המוגבלים לרכישת מזון ומוצרים חיוניים, מזומן אפשר להפנות גם לרכישת נשק. ב־2023 ממשלת נתניהו וסמוטריץ׳ חסמו העברה של חלק מהכספים שהיו אמורים להגיע לרשות הפלסטינית. מה היה נכון לעשות מול חמאס והרשות?',
-  note: 'השאלה היא על מדיניות בפועל. אפשר להתנגד לשני הגופים, ואפשר לדלג אם החלופות לא מייצגות אותך.',
+  note: 'השאלה היא על מדיניות בפועל. אפשר להתנגד לשני הגופים. קיזוז כספי הרשות מובא כרקע בלבד ואינו מנוקד כתמיכה בחמאס או כהתנגדות להחלשתו. אפשר לדלג אם החלופות לא מייצגות אותך.',
   options: [
     { id: 'hamas', label: 'לסכל ולהחליש את החמאס' },
     { id: 'pa', label: 'לחזק את שלטון החמאס, הרשות הפלסטינית גרועה ממנו' },
@@ -146,11 +146,11 @@ export function scoreBurden(answer) {
 export function scoreThreat(answer) {
   if (!['hamas', 'pa'].includes(answer)) return [];
   const direction = answer === 'pa' ? 1 : -1;
+  // Withholding PA funds alone establishes neither support for Hamas nor
+  // opposition to weakening it. Keep that event as background, without points.
   return [
     ...evidence({ id: 'likud', letters: 'מחל' }, 2 * direction,
       'ממשלת נתניהו אישרה בנובמבר 2018 הכנסת כסף קטארי ששימש בין היתר למשכורות במנגנון שלטון חמאס. משקל 2 להחלטת ממשלה מתועדת; אין טענה שכל הכסף שימש למטרות צבאיות.', cashSource, 'מימון שלטון חמאס').map(item => ({ ...item, basis: 'action' })),
-    ...evidence({ id: 'religious-zionism', letters: 'ט' }, direction,
-      'סמוטריץ׳ חתם בינואר 2023 על קיזוז 139 מיליון ש״ח מכספי הרשות לטובת משפחות נפגעי טרור. משקל 1 לרכיב החלשת הרשות בלבד; אין כאן ייחוס של החלטת הכסף הקטארי מ־2018 לרשימה הנוכחית.', paFundsSource, 'קיזוז כספי הרשות').map(item => ({ ...item, basis: 'partial-action' })),
     ...evidence({ id: 'yisrael-beitenu', letters: 'ל' }, -2 * direction,
       'ליברמן התפטר מתפקיד שר הביטחון בנובמבר 2018 במחאה על המדיניות מול חמאס, וציין את העברת הכסף ואת הפסקת האש. משקל 2 להתפטרות במחאה, מעשה שבוצע ולא הצהרה; אין בכך קביעה שתמך בחיזוק הרשות.', resignationSource, 'פרישה במחאה על המדיניות').map(item => ({ ...item, basis: 'action' })),
     // Continuing a policy is weaker than initiating it: a penalty only, with no credit for the other answer.

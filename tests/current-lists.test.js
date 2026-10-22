@@ -18,13 +18,13 @@ test('ministerial responsibility is preserved once through current-list mapping'
     assert.equal(party.points, previous.points - (party.id === 'likud' ? 1 : 0));
   }
   const likud = after.find(party => party.id === 'likud');
-  assert.equal(likud.points, -2);
+  assert.equal(likud.points, -1);
   assert.equal(likud.contributions.length, 3); // Bridge, the status-quo weekend record, and October 7.
 });
 
 test('mapped results use unique present ballots and exclude old standalone parties', () => {
   const results = scoreCurrentReligion('shabbat', 'expand');
-  assert.equal(results.length, 7);
+  assert.equal(results.length, 9);
   assert.equal(new Set(results.map(party => party.letters)).size, results.length);
   for (const party of results) {
     assert.ok(PARTIES.some(([letters, name]) => letters === party.letters && name === party.name));
@@ -53,8 +53,10 @@ test('Religious Zionism carries the Tkuma component of the Jewish Home coalition
   assert.equal(religiousZionism.id, 'religious-zionism');
   assert.equal(religiousZionism.points, -1);
   assert.deepEqual(religiousZionism.contributions[0].evidence.map(item => item.id), ['tkuma']);
-  const merged = scoreCurrentReligion('shabbat', null, null, null, { threatAnswer: 'hamas' }).filter(party => party.letters === 'ט');
+  const merged = scoreCurrentReligion('shabbat', null, null, null, { burdenTasksAnswer: ['protect-outposts'] }).filter(party => party.letters === 'ט');
   assert.equal(merged.length, 1); // Historical and current evidence share one row.
+  assert.equal(merged[0].contributions.length, 2);
+  assert.equal(merged[0].points, 0); // Bridge responsibility −1, outposts +1.
 });
 
 test('disagreement between predecessors is averaged within a question', () => {
@@ -69,8 +71,8 @@ test('disagreement between predecessors is averaged within a question', () => {
 test('Beyachad averages Lapid evidence with Bennett-led Jewish Home coalition responsibility', () => {
   const beyachad = scoreCurrentReligion('shabbat', 'expand').find(party => party.id === 'beyachad');
   assert.equal(beyachad.letters, 'רק');
-  assert.equal(beyachad.points, 0.5);
-  assert.equal(beyachad.contributions.length, 1);
+  assert.equal(beyachad.points, 2.5);
+  assert.equal(beyachad.contributions.length, 2);
   assert.deepEqual(beyachad.contributions[0].evidence.map(item => item.id).sort(), ['jewish-home', 'yesh-atid']);
   assert.match(beyachad.note, /הבית היהודי/);
 });
@@ -78,8 +80,8 @@ test('Beyachad averages Lapid evidence with Bennett-led Jewish Home coalition re
 test('skips, missing evidence, and withdrawal notices do not become zero-point recommendations', () => {
   assert.deepEqual(scoreCurrentReligion(null, null), []);
   const weekend = scoreCurrentReligion(null, 'keep');
-  assert.equal(weekend.length, 5);
-  assert.ok(weekend.every(party => party.points === (party.id === 'likud' ? 2 : 0) && party.contributions.length === 1));
+  assert.equal(weekend.length, 8);
+  assert.ok(weekend.every(party => party.points === (party.id === 'likud' ? 1 : 0) && party.contributions.length === 1));
   const unscored = unscoredCurrentLists(weekend);
   assert.ok(unscored.some(([letters]) => letters === 'דרך'));
   assert.ok(unscored.some(([letters]) => letters === 'ט'));
@@ -99,6 +101,23 @@ test('mapping preserves source data and keeps partial coverage below complete co
   const before = structuredClone(historical);
   const results = mapHistoricalScores(historical);
   assert.deepEqual(historical, before);
-  assert.ok(results.slice(0, 5).every(party => party.contributions.length === 2));
-  assert.ok(results.slice(5).every(party => party.contributions.length === 1));
+  const firstPartial = results.findIndex(party => party.contributions.length === 1);
+  assert.equal(firstPartial, 6);
+  assert.ok(results.slice(0, firstPartial).every(party => party.contributions.length === 2));
+  assert.ok(results.slice(firstPartial).every(party => party.contributions.length === 1));
+});
+
+test('weekend records use the same predecessor averaging for Likud and the Joint List', () => {
+  for (const [answer, expectedLikud, expectedJoint] of [['expand', 1, 2], ['keep', 1, 0], ['ban', -1, -2]]) {
+    const scores = scoreCurrentReligion(null, answer);
+    for (const [id, points, evidenceIds] of [['likud', expectedLikud, ['kulanu', 'likud']], ['joint-list', expectedJoint, ['balad', 'hadash']]]) {
+      const party = scores.find(item => item.id === id);
+      assert.equal(party.points, points);
+      assert.equal(party.contributions.length, 1);
+      assert.deepEqual(party.contributions[0].evidence.map(item => item.id).sort(), evidenceIds);
+    }
+    assert.equal(scores.find(item => item.id === 'otzma-yehudit').points, expectedJoint ? -expectedJoint : 0);
+  }
+  const scores = scoreCurrentReligion(null, 'expand', null, null, { childProtectionAnswer: 'enforce', academiaAnswer: 'expand' });
+  for (const id of ['joint-list', 'otzma-yehudit']) assert.equal(scores.filter(item => item.id === id).length, 1);
 });

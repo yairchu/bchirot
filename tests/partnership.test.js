@@ -25,7 +25,7 @@ test('partnership evidence refers to current ballots and actions, and answers re
 test('women service uses weak parliamentary evidence and reverses one point for the opposite answer', () => {
   const serve = scoreWomenService('serve');
   const exempt = scoreWomenService('exempt');
-  assert.deepEqual(serve.map(({ id, points }) => ({ id, points })), [{ id: 'democrats', points: 1 }, { id: 'religious-zionism', points: -1 }]);
+  assert.deepEqual(serve.map(({ id, points }) => ({ id, points })), [{ id: 'democrats', points: 1 }, { id: 'yisrael-beitenu', points: 1 }, { id: 'religious-zionism', points: -1 }]);
   for (const item of serve) {
     assert.equal(item.basis, 'partial-action');
     assert.equal(exempt.find(other => other.id === item.id).points, -item.points);
@@ -87,7 +87,7 @@ test('equal representation distinguishes near-balanced lists, limited participat
   const results = scoreCurrentReligion(null, null, null, null, { representationAnswer: 'equal' });
   assert.equal(results.find(item => item.id === 'likud').contributions.length, 1);
   assert.equal(results.find(item => item.id === 'likud').points, 0);
-  assert.equal(results.some(item => item.id === 'otzma-yehudit'), false);
+  assert.equal(results.find(item => item.id === 'otzma-yehudit').points, 0);
 });
 
 test('new contributions merge with prior topics without duplicate parties or lost scores', () => {
@@ -139,7 +139,7 @@ test('minors protection distinguishes sustained work, partial legislation and mi
   const combined = scoreCurrentReligion(null, null, null, null, { childProtectionAnswer: 'enforce' });
   assert.deepEqual(Object.fromEntries(combined.map(item => [item.id, item.points])), {
     beyachad: 2, 'yisrael-beitenu': 1, democrats: 1, 'joint-list': 1,
-    likud: -1, shas: -3, utj: -2, 'otzma-yehudit': -1,
+    likud: -1, shas: -2, utj: -1, 'otzma-yehudit': -1,
   });
   assert.equal(records.find(item => item.id === 'beyachad').basis, 'sustained-action');
   const likud = combined.find(item => item.id === 'likud');
@@ -147,15 +147,15 @@ test('minors protection distinguishes sustained work, partial legislation and mi
   assert.equal(likud.contributions[0].evidence.length, 3);
   assert.deepEqual(likud.contributions[0].evidence.map(item => item.basis), ['partial-action', 'responsibility', 'responsibility']);
   // Welfare responsibility is counted per ministry, separately from legislative opposition.
-  assert.deepEqual(records.filter(item => item.id === 'shas').map(item => [item.basis, item.points]), [['legislative-opposition', -2], ['responsibility', -1]]);
+  assert.deepEqual(records.filter(item => item.id === 'shas').map(item => [item.basis, item.points]), [['legislative-opposition', -1], ['responsibility', -1]]);
   for (const id of ['yisrael-beitenu', 'democrats', 'joint-list']) {
     assert.equal(records.find(item => item.id === id).basis, 'partial-action');
   }
   for (const id of ['shas', 'utj']) {
     const opposition = records.find(item => item.id === id);
     assert.equal(opposition.basis, 'legislative-opposition');
-    assert.equal(opposition.points, -2);
-    assert.ok(Math.abs(opposition.points) > Math.abs(records.find(item => item.id === 'otzma-yehudit').points));
+    assert.equal(opposition.points, -1);
+    assert.equal(Math.abs(opposition.points), Math.abs(records.find(item => item.id === 'democrats').points));
   }
   const alternative = scoreMinorsProtection('community-first');
   assert.deepEqual(Object.fromEntries(alternative.map(item => [item.id, item.points])), {
@@ -174,4 +174,32 @@ test('withdrawn ballots are excluded from minors protection scoring', t => {
   PARTY_NOTICES['רק'] = { kind: 'withdrawn' };
   assert.equal(scoreMinorsProtection('enforce').some(item => item.id === 'beyachad'), false);
   assert.equal(scoreMinorsProtection('community-first').some(item => item.id === 'beyachad'), false);
+});
+
+test('representation covers every list in the cited table with one consistent rule', () => {
+  const shares = { 'מחל': 13, 'רק': 46, 'אמת': 50, 'דרך': 48, 'ל': 33, 'ודם': 12.5, 'ב': 25, 'ט': 17, 'עם': 20, 'ך': 25, 'די': 25, 'שס': 0, 'ג': 0 };
+  for (const answer of ['inclusive', 'men-only', 'equal']) {
+    const scores = scoreRepresentation(answer);
+    assert.equal(scores.length, Object.keys(shares).length);
+    for (const [letters, share] of Object.entries(shares)) {
+      const record = scores.find(item => item.letters === letters);
+      assert.equal(record.womenPercent, share);
+      const expected = answer === 'equal' ? (share === 0 ? -1 : share >= 40 && share <= 60 ? 1 : 0)
+        : (answer === 'inclusive' ? 1 : -1) * (share > 0 ? 1 : -1);
+      assert.equal(record.points, expected, `${letters}: ${answer}`);
+    }
+    // Lists outside the researched table remain unknown, rather than zero.
+    assert.equal(scores.some(item => item.letters === 'קה'), false);
+  }
+});
+
+test('Sharon Nir integration evidence adds one point once and shares the cited committee record', () => {
+  const record = scoreWomenService('serve').find(item => item.id === 'yisrael-beitenu');
+  assert.equal(record.points, 1);
+  assert.equal(record.source, 'https://oknesset.org/meetings/2/2/2229819.html');
+  assert.match(record.reason, /שרון ניר/);
+  const [party] = scoreCurrentReligion(null, null, null, null, { womenServiceAnswer: 'volunteer' }).filter(item => item.id === 'yisrael-beitenu');
+  assert.equal(party.points, 1);
+  assert.equal(party.contributions.length, 1);
+  assert.equal(party.contributions[0].evidence.length, 1);
 });

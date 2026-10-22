@@ -11,6 +11,8 @@ const idi = 'https://www.idi.org.il/policy/parties-and-elections/parties/';
 export const CURRENT_LIST_MAPPINGS = [
   { id: 'shas', letters: 'שס', historical: ['shas'], note: 'המשך של ש״ס.', source: 'https://bechirot.fyi/lists/26' },
   { id: 'utj', letters: 'ג', historical: ['utj'], note: 'המשך של יהדות התורה.', source: 'https://bechirot.fyi/lists/26' },
+  { id: 'otzma-yehudit', letters: 'ב', historical: ['otzma-yehudit'], note: 'המשך של עוצמה יהודית.', source: 'https://bechirot.fyi/lists/26' },
+  { id: 'joint-list', letters: 'ודם', historical: ['hadash', 'balad'], note: 'העדויות מתייחסות לרכיבי חד״ש ובל״ד ברשימה המשותפת, ומשוקללות פעם אחת לכל שאלה. אין כאן ייחוס עמדה לתע״ל ללא מקור.', source: 'https://jointlist.org.il/he/' },
   { id: 'likud', letters: 'מחל', historical: ['likud', 'kulanu'], note: 'כולנו התאחדה עם הליכוד. המקורות של שתי המפלגות משוקללים פעם אחת לכל שאלה.', source: `${idi}kulanu/` },
   { id: 'democrats', letters: 'אמת', historical: ['labor', 'meretz'], note: 'הדמוקרטים הם איחוד העבודה ומרצ. המקורות של שתיהן משוקללים פעם אחת לכל שאלה.', source: `${idi}democrats/` },
   { id: 'beyachad', letters: 'רק', historical: ['yesh-atid', 'jewish-home'], note: 'ביחד כוללת את יש עתיד ואת בנט 2026. עדויות היסטוריות של יש עתיד ושל הבית היהודי בראשות בנט משוקללות פעם אחת לכל שאלה.', source: `${idi}beyachad/` },
