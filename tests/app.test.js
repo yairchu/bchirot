@@ -38,6 +38,10 @@ async function setup(t, mouseAvailable = true) {
     Object.defineProperty(event, 'pointerType', { value: pointerType });
     $('#sure-button').dispatchEvent(event);
   };
+  const skipMinors = () => {
+    assert.equal(window.history.state.bchirot.step, 'child-protection');
+    click('next');
+  };
   const skipSidewalk = () => {
     assert.equal(window.history.state.bchirot.step, 'sidewalk');
     click('next');
@@ -69,10 +73,10 @@ async function setup(t, mouseAvailable = true) {
     t.mock.timers.tick(0);
     return completed;
   };
-  return { $, click, choose, hover, robotQuestion, traverse, declineArmy, skipDraft, skipWomenService, skipSidewalk };
+  return { $, click, choose, hover, robotQuestion, traverse, declineArmy, skipDraft, skipWomenService, skipSidewalk, skipMinors };
 }
 
-test('welcome starts the questionnaire; modesty and partnership shows four available questions', async t => {
+test('welcome starts the questionnaire; modesty and partnership shows five available questions', async t => {
   const { $, click } = await setup(t);
   assert.equal($('h1').textContent, 'תכלס, בחירות.');
   assert.equal($('.description').textContent, 'השאלון שמבוסס על מעשים, לא על הצהרות');
@@ -83,7 +87,7 @@ test('welcome starts the questionnaire; modesty and partnership shows four avail
   assert.equal(document.querySelector('.choice input').name, 'authority');
   assert.ok($('[value="religion-transport"]').closest('label').textContent.includes('דת ותחבורה'));
   assert.ok($('[value="modesty-partnership"]').closest('label').textContent.includes('צניעות ושותפות'));
-  assert.ok($('[value="modesty-partnership"]').closest('label').textContent.includes('+4'));
+  assert.ok($('[value="modesty-partnership"]').closest('label').textContent.includes('+5'));
   assert.equal($('[data-action="next"]').disabled, false);
 });
 
@@ -120,10 +124,10 @@ test('authority disables all topic choices and restores their selections when un
 
 for (const mouseAvailable of [true, false]) {
   test(`modesty and partnership answers, history and scoring work on ${mouseAvailable ? 'desktop' : 'mobile'}`, async t => {
-    const { $, click, choose, traverse, skipWomenService, skipSidewalk } = await setup(t, mouseAvailable);
+    const { $, click, choose, traverse, skipWomenService, skipSidewalk, skipMinors } = await setup(t, mouseAvailable);
     click('start'); choose('[value="modesty-partnership"]'); click('next');
     assert.equal($('h2').textContent, 'מי יושב סביב שולחן ההחלטות?');
-    assert.equal($('.step-label').textContent, 'שאלה 2 מתוך 5');
+    assert.equal($('.step-label').textContent, 'שאלה 2 מתוך 6');
     assert.equal($('.button-label').textContent, 'דלג');
     assert.equal(document.querySelectorAll('[name="representation-answer"]').length, 3);
     assert.deepEqual([...document.querySelectorAll('[name="representation-answer"]')].map(input => input.value), ['men-only', 'inclusive', 'equal']);
@@ -131,16 +135,16 @@ for (const mouseAvailable of [true, false]) {
     choose('[name="representation-answer"][value="inclusive"]'); click('next');
     assert.equal($('h2').textContent, 'תואר שני, כיתה נפרדת?');
     assert.deepEqual([...document.querySelectorAll('[name="academia-answer"]')].map(input => input.value), ['expand', 'limit', 'ban']);
-    assert.equal($('.step-label').textContent, 'שאלה 3 מתוך 5');
+    assert.equal($('.step-label').textContent, 'שאלה 3 מתוך 6');
     choose('[name="academia-answer"][value="limit"]');
-    assert.equal($('.button-label').textContent, 'ממשיכים'); click('next'); skipWomenService(); skipSidewalk();
+    assert.equal($('.button-label').textContent, 'ממשיכים'); click('next'); skipWomenService(); skipSidewalk(); skipMinors();
     assert.equal($('[data-party-id="democrats"] .score').textContent, '+2');
     assert.equal($('[data-party-id="otzma-yehudit"] .score').textContent, '−1');
     assert.equal($('[data-party-id="shas"] .score').textContent, '−1');
-    assert.match($('.description').textContent, /2 מתוך 4/);
-    await traverse('back'); await traverse('back'); await traverse('back');
+    assert.match($('.description').textContent, /2 מתוך 5/);
+    await traverse('back'); await traverse('back'); await traverse('back'); await traverse('back');
     assert.equal($('[name="academia-answer"]:checked').value, 'limit');
-    choose('[name="academia-answer"][value="expand"]'); click('next'); skipWomenService(); skipSidewalk();
+    choose('[name="academia-answer"][value="expand"]'); click('next'); skipWomenService(); skipSidewalk(); skipMinors();
     assert.equal($('[data-party-id="democrats"] .score').textContent, '0');
     assert.equal($('[data-party-id="otzma-yehudit"] .score').textContent, '+1');
     click('restart');
@@ -150,92 +154,92 @@ for (const mouseAvailable of [true, false]) {
 }
 
 test('opposing all separated academic tracks retains sources and shows only evidenced disagreement', async t => {
-  const { $, click, choose, traverse, skipWomenService, skipSidewalk } = await setup(t);
+  const { $, click, choose, traverse, skipWomenService, skipSidewalk, skipMinors } = await setup(t);
   click('start'); choose('[value="modesty-partnership"]'); click('next'); click('next');
-  assert.equal($('.step-label').textContent, 'שאלה 3 מתוך 5');
+  assert.equal($('.step-label').textContent, 'שאלה 3 מתוך 6');
   const links = [...document.querySelectorAll('.dilemma-background a')].map(link => link.href);
   assert.ok(links.some(link => link.includes('11_Noya%20Rimlat.pdf#page=44')));
   assert.ok(links.some(link => link === 'https://lawjournal.huji.ac.il/article/12/1667'));
   const ban = $('[name="academia-answer"][value="ban"]');
   assert.match(ban.closest('label').textContent, /חופש הבחירה גם לחרדים/);
   ban.click();
-  assert.equal($('.button-label').textContent, 'ממשיכים'); click('next'); skipWomenService(); skipSidewalk();
+  assert.equal($('.button-label').textContent, 'ממשיכים'); click('next'); skipWomenService(); skipSidewalk(); skipMinors();
   assert.equal($('h2').textContent, 'עדיין לא נמצאה התאמה חיובית');
   assert.equal($('[data-score-group="positive"]'), null);
   assert.equal($('[data-party-id="otzma-yehudit"] .score').textContent, '−1');
   assert.equal($('[data-party-id="democrats"]'), null);
-  await traverse('back'); await traverse('back'); await traverse('back');
+  await traverse('back'); await traverse('back'); await traverse('back'); await traverse('back');
   assert.equal($('[name="academia-answer"]:checked').value, 'ban');
-  choose('[name="academia-answer"][value="limit"]'); click('next'); skipWomenService(); skipSidewalk();
+  choose('[name="academia-answer"][value="limit"]'); click('next'); skipWomenService(); skipSidewalk(); skipMinors();
   assert.equal($('[data-party-id="democrats"] .score').textContent, '+1');
-  await traverse('back'); await traverse('back'); await traverse('back');
+  await traverse('back'); await traverse('back'); await traverse('back'); await traverse('back');
   $('[name="academia-answer"]:checked').click();
-  assert.equal($('.button-label').textContent, 'דלג'); click('next'); skipWomenService(); skipSidewalk();
+  assert.equal($('.button-label').textContent, 'דלג'); click('next'); skipWomenService(); skipSidewalk(); skipMinors();
   assert.equal($('.score-table'), null);
 });
 
 test('equal representation yields distinct positive and neutral results and can be undone or cleared', async t => {
-  const { $, click, choose, traverse, skipWomenService, skipSidewalk } = await setup(t);
+  const { $, click, choose, traverse, skipWomenService, skipSidewalk, skipMinors } = await setup(t);
   click('start'); choose('[value="modesty-partnership"]'); click('next');
   $('[name="representation-answer"][value="equal"]').click();
-  assert.equal($('.button-label').textContent, 'ממשיכים'); click('next'); click('next'); skipWomenService(); skipSidewalk();
+  assert.equal($('.button-label').textContent, 'ממשיכים'); click('next'); click('next'); skipWomenService(); skipSidewalk(); skipMinors();
   assert.equal(document.querySelectorAll('[data-score-group="positive"] tbody tr').length, 3);
   assert.equal($('[data-party-id="likud"] .score').textContent, '0');
   assert.equal($('[data-party-id="likud"]').closest('[data-score-group]').dataset.scoreGroup, 'neutral');
   assert.equal($('[data-party-id="yashar"] .score').textContent, '+1');
-  await traverse('back'); await traverse('back'); await traverse('back'); await traverse('back');
+  await traverse('back'); await traverse('back'); await traverse('back'); await traverse('back'); await traverse('back');
   assert.equal($('[name="representation-answer"]:checked').value, 'equal');
   $('[name="representation-answer"][value="equal"]').click();
   assert.equal($('.button-label').textContent, 'דלג');
   await traverse('back');
   assert.equal($('[name="representation-answer"]:checked').value, 'equal');
-  await traverse('forward'); click('next'); click('next'); skipWomenService(); skipSidewalk();
+  await traverse('forward'); click('next'); click('next'); skipWomenService(); skipSidewalk(); skipMinors();
   assert.equal($('.score-table'), null);
 });
 
 test('both partnership questions can be cleared and skipped without inventing party scores', async t => {
-  const { $, click, choose, skipWomenService, skipSidewalk } = await setup(t);
+  const { $, click, choose, skipWomenService, skipSidewalk, skipMinors } = await setup(t);
   click('start'); choose('[value="modesty-partnership"]'); click('next');
   $('[name="representation-answer"][value="men-only"]').click();
   $('[name="representation-answer"][value="men-only"]').click();
   assert.equal($('.button-label').textContent, 'דלג'); click('next');
   $('[name="academia-answer"][value="expand"]').click();
   $('[name="academia-answer"][value="expand"]').click();
-  assert.equal($('.button-label').textContent, 'דלג'); click('next'); skipWomenService(); skipSidewalk();
+  assert.equal($('.button-label').textContent, 'דלג'); click('next'); skipWomenService(); skipSidewalk(); skipMinors();
   assert.equal($('.score-table'), null);
   assert.equal(window.history.state.bchirot.step, 'bridge-result');
 });
 
 for (const mouseAvailable of [true, false]) {
   test(`standalone women service restores, reverses and clears its party scores on ${mouseAvailable ? 'desktop' : 'mobile'}`, async t => {
-    const { $, click, choose, traverse, skipSidewalk } = await setup(t, mouseAvailable);
+    const { $, click, choose, traverse, skipSidewalk, skipMinors } = await setup(t, mouseAvailable);
     click('start'); choose('[value="modesty-partnership"]'); click('next'); click('next'); click('next');
     assert.equal($('h2').textContent, 'האם נשים צריכות לשרת בצה״ל?');
-    assert.equal($('.step-label').textContent, 'שאלה 4 מתוך 5');
+    assert.equal($('.step-label').textContent, 'שאלה 4 מתוך 6');
     assert.equal($('.button-label').textContent, 'דלג');
     assert.equal(document.querySelectorAll('[name="women-service-answer"]').length, 2);
     assert.equal($('.burden-meter'), null);
     assert.ok([...document.querySelectorAll('.dilemma-background a')].some(link => link.hostname === 'www.idf.il'));
     $('[name="women-service-answer"][value="serve"]').click();
-    assert.equal($('.button-label').textContent, 'ממשיכים'); click('next'); skipSidewalk();
+    assert.equal($('.button-label').textContent, 'ממשיכים'); click('next'); skipSidewalk(); skipMinors();
     assert.match($('.women-service-summary').textContent, /כן, שירות צבאי לפי התאמה לתפקיד/);
     assert.equal($('[data-party-id="democrats"] .score').textContent, '+1');
     assert.equal($('[data-party-id="religious-zionism"] .score').textContent, '−1');
-    assert.match($('.description').textContent, /1 מתוך 4/);
-    await traverse('back'); await traverse('back');
+    assert.match($('.description').textContent, /1 מתוך 5/);
+    await traverse('back'); await traverse('back'); await traverse('back');
     assert.equal($('[name="women-service-answer"]:checked').value, 'serve');
-    choose('[name="women-service-answer"][value="exempt"]'); click('next'); skipSidewalk();
+    choose('[name="women-service-answer"][value="exempt"]'); click('next'); skipSidewalk(); skipMinors();
     assert.match($('.women-service-summary').textContent, /לפטור נשים/);
     assert.equal($('[data-party-id="democrats"] .score').textContent, '−1');
     assert.equal($('[data-party-id="religious-zionism"] .score').textContent, '+1');
     assert.equal(window.history.state.bchirot.noArmy, false);
-    await traverse('back'); await traverse('back');
+    await traverse('back'); await traverse('back'); await traverse('back');
     $('[name="women-service-answer"]:checked').click();
-    assert.equal($('.button-label').textContent, 'דלג'); click('next'); skipSidewalk();
+    assert.equal($('.button-label').textContent, 'דלג'); click('next'); skipSidewalk(); skipMinors();
     assert.equal($('.women-service-summary'), null);
     assert.equal($('.score-table'), null);
-    await traverse('back'); await traverse('back');
-    choose('[name="women-service-answer"][value="serve"]'); click('next'); skipSidewalk(); click('restart');
+    await traverse('back'); await traverse('back'); await traverse('back');
+    choose('[name="women-service-answer"][value="serve"]'); click('next'); skipSidewalk(); skipMinors(); click('restart');
     assert.equal(window.history.state.bchirot.womenServiceAnswer, null);
   });
 }
@@ -244,15 +248,15 @@ test('selecting security removes the compact women question and updates the topi
   const { $, click, choose, traverse } = await setup(t);
   click('start'); choose('[value="modesty-partnership"]');
   const count = () => $('[data-topic-count="modesty-partnership"]').textContent;
-  assert.equal(count(), '(+4 שאלות)');
-  assert.match($('#question-budget').textContent, /5 שאלות/);
+  assert.equal(count(), '(+5 שאלות)');
+  assert.match($('#question-budget').textContent, /6 שאלות/);
   choose('[value="war-dream"]');
-  assert.match($('#question-budget').textContent, /9 שאלות/);
+  assert.match($('#question-budget').textContent, /10 שאלות/);
   assert.equal($('[data-topic-count="war-dream"]').textContent, '(+4 שאלות)');
   choose('[value="war-dream"]', false);
-  assert.equal(count(), '(+4 שאלות)');
+  assert.equal(count(), '(+5 שאלות)');
   await traverse('back');
-  assert.match($('#question-budget').textContent, /9 שאלות/);
+  assert.match($('#question-budget').textContent, /10 שאלות/);
   click('next');
   assert.equal(window.history.state.bchirot.step, 'dream');
 });
@@ -266,7 +270,7 @@ test('a restored compact answer cannot add women service points after switching 
   window.dispatchEvent(new window.PopStateEvent('popstate', { state: { bchirot: restored } }));
   click('next'); click('next');
   choose('[value="serve-women"]'); click('next');
-  for (const step of ['burden-tasks', 'threat', 'emergency', 'representation', 'academia', 'sidewalk']) {
+  for (const step of ['burden-tasks', 'threat', 'emergency', 'representation', 'academia', 'sidewalk', 'child-protection']) {
     assert.equal(window.history.state.bchirot.step, step);
     click('next');
   }
@@ -275,25 +279,25 @@ test('a restored compact answer cannot add women service points after switching 
   assert.equal($('[data-party-id="democrats"] .score').textContent, '0');
   assert.equal($('[data-party-id="religious-zionism"] .score').textContent, '−1');
   assert.equal($('[data-party-id="democrats"] details').querySelectorAll('b').length, 1);
-  assert.match($('.description').textContent, /1 מתוך 8/);
+  assert.match($('.description').textContent, /1 מתוך 9/);
 });
 
 test('all three topics retain existing question order and append the active partnership dilemmas', async t => {
   const { $, click, choose } = await setup(t);
   click('start');
   choose('[value="modesty-partnership"]'); choose('[value="religion-transport"]'); choose('[value="war-dream"]');
-  assert.match($('#question-budget').textContent, /11 שאלות/);
+  assert.match($('#question-budget').textContent, /12 שאלות/);
   click('next');
-  const route = ['dream', 'burden', 'burden-tasks', 'threat', 'bridge', 'weekend', 'emergency', 'representation', 'academia', 'sidewalk'];
+  const route = ['dream', 'burden', 'burden-tasks', 'threat', 'bridge', 'weekend', 'emergency', 'representation', 'academia', 'sidewalk', 'child-protection'];
   for (const [index, step] of route.entries()) {
     assert.equal(window.history.state.bchirot.step, step);
-    assert.equal($('.step-label').textContent, `שאלה ${index + 2} מתוך 11`);
+    assert.equal($('.step-label').textContent, `שאלה ${index + 2} מתוך 12`);
     if (step === 'burden') choose('[value="serve-haredim"]');
     if (step === 'representation') choose('[name="representation-answer"][value="inclusive"]');
     if (step === 'academia') choose('[name="academia-answer"][value="limit"]');
     click('next');
   }
-  assert.match($('.description').textContent, /3 מתוך 10/);
+  assert.match($('.description').textContent, /3 מתוך 11/);
   assert.equal($('[data-party-id="democrats"] .score').textContent, '+2');
   assert.equal(document.querySelectorAll('[data-party-id="democrats"]').length, 1);
   assert.equal($('[data-party-id="democrats"] details').querySelectorAll('b').length, 3);
@@ -1085,34 +1089,34 @@ test('browser history restores the warning versus meter without losing service c
 
 for (const mouseAvailable of [true, false]) {
   test(`sidewalk question supports sources, reversible scores, history and skip on ${mouseAvailable ? 'desktop' : 'mobile'}`, async t => {
-    const { $, click, choose, traverse } = await setup(t, mouseAvailable);
+    const { $, click, choose, traverse, skipMinors } = await setup(t, mouseAvailable);
     click('start'); choose('[value="modesty-partnership"]');
     click('next'); click('next'); click('next'); click('next');
     assert.equal($('h2').textContent, 'גם למדרכה יש מגדר?');
-    assert.equal($('.step-label').textContent, 'שאלה 5 מתוך 5');
+    assert.equal($('.step-label').textContent, 'שאלה 5 מתוך 6');
     assert.equal($('.button-label').textContent, 'דלג');
     assert.equal(document.querySelectorAll('[name="sidewalk-answer"]').length, 2);
     assert.ok([...document.querySelectorAll('.dilemma-background a')].some(link => link.href === 'https://www.inn.co.il/news/701567'));
     $('[name="sidewalk-answer"][value="free-choice"]').click();
-    assert.equal($('.button-label').textContent, 'לתוצאות');
-    click('next');
+    assert.equal($('.button-label').textContent, 'ממשיכים');
+    click('next'); skipMinors();
     assert.equal($('[data-party-id="democrats"] .score').textContent, '+1');
     assert.equal(document.querySelectorAll('[data-party-id]').length, 2);
     assert.equal($('[data-party-id="otzma-yehudit"] .score').textContent, '−1');
     assert.match($('[data-party-id="otzma-yehudit"] details').textContent, /הערכת אחריות מיניסטריאלית/);
-    assert.match($('.description').textContent, /1 מתוך 4/);
-    await traverse('back');
+    assert.match($('.description').textContent, /1 מתוך 5/);
+    await traverse('back'); await traverse('back');
     assert.equal($('[name="sidewalk-answer"]:checked').value, 'free-choice');
-    choose('[name="sidewalk-answer"][value="separate"]'); click('next');
+    choose('[name="sidewalk-answer"][value="separate"]'); click('next'); skipMinors();
     assert.equal($('h2').textContent, 'עדיין לא נמצאה התאמה חיובית');
     assert.equal($('[data-party-id="democrats"] .score').textContent, '−1');
     assert.equal($('[data-party-id="otzma-yehudit"]'), null);
-    await traverse('back');
+    await traverse('back'); await traverse('back');
     $('[name="sidewalk-answer"]:checked').click();
     assert.equal($('.button-label').textContent, 'דלג');
     await traverse('back');
     assert.equal($('[name="sidewalk-answer"]:checked').value, 'separate');
-    await traverse('forward'); click('next');
+    await traverse('forward'); click('next'); skipMinors();
     assert.equal($('.score-table'), null);
     click('restart');
     assert.equal(window.history.state.bchirot.sidewalkAnswer, null);
@@ -1126,17 +1130,71 @@ test('quiz analytics observes progress and skips without sending answers or dupl
   click('start'); choose('[value="modesty-partnership"]'); click('next');
   choose('[name="representation-answer"][value="men-only"]');
   await traverse('back'); await traverse('forward');
-  click('next'); click('next'); click('next'); click('next');
+  click('next'); click('next'); click('next'); click('next'); click('next');
   assert.equal(window.history.state.bchirot.step, 'bridge-result');
   assert.deepEqual(events, [
     ['Quiz Started'], ['Question Viewed: representation'], ['Question Viewed: academia'],
     ['Question Skipped: academia'], ['Question Viewed: women-service'],
     ['Question Skipped: women-service'], ['Question Viewed: sidewalk'],
-    ['Question Skipped: sidewalk'], ['Quiz Completed'],
+    ['Question Skipped: sidewalk'], ['Question Viewed: child-protection'],
+    ['Question Skipped: child-protection'], ['Quiz Completed'],
   ]);
   await traverse('back'); await traverse('forward');
   assert.equal(events.filter(([event]) => event === 'Quiz Completed').length, 1);
   click('restart');
   assert.equal(events.filter(([event]) => event === 'Quiz Started').length, 2);
   assert.equal($('h2').textContent, 'מה הכי חשוב לך?');
+});
+
+for (const mouseAvailable of [true, false]) {
+  test(`minors protection is last, sourced, scored and undoable on ${mouseAvailable ? 'desktop' : 'mobile'}`, async t => {
+    const { $, click, choose, traverse } = await setup(t, mouseAvailable);
+    click('start'); choose('[value="modesty-partnership"]');
+    for (let step = 0; step < 5; step++) click('next');
+    assert.equal(window.history.state.bchirot.step, 'child-protection');
+    assert.equal($('h2').textContent, 'מי שומר על הילדות?');
+    assert.equal($('.step-label').textContent, 'שאלה 6 מתוך 6');
+    assert.equal($('.button-label').textContent, 'דלג');
+    assert.match($('.description').textContent, /פורסמו עדויות/);
+    const background = $('.dilemma-background');
+    assert.match(background.textContent, /תשעה תיקים/);
+    assert.match(background.textContent, /דרעי/);
+    assert.match(background.textContent, /מירילשוילי/);
+    assert.match(background.textContent, /לא הוכח כאן שההתפקדות גרמה/);
+    assert.ok([...background.querySelectorAll('a')].some(link => link.href.includes('press01072026v')));
+    choose('[name="child-protection-answer"][value="enforce"]');
+    assert.equal($('.button-label').textContent, 'לתוצאות'); click('next');
+    assert.equal($('[data-party-id="beyachad"] .score').textContent, '+1');
+    assert.equal($('[data-party-id="otzma-yehudit"] .score').textContent, '−1');
+    assert.equal($('[data-party-id="likud"] .score').textContent, '−1');
+    assert.equal($('[data-party-id="shas"]'), null);
+    assert.match($('.description').textContent, /1 מתוך 5/);
+    await traverse('back');
+    assert.equal($('[name="child-protection-answer"]:checked').value, 'enforce');
+    choose('[name="child-protection-answer"][value="community-first"]'); click('next');
+    assert.equal($('h2').textContent, 'עדיין לא נמצאה התאמה חיובית');
+    assert.equal($('[data-party-id="beyachad"] .score').textContent, '−1');
+    assert.equal($('[data-party-id="otzma-yehudit"]'), null);
+    assert.equal($('[data-party-id="likud"]'), null);
+    await traverse('back');
+    $('[name="child-protection-answer"]:checked').click();
+    assert.equal($('.button-label').textContent, 'דלג'); click('next');
+    assert.equal($('.score-table'), null);
+    click('restart');
+    assert.equal(window.history.state.bchirot.childProtectionAnswer, null);
+  });
+}
+
+test('a restored minors protection answer is excluded if its category is no longer selected', async t => {
+  const { $, click, choose } = await setup(t);
+  click('start'); choose('[value="modesty-partnership"]');
+  for (let step = 0; step < 5; step++) click('next');
+  choose('[name="child-protection-answer"][value="enforce"]'); click('next');
+  const restored = { ...window.history.state.bchirot, step: 'topics', topics: ['religion-transport'] };
+  window.history.replaceState({ bchirot: restored }, '');
+  window.dispatchEvent(new window.PopStateEvent('popstate', { state: { bchirot: restored } }));
+  for (let step = 0; step < 5; step++) click('next');
+  assert.equal(window.history.state.bchirot.childProtectionAnswer, 'enforce');
+  assert.equal(window.history.state.bchirot.step, 'bridge-result');
+  assert.equal($('.score-table'), null);
 });

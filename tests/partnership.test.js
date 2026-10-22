@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { scoreRepresentation, scoreAcademia, scoreWomenService, scoreSidewalk } from '../dist/partnership.js';
+import { scoreRepresentation, scoreAcademia, scoreWomenService, scoreSidewalk, scoreMinorsProtection } from '../dist/partnership.js';
 import { scoreCurrentReligion } from '../dist/current-lists.js';
 import { scoreBurden } from '../dist/policy-questions.js';
 import { PARTIES, PARTY_NOTICES } from '../dist/parties.js';
@@ -130,4 +130,29 @@ test('sidewalk scores distinguish petition evidence from one-sided ministerial r
     } else assert.equal(responsibility, undefined);
   }
   for (const answer of [null, undefined, '', 'unknown']) assert.deepEqual(scoreSidewalk(answer), []);
+});
+
+test('minors protection scores documented oversight and ministerial responsibility, not political connections', () => {
+  const records = scoreMinorsProtection('enforce');
+  assert.deepEqual(Object.fromEntries(records.map(item => [item.id, item.points])), {
+    beyachad: 1, 'otzma-yehudit': -1, likud: -1,
+  });
+  assert.equal(records.find(item => item.id === 'beyachad').basis, 'partial-action');
+  for (const id of ['otzma-yehudit', 'likud']) assert.equal(records.find(item => item.id === id).basis, 'responsibility');
+  assert.equal(records.some(item => item.id === 'shas'), false);
+  const delay = scoreMinorsProtection('community-first');
+  assert.deepEqual(delay.map(item => [item.id, item.points]), [['beyachad', -1]]);
+  for (const answer of [null, undefined, '', 'unknown']) assert.deepEqual(scoreMinorsProtection(answer), []);
+  const combined = scoreCurrentReligion(null, null, null, null, { childProtectionAnswer: 'enforce', sidewalkAnswer: 'free-choice' });
+  assert.equal(combined.find(item => item.id === 'otzma-yehudit').points, -2);
+  assert.equal(combined.find(item => item.id === 'otzma-yehudit').contributions.length, 2);
+  assert.equal(combined.find(item => item.id === 'beyachad').points, 1);
+});
+
+test('withdrawn ballots are excluded from minors protection scoring', t => {
+  const previous = PARTY_NOTICES['רק'];
+  t.after(() => { if (previous) PARTY_NOTICES['רק'] = previous; else delete PARTY_NOTICES['רק']; });
+  PARTY_NOTICES['רק'] = { kind: 'withdrawn' };
+  assert.equal(scoreMinorsProtection('enforce').some(item => item.id === 'beyachad'), false);
+  assert.deepEqual(scoreMinorsProtection('community-first'), []);
 });

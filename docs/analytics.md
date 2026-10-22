@@ -10,7 +10,7 @@ The site uses the supplied Plausible script (`pa-sQ3MAbMALwg4k9gDtOIWq.js`), wit
 - `Question Viewed: <id>`: first view of each scored question per attempt.
 - `Question Skipped: <id>`: first continuation without an answer for each scored question per attempt.
 
-Question IDs are `dream`, `burden`, `burden-tasks`, `threat`, `bridge`, `weekend`, `emergency`, `draft`, `representation`, `academia`, `women-service`, and `sidewalk`.
+Question IDs are `dream`, `burden`, `burden-tasks`, `threat`, `bridge`, `weekend`, `emergency`, `draft`, `representation`, `academia`, `women-service`, `sidewalk`, and `child-protection`.
 
 These are separate event names so per-question counts do not depend on custom-property reports. Events contain no additional properties: no answers, selected topics, authority choice, ballot, robot answer, military roster, burden level, result scores or full questionnaire state. Viewed question IDs reveal which questions were visited; this is usage analytics, not anonymous survey-response collection. Plausible's ordinary visit metadata still applies (for example browser, device and referrer).
 

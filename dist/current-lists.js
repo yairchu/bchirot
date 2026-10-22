@@ -1,6 +1,6 @@
 import { PARTIES, PARTY_NOTICES } from './parties.js';
 import { scoreReligion } from './scoring.js';
-import { scoreRepresentation, scoreAcademia, scoreWomenService, scoreSidewalk } from './partnership.js';
+import { scoreRepresentation, scoreAcademia, scoreWomenService, scoreSidewalk, scoreMinorsProtection } from './partnership.js';
 import { scoreVision } from './visions.js';
 import { scoreDraft, scoreBurden, scoreThreat, normalizeBurdenAnswer, SERVICE_CHOICES } from './policy-questions.js';
 
@@ -43,7 +43,7 @@ export function mapHistoricalScores(historicalScores) {
   }).sort((a, b) => b.contributions.length - a.contributions.length || b.points - a.points || a.name.localeCompare(b.name, 'he'));
 }
 
-export function scoreCurrentReligion(bridgeAnswer, weekendAnswer, emergencyAnswer = null, dreamAnswer = null, { sidewalkAnswer = null, womenServiceAnswer = null, representationAnswer = null, academiaAnswer = null, draftAnswer = null, burdenAnswer = null, burdenTasksAnswer = null, threatAnswer = null } = {}) {
+export function scoreCurrentReligion(bridgeAnswer, weekendAnswer, emergencyAnswer = null, dreamAnswer = null, { childProtectionAnswer = null, sidewalkAnswer = null, womenServiceAnswer = null, representationAnswer = null, academiaAnswer = null, draftAnswer = null, burdenAnswer = null, burdenTasksAnswer = null, threatAnswer = null } = {}) {
   const results = mapHistoricalScores(scoreReligion(bridgeAnswer, weekendAnswer, emergencyAnswer));
   const serviceRoster = normalizeBurdenAnswer(burdenAnswer, false);
   for (const evidence of scoreVision(dreamAnswer)) {
@@ -55,7 +55,7 @@ export function scoreCurrentReligion(bridgeAnswer, weekendAnswer, emergencyAnswe
     party.contributions.push({ question: 'החלום שבחרת', points: evidence.points, evidence: [evidence] });
     party.points += evidence.points;
   }
-  for (const [question, records] of [['הפרדה במדרכות', scoreSidewalk(sidewalkAnswer)], ['שירות נשים בצה״ל', scoreWomenService(serviceRoster.length ? null : womenServiceAnswer)], ['ייצוג נשים בכנסת', scoreRepresentation(representationAnswer)], ['הפרדה בתארים מתקדמים', scoreAcademia(academiaAnswer)], ['גיוס גברים חרדים', scoreDraft(draftAnswer)], ['מי צריך לשרת בצבא?', scoreBurden(serviceRoster)], ['אילו משימות צה״ל צריך לשאת?', scoreBurden(normalizeBurdenAnswer(burdenTasksAnswer).filter(id => !SERVICE_CHOICES.some(choice => choice.id === id)))], ['חמאס והרשות', scoreThreat(threatAnswer)]]) {
+  for (const [question, records] of [['הגנה על קטינות ביבנאל', scoreMinorsProtection(childProtectionAnswer)], ['הפרדה במדרכות', scoreSidewalk(sidewalkAnswer)], ['שירות נשים בצה״ל', scoreWomenService(serviceRoster.length ? null : womenServiceAnswer)], ['ייצוג נשים בכנסת', scoreRepresentation(representationAnswer)], ['הפרדה בתארים מתקדמים', scoreAcademia(academiaAnswer)], ['גיוס גברים חרדים', scoreDraft(draftAnswer)], ['מי צריך לשרת בצבא?', scoreBurden(serviceRoster)], ['אילו משימות צה״ל צריך לשאת?', scoreBurden(normalizeBurdenAnswer(burdenTasksAnswer).filter(id => !SERVICE_CHOICES.some(choice => choice.id === id)))], ['חמאס והרשות', scoreThreat(threatAnswer)]]) {
     for (const evidence of records) {
       let party = results.find(party => party.id === evidence.id);
       if (!party) {
