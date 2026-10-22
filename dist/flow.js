@@ -22,6 +22,7 @@ export const QUESTIONS = {
   draft: { topics: ['religion-transport'], answerKey: 'draftAnswer', inputName: 'draft-answer', condition: 'no-security', scored: true },
   representation: { topics: ['modesty-partnership'], answerKey: 'representationAnswer', inputName: 'representation-answer', scored: true },
   academia: { topics: ['modesty-partnership'], answerKey: 'academiaAnswer', inputName: 'academia-answer', scored: true },
+  'women-service': { topics: ['modesty-partnership'], answerKey: 'womenServiceAnswer', inputName: 'women-service-answer', condition: 'no-security', scored: false },
 };
 
 export function questionRoute(topics, { noArmy = false } = {}) {

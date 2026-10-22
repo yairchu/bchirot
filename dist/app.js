@@ -2,14 +2,14 @@ import { CUTSCENE_DURATION, MOBILE_CONFIRM_DELAY, EASTER_EGG_DURATION, NO_TOPICS
 import { BALLOT_CHOICES, BLANK_BALLOT, BLANK_BALLOT_SOURCE, FAKE_BALLOT, PARTY_NOTICES } from './parties.js';
 import { BRIDGE_DILEMMA, WEEKEND_DILEMMA, EMERGENCY_DILEMMA, DREAM_QUESTION } from './dilemmas.js';
 import { SERVICE_CHOICES, BURDEN_GROUPS, BURDEN_TIMELINE, DRAFT_DILEMMA, THREAT_DILEMMA, normalizeBurdenAnswer, burdenLevel } from './policy-questions.js';
-import { REPRESENTATION_DILEMMA, ACADEMIA_DILEMMA } from './partnership.js';
+import { REPRESENTATION_DILEMMA, ACADEMIA_DILEMMA, WOMEN_SERVICE_DILEMMA } from './partnership.js';
 import { BASIS_LABELS } from './scoring.js';
 import { scoreCurrentReligion, unscoredCurrentLists, UNMAPPED_HISTORY, MAPPING_CHECKED_ON } from './current-lists.js';
 
 const app = document.querySelector('#app');
 const main = document.querySelector('#main');
 const mouseAvailable = matchMedia('(hover: hover) and (pointer: fine)').matches;
-const state = { step: 'welcome', topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null, emergencyAnswer: null, dreamAnswer: null, draftAnswer: null, representationAnswer: null, academiaAnswer: null, burdenAnswer: null, burdenTasksAnswer: null, noArmy: false, noArmyAnswer: null, threatAnswer: null };
+const state = { step: 'welcome', topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null, emergencyAnswer: null, dreamAnswer: null, draftAnswer: null, representationAnswer: null, academiaAnswer: null, womenServiceAnswer: null, burdenAnswer: null, burdenTasksAnswer: null, noArmy: false, noArmyAnswer: null, threatAnswer: null };
 let timers = [];
 const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 
@@ -42,7 +42,7 @@ function back() {
 
 function restart(step = 'topics') {
   clearTimers();
-  Object.assign(state, { step, topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null, emergencyAnswer: null, dreamAnswer: null, draftAnswer: null, representationAnswer: null, academiaAnswer: null, burdenAnswer: null, burdenTasksAnswer: null, noArmy: false, noArmyAnswer: null, threatAnswer: null });
+  Object.assign(state, { step, topics: [], authority: false, party: null, robot: null, cutscene: false, bridgeAnswer: null, weekendAnswer: null, emergencyAnswer: null, dreamAnswer: null, draftAnswer: null, representationAnswer: null, academiaAnswer: null, womenServiceAnswer: null, burdenAnswer: null, burdenTasksAnswer: null, noArmy: false, noArmyAnswer: null, threatAnswer: null });
   saveHistory();
   render();
   focusQuestion();
@@ -208,6 +208,10 @@ function burdenDetails(expanded) {
 
 function representationView() {
   return dilemmaView(REPRESENTATION_DILEMMA, 'representationAnswer', 'representation-answer', 'ייצוג נשים בפועל');
+}
+
+function womenServiceView() {
+  return dilemmaView(WOMEN_SERVICE_DILEMMA, 'womenServiceAnswer', 'women-service-answer', 'שירות נשים: התאמה ושיבוץ בפועל');
 }
 
 function academiaView() {
@@ -392,21 +396,23 @@ function bridgeResultView() {
   const scoredQuestions = questions.filter(id => QUESTIONS[id].scored);
   const answered = scoredQuestions.filter(id => Boolean(activeAnswer(id))).length;
   const dream = dreamSummary();
+  const womenService = WOMEN_SERVICE_DILEMMA.options.find(option => option.id === activeAnswer('women-service'));
+  const womenServiceSummary = womenService ? `<p class="selection-note women-service-summary">שירות נשים בצה״ל: ${escape(womenService.label)}. לתשובה הזו אין כרגע ניקוד מפלגתי.</p>` : '';
   const burdenSelections = [...(activeAnswer('burden') || []), ...(activeAnswer('burden-tasks') || [])];
   const serviceAnswered = SERVICE_CHOICES.some(choice => burdenSelections.includes(choice.id));
   const partnersAnswered = burdenSelections.some(id => ['seek-partners', 'self-reliance'].includes(id));
   const noArmyNote = questions.includes('no-army') ? '<p class="selection-note">מסלול ״בלי צבא״ הוא קטע הומוריסטי ואינו מקבל ניקוד מפלגתי.</p>' : '';
   const burdenNote = serviceAnswered || partnersAnswered ? `<p class="selection-note burden-score-note">${serviceAnswered ? 'ניקוד השירות מתייחס כרגע לגיוס חרדים בלבד, לפי הקבוצות שסימנת. ' : ''}${partnersAnswered ? 'בחירת השותפים משפיעה על מד ההמחשה בלבד, ללא ניקוד מפלגתי.' : ''}</p>` : '';
-  if (!answered) return frame({ title: 'עוד אין לנו מספיק חומר.', body: `${dream}${noArmyNote}<p class="description">לא נענו שאלות עם ניקוד מפלגתי. נשאיר את האפשרויות פתוחות.</p><button class="primary" data-action="review-questions">בחזרה לשאלות <span aria-hidden="true">↻</span></button><button class="text-button" data-action="restart">להתחיל מחדש</button>` });
-  if (!scores.length) return frame({ title: 'לתשובה הזו אין ניקוד מפלגתי.', body: `${dream}${noArmyNote}${burdenNote}<p class="description">${partnersAnswered ? 'התשובות שלך נשמרו. לבחירת השותפים אין כרגע ניקוד מפלגתי.' : 'התשובה שלך נשמרה. לחלופה של ריכוז הדרישות בידי מערכת הביטחון לא ייחסנו עמדה של מפלגה או נקודות זכות.'} אפשר לחזור לשאלות האחרות כדי לקבל השוואה.</p><button class="primary" data-action="review-questions">בחזרה לשאלות</button><button class="text-button" data-action="restart">להתחיל מחדש</button>` });
+  if (!answered) return frame({ title: womenService ? 'לתשובה הזו עדיין אין ניקוד מפלגתי.' : 'עוד אין לנו מספיק חומר.', body: `${dream}${womenServiceSummary}${noArmyNote}<p class="description">לא נענו שאלות עם ניקוד מפלגתי. נשאיר את האפשרויות פתוחות.</p><button class="primary" data-action="review-questions">בחזרה לשאלות <span aria-hidden="true">↻</span></button><button class="text-button" data-action="restart">להתחיל מחדש</button>` });
+  if (!scores.length) return frame({ title: 'לתשובה הזו אין ניקוד מפלגתי.', body: `${dream}${womenServiceSummary}${noArmyNote}${burdenNote}<p class="description">${partnersAnswered ? 'התשובות שלך נשמרו. לבחירת השותפים אין כרגע ניקוד מפלגתי.' : 'התשובה שלך נשמרה. לחלופה של ריכוז הדרישות בידי מערכת הביטחון לא ייחסנו עמדה של מפלגה או נקודות זכות.'} אפשר לחזור לשאלות האחרות כדי לקבל השוואה.</p><button class="primary" data-action="review-questions">בחזרה לשאלות</button><button class="text-button" data-action="restart">להתחיל מחדש</button>` });
   const hasPositive = scores.some(party => party.points > 0);
   return frame({ title: hasPositive ? 'איפה התשובה שלך פוגשת את המפלגות?' : 'עדיין לא נמצאה התאמה חיובית', body: `
     <p class="description">ענית על ${answered} מתוך ${scoredQuestions.length} דילמות. דילוגים לא נכללים בניקוד.${state.emergencyAnswer === 'central-request' ? ' לחלופה שבחרת בשאלת 7 באוקטובר אין ניקוד מפלגתי.' : ''}</p>
-    ${dream}${noArmyNote}${burdenNote}
+    ${dream}${womenServiceSummary}${noArmyNote}${burdenNote}
     ${hasPositive ? '' : '<p class="result-status">אף רשימה שנבדקה לא קיבלה ציון חיובי. פירוט הפערים או ציוני האפס מופיע בהמשך.</p>'}
     <p class="score-context">הרשימות מוצגות בשמותיהן ובאותיות הפתק הנוכחיות, לפי מיפוי ההיסטוריה המפלגתית. הניקוד מבוסס על התנהלות בעבר, עמדות מתועדות וחזון מוצהר. ההתאמות, ציוני האפס והמחלוקות מוצגים בנפרד. בתוך כל קבוצה מוצגות תחילה רשימות עם יותר מידע על התשובות שלך.</p>
     ${scoreGroupsView(scores, answered)}
-    <details class="score-method"><summary>איך הניקוד עובד?</summary><p>בשאלת הגשר: משקל 2 לעמדה מתועדת ומשקל 1 להתנהלות מעורבת או להערכת אחריות קואליציונית. בנעים בסופ״ש: ציר של איסור, מצב קיים והרחבה. עמדה באותה קטגוריה מקבלת 2, קטגוריה סמוכה 0, והקצה ההפוך מינוס 2. בשאלת בוקר 7 באוקטובר, העדפת יוזמה מיידית מורידה נקודה אחת לליכוד כהערכת אחריות מיניסטריאלית להיערכות משרד התחבורה. בחלופה השנייה אין ניקוד; אין נקודת זכות לאף מפלגה או הערכה איך שר אחר היה פועל. בצניעות ושותפות: כל שאלה מקבלת משקל 1 לפי הייצוג בפועל או מעשה החקיקה שנבדק. בהפרדה באקדמיה הכיסוי הראשוני כולל רק את עוצמה יהודית והדמוקרטים; היעדר מקור לרשימה אחרת אינו עמדה נייטרלית. שאלת החלום מוסיפה נקודת זיקה אחת לרשימות שעבורן נמצא חזון תואם. אין הפחתת נקודות לחלום האחר, ואין קביעה שרשימות שלא נבדקו אינן שותפות לאותו חלום. בשתי שאלות הנטל, רכיבי הגיוס והמאחזים תורמים נקודה לחיוב או לשלילה, עד שתי נקודות יחד. בבחירת קבוצות השירות, הניקוד מתייחס כרגע להכללת חרדים או לאי־הכללתם ברשימת הקבוצות שסומנו. בחירה בתרחיש ללא צבא אינה מקבלת ניקוד מפלגתי. שירות נשים וגברים לא חרדים ובחירת שותפים משפיעים על המד בלבד. שאלת חמאס והרשות נשענת על מעשים: משקל 2 להחלטת ממשלת נתניהו להכניס כסף קטארי, ומשקל 1 לקיזוז כספי הרשות בידי סמוטריץ׳ ולפרישת ליברמן במחאה על המדיניות. שתי האחרונות משקפות רכיב אחד של הדילמה; אין ניקוד על הבטחה או הבהרה. השיוך לכיוון המדיניות הוא פרשנות למעשים המתועדים. הקטגוריות והמשקלים הם פרשנות במודל.</p><p>אפס הוא ציון של מרחק בין החלופות במודל, לא קביעה שהמפלגה נייטרלית. דילוג או היעדר מקור אינם מוסיפים ציון כלל. ההשוואה בנעים בסופ״ש עוסקת בכיוון המדיניות, ולא בהסכמה נפרדת לכל פרט כמו תעריף או סוג רכבת. באיחוד רשימות מחושב ממוצע הציונים ההיסטוריים לכל שאלה, כדי לא להכפיל את משקלה. המקורות והשיוך ההיסטורי מפורטים תחת ״למה?״.</p></details>
+    <details class="score-method"><summary>איך הניקוד עובד?</summary><p>בשאלת הגשר: משקל 2 לעמדה מתועדת ומשקל 1 להתנהלות מעורבת או להערכת אחריות קואליציונית. בנעים בסופ״ש: ציר של איסור, מצב קיים והרחבה. עמדה באותה קטגוריה מקבלת 2, קטגוריה סמוכה 0, והקצה ההפוך מינוס 2. בשאלת בוקר 7 באוקטובר, העדפת יוזמה מיידית מורידה נקודה אחת לליכוד כהערכת אחריות מיניסטריאלית להיערכות משרד התחבורה. בחלופה השנייה אין ניקוד; אין נקודת זכות לאף מפלגה או הערכה איך שר אחר היה פועל. בשאלות הייצוג וההפרדה בצניעות ושותפות: משקל 1 לפי הייצוג בפועל או מעשה החקיקה שנבדק. בהפרדה באקדמיה הכיסוי הראשוני כולל רק את עוצמה יהודית והדמוקרטים; היעדר מקור לרשימה אחרת אינו עמדה נייטרלית. שאלת החלום מוסיפה נקודת זיקה אחת לרשימות שעבורן נמצא חזון תואם. אין הפחתת נקודות לחלום האחר, ואין קביעה שרשימות שלא נבדקו אינן שותפות לאותו חלום. בשתי שאלות הנטל, רכיבי הגיוס והמאחזים תורמים נקודה לחיוב או לשלילה, עד שתי נקודות יחד. בבחירת קבוצות השירות, הניקוד מתייחס כרגע להכללת חרדים או לאי־הכללתם ברשימת הקבוצות שסומנו. בחירה בתרחיש ללא צבא אינה מקבלת ניקוד מפלגתי. שירות נשים וגברים לא חרדים ובחירת שותפים משפיעים על המד בלבד. גם שאלת שירות הנשים הנפרדת נשמרת ללא ניקוד מפלגתי. שאלת חמאס והרשות נשענת על מעשים: משקל 2 להחלטת ממשלת נתניהו להכניס כסף קטארי, ומשקל 1 לקיזוז כספי הרשות בידי סמוטריץ׳ ולפרישת ליברמן במחאה על המדיניות. שתי האחרונות משקפות רכיב אחד של הדילמה; אין ניקוד על הבטחה או הבהרה. השיוך לכיוון המדיניות הוא פרשנות למעשים המתועדים. הקטגוריות והמשקלים הם פרשנות במודל.</p><p>אפס הוא ציון של מרחק בין החלופות במודל, לא קביעה שהמפלגה נייטרלית. דילוג או היעדר מקור אינם מוסיפים ציון כלל. ההשוואה בנעים בסופ״ש עוסקת בכיוון המדיניות, ולא בהסכמה נפרדת לכל פרט כמו תעריף או סוג רכבת. באיחוד רשימות מחושב ממוצע הציונים ההיסטוריים לכל שאלה, כדי לא להכפיל את משקלה. המקורות והשיוך ההיסטורי מפורטים תחת ״למה?״.</p></details>
     <details class="score-method"><summary>מי עדיין לא נכלל בהשוואה?</summary><p>לרשימות הבאות אין כרגע ניקוד לתשובות שלך; היעדר מידע אינו עמדה נייטרלית:</p><p>${unscoredCurrentLists(scores).map(([letters, name]) => `${escape(name)} (${escape(letters)})`).join(' · ')}</p>${UNMAPPED_HISTORY.map(item => `<p>${escape(item.reason)}</p>`).join('')}<p>המיפוי נבדק ב־${MAPPING_CHECKED_ON}. רשימות שהודיעו על פרישה אינן נכללות בתוצאות.</p></details>
     <div class="actions"><button class="primary" data-action="review-questions">לעבור שוב על השאלות <span aria-hidden="true">↻</span></button><button class="back" data-action="back">חזרה</button></div><button class="text-button" data-action="restart">להתחיל מחדש</button>` }, { stage: 'התוצאות שלך' });
 }
@@ -419,7 +425,7 @@ function independentView() {
 }
 
 function render() {
-  const views = { welcome: welcomeView, topics: topicsView, 'no-topics': noTopicsView, dream: dreamView, threat: threatView, draft: draftView, representation: representationView, academia: academiaView, burden: burdenView, 'burden-tasks': burdenTasksView, 'no-army': noArmyView, bridge: bridgeView, weekend: weekendView, emergency: emergencyView, 'bridge-result': bridgeResultView, party: partyView, 'fake-ballot': fakeBallotView, robot: robotView, 'robot-thanks': robotThanksView, sure: sureView, loading: loadingView, result: resultView, independent: independentView };
+  const views = { welcome: welcomeView, topics: topicsView, 'no-topics': noTopicsView, dream: dreamView, threat: threatView, draft: draftView, representation: representationView, academia: academiaView, 'women-service': womenServiceView, burden: burdenView, 'burden-tasks': burdenTasksView, 'no-army': noArmyView, bridge: bridgeView, weekend: weekendView, emergency: emergencyView, 'bridge-result': bridgeResultView, party: partyView, 'fake-ballot': fakeBallotView, robot: robotView, 'robot-thanks': robotThanksView, sure: sureView, loading: loadingView, result: resultView, independent: independentView };
   app.innerHTML = views[state.step]();
   if (state.step === 'no-topics') timers.push(setTimeout(() => go(currentQuestions()[0], true), NO_TOPICS_DURATION));
   if (state.step === 'fake-ballot') {
