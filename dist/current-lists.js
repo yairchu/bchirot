@@ -13,12 +13,8 @@ export const CURRENT_LIST_MAPPINGS = [
   { id: 'utj', letters: 'ג', historical: ['utj'], note: 'המשך של יהדות התורה.', source: 'https://bechirot.fyi/lists/26' },
   { id: 'likud', letters: 'מחל', historical: ['likud', 'kulanu'], note: 'כולנו התאחדה עם הליכוד. המקורות של שתי המפלגות משוקללים פעם אחת לכל שאלה.', source: `${idi}kulanu/` },
   { id: 'democrats', letters: 'אמת', historical: ['labor', 'meretz'], note: 'הדמוקרטים הם איחוד העבודה ומרצ. המקורות של שתיהן משוקללים פעם אחת לכל שאלה.', source: `${idi}democrats/` },
-  { id: 'beyachad', letters: 'רק', historical: ['yesh-atid'], note: 'ביחד כוללת את יש עתיד ואת בנט 2026. הניקוד כאן מבוסס על יש עתיד בלבד; הוא אינו מייצג עמדה משותפת מתועדת של הרשימה.', source: `${idi}beyachad/` },
+  { id: 'beyachad', letters: 'רק', historical: ['yesh-atid', 'jewish-home'], note: 'ביחד כוללת את יש עתיד ואת בנט 2026. עדויות היסטוריות של יש עתיד ושל הבית היהודי בראשות בנט משוקללות פעם אחת לכל שאלה.', source: `${idi}beyachad/` },
   { id: 'yisrael-beitenu', letters: 'ל', historical: ['yisrael-beitenu'], note: 'המשך של ישראל ביתנו.', source: 'https://bechirot.fyi/lists/26' },
-];
-
-export const UNMAPPED_HISTORY = [
-  { id: 'jewish-home', name: 'הבית היהודי', reason: 'הערכת האחריות הקואליציונית מ־2018 אינה מועברת לביחד או לציונות הדתית: אין כאן מקבילה חד־משמעית לרשימה ההיסטורית.' },
 ];
 
 export function mapHistoricalScores(historicalScores) {

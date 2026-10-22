@@ -57,13 +57,13 @@ test('disagreement between predecessors is averaged within a question', () => {
   assert.equal(democrats.contributions.length, 1);
 });
 
-test('Beyachad retains Lapid evidence without inheriting Jewish Home coalition estimates', () => {
+test('Beyachad averages Lapid evidence with Bennett-led Jewish Home coalition responsibility', () => {
   const beyachad = scoreCurrentReligion('shabbat', 'expand').find(party => party.id === 'beyachad');
   assert.equal(beyachad.letters, 'רק');
-  assert.equal(beyachad.points, 2);
+  assert.equal(beyachad.points, 0.5);
   assert.equal(beyachad.contributions.length, 1);
-  assert.deepEqual(beyachad.contributions[0].evidence.map(item => item.id), ['yesh-atid']);
-  assert.match(beyachad.note, /יש עתיד בלבד/);
+  assert.deepEqual(beyachad.contributions[0].evidence.map(item => item.id).sort(), ['jewish-home', 'yesh-atid']);
+  assert.match(beyachad.note, /הבית היהודי/);
 });
 
 test('skips, missing evidence, and withdrawal notices do not become zero-point recommendations', () => {

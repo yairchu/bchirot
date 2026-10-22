@@ -453,7 +453,7 @@ test('clicking an already selected answer clears it for skip, and browser Back r
   assert.equal($('[data-party-id="democrats"] .score').textContent, '+4');
   assert.match($('[data-party-id="democrats"] .score-coverage').textContent, /2 מתוך 2/);
   assert.equal($('[data-party-id="meretz"]'), null);
-  assert.match($('[data-party-id="beyachad"] details').textContent, /יש עתיד בלבד/);
+  assert.match($('[data-party-id="beyachad"] details').textContent, /הבית היהודי/);
 });
 
 test('skipping all scored dilemmas gives no ranking and status quo remains a real answer', async t => {
