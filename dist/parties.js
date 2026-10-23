@@ -37,4 +37,11 @@ export const PARTY_NOTICES = {
     sourceUrl: 'https://www.ynet.co.il/news/elections2026/article/hj00o26m2zl',
     sourceLabel: 'ynet, ‏19.10.2026',
   },
+  'צבי': {
+    kind: 'withdrawn',
+    announcedOn: '2026-10-23',
+    checkedOn: '2026-10-23',
+    sourceUrl: 'https://www.ynet.co.il/news/elections2026/article/sypa7jfngl',
+    sourceLabel: 'ynet, ‏23.10.2026',
+  },
 };

@@ -2,7 +2,7 @@
 
 ## Questionnaire content
 
-- [ ] Agree on the actual choices for “מה הכי חשוב לך?”. The invented sample topics have been removed.
+- [ ] Agree on the actual choices for “איזה נושאים חשובים לך?”. The invented sample topics have been removed.
 - [x] Support multiple selection; selecting authority disables the other choices, and deselecting authority restores earlier choices. The named topics are “דת ותחבורה” and “מלחמה וחלום”; one TODO choice remains.
 - [x] Build category routes from a shared question catalog, deduplicate shared questions, and show incremental question costs and dynamic progress. See [question flow](docs/question-flow.md).
 - [ ] Write further sourced questions for each topic.

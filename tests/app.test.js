@@ -82,11 +82,11 @@ test('welcome starts the questionnaire; modesty and partnership shows five avail
   assert.equal($('.description').textContent, 'השאלון שמבוסס על מעשים, לא על הצהרות');
   assert.equal($('[name="authority"]'), null);
   click('start');
-  assert.equal($('h2').textContent, 'מה הכי חשוב לך?');
+  assert.equal($('h2').textContent, 'איזה נושאים חשובים לך?');
   assert.equal(document.querySelectorAll('[name="topic"]').length, 3);
   assert.equal(document.querySelector('.choice input').name, 'authority');
   assert.ok($('[value="religion-transport"]').closest('label').textContent.includes('דת ותחבורה'));
-  assert.ok($('[value="modesty-partnership"]').closest('label').textContent.includes('צניעות ושותפות'));
+  assert.ok($('[value="modesty-partnership"]').closest('label').textContent.includes('נשים (הן חצי מהאוכלוסייה)'));
   assert.ok($('[value="modesty-partnership"]').closest('label').textContent.includes('+5'));
   assert.equal($('[data-action="next"]').disabled, false);
 });
@@ -99,7 +99,7 @@ test('navigating from a scrolled page uses widely supported scroll behavior', as
   main.scrollIntoView = options => calls.push(options);
   click('start');
   assert.deepEqual(calls, [{ behavior: 'auto', block: 'start' }]);
-  assert.equal($('h2').textContent, 'מה הכי חשוב לך?');
+  assert.equal($('h2').textContent, 'איזה נושאים חשובים לך?');
 });
 
 test('authority disables all topic choices and restores their selections when unchecked', async t => {
@@ -248,13 +248,13 @@ test('selecting security removes the compact women question and updates the topi
   const { $, click, choose, traverse } = await setup(t);
   click('start'); choose('[value="modesty-partnership"]');
   const count = () => $('[data-topic-count="modesty-partnership"]').textContent;
-  assert.equal(count(), '(+5 שאלות)');
+  assert.equal(count(), '(+5 שאלות בנושאי ייצוג והדרת נשים)');
   assert.match($('#question-budget').textContent, /6 שאלות/);
   choose('[value="war-dream"]');
   assert.match($('#question-budget').textContent, /10 שאלות/);
-  assert.equal($('[data-topic-count="war-dream"]').textContent, '(+4 שאלות)');
+  assert.equal($('[data-topic-count="war-dream"]').textContent, '(+4 שאלות בנושאי ביטחון)');
   choose('[value="war-dream"]', false);
-  assert.equal(count(), '(+5 שאלות)');
+  assert.equal(count(), '(+5 שאלות בנושאי ייצוג והדרת נשים)');
   await traverse('back');
   assert.match($('#question-budget').textContent, /10 שאלות/);
   click('next');
@@ -308,28 +308,28 @@ test('topic costs, total, and overlap update in place and are restored by browse
   click('start');
   const cost = id => $(`[data-topic-count="${id}"]`).textContent;
   assert.equal(cost('religion-transport'), '(+4 שאלות)');
-  assert.equal(cost('war-dream'), '(+5 שאלות)');
+  assert.equal(cost('war-dream'), '(+5 שאלות בנושאי ביטחון)');
   const transport = $('[value="religion-transport"]');
   transport.focus();
   choose('[value="religion-transport"]');
   assert.equal(document.activeElement, transport);
-  assert.equal(cost('war-dream'), '(+3 שאלות)');
+  assert.equal(cost('war-dream'), '(+3 שאלות בנושאי ביטחון)');
   assert.match($('#question-budget').textContent, /5 שאלות/);
   choose('[value="war-dream"]');
   assert.equal(cost('religion-transport'), '(+4 שאלות)');
-  assert.equal(cost('war-dream'), '(+3 שאלות)');
+  assert.equal(cost('war-dream'), '(+3 שאלות בנושאי ביטחון)');
   assert.match($('#question-budget').textContent, /8 שאלות/);
   assert.equal($('.step-label').textContent, 'שאלה 1 מתוך 8');
   choose('[value="religion-transport"]', false);
-  assert.equal(cost('war-dream'), '(+5 שאלות)');
+  assert.equal(cost('war-dream'), '(+5 שאלות בנושאי ביטחון)');
   assert.equal(cost('religion-transport'), '(+2 שאלות)');
   assert.match($('#question-budget').textContent, /6 שאלות/);
   await traverse('back');
   assert.deepEqual(window.history.state.bchirot.topics, ['religion-transport', 'war-dream']);
-  assert.equal(cost('war-dream'), '(+3 שאלות)');
+  assert.equal(cost('war-dream'), '(+3 שאלות בנושאי ביטחון)');
   assert.match($('#question-budget').textContent, /8 שאלות/);
   await traverse('forward');
-  assert.equal(cost('war-dream'), '(+5 שאלות)');
+  assert.equal(cost('war-dream'), '(+5 שאלות בנושאי ביטחון)');
   choose('[name="authority"]');
   assert.equal(document.querySelectorAll('[name="topic"]:disabled').length, 3);
   assert.match($('#question-budget').textContent, /4 שאלות/);
@@ -412,9 +412,9 @@ test('continuing without topics plays a short joke and opens transport without i
   assert.deepEqual(window.history.state.bchirot.topics, []);
   assert.equal(document.querySelectorAll('input:checked').length, 0);
   await traverse('back');
-  assert.equal($('h2').textContent, 'מה הכי חשוב לך?');
+  assert.equal($('h2').textContent, 'איזה נושאים חשובים לך?');
   click('next'); await traverse('back'); t.mock.timers.tick(NO_TOPICS_DURATION * 2);
-  assert.equal($('h2').textContent, 'מה הכי חשוב לך?');
+  assert.equal($('h2').textContent, 'איזה נושאים חשובים לך?');
 });
 
 test('weekend transit offers three policies after the bridge and has one active skip button', async t => {
@@ -687,7 +687,7 @@ test('browser Back cancels pending animations; automatic steps do not trap navig
   await traverse('back');
   assert.ok($('.result-ballot'));
   await traverse('forward');
-  assert.equal($('h2').textContent, 'מה הכי חשוב לך?');
+  assert.equal($('h2').textContent, 'איזה נושאים חשובים לך?');
   assert.equal($('[name="authority"]').checked, false);
 });
 
@@ -734,7 +734,7 @@ test('desktop hover plays one cutscene and automatically computes the selected r
   assert.equal($('.result-ballot strong').textContent, 'מחל');
   assert.equal($('.loading-ballot'), null);
   click('independent');
-  assert.equal($('h2').textContent, 'מה הכי חשוב לך?');
+  assert.equal($('h2').textContent, 'איזה נושאים חשובים לך?');
   assert.equal($('[name="authority"]').checked, false);
 });
 
@@ -769,7 +769,7 @@ test('mobile automatically plays the same confirmation scene after a short delay
   t.mock.timers.tick(2500);
   assert.equal($('.result-ballot strong').textContent, 'מחל');
   click('restart');
-  assert.equal($('h2').textContent, 'מה הכי חשוב לך?');
+  assert.equal($('h2').textContent, 'איזה נושאים חשובים לך?');
   assert.equal($('[name="authority"]').checked, false);
 });
 
@@ -811,7 +811,7 @@ for (const mouseAvailable of [true, false]) {
     assert.equal($('.result-ballot'), null);
     assert.equal($('.score-table'), null);
     click('independent');
-    assert.equal($('h2').textContent, 'מה הכי חשוב לך?');
+    assert.equal($('h2').textContent, 'איזה נושאים חשובים לך?');
     assert.equal($('[name="authority"]').checked, false);
   });
 
@@ -1144,7 +1144,7 @@ test('quiz analytics observes progress and skips without sending answers or dupl
   assert.equal(events.filter(([event]) => event === 'Quiz Completed').length, 1);
   click('restart');
   assert.equal(events.filter(([event]) => event === 'Quiz Started').length, 2);
-  assert.equal($('h2').textContent, 'מה הכי חשוב לך?');
+  assert.equal($('h2').textContent, 'איזה נושאים חשובים לך?');
 });
 
 for (const mouseAvailable of [true, false]) {
