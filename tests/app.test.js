@@ -1215,9 +1215,14 @@ for (const mouseAvailable of [true, false]) {
     const { $, click, choose, traverse } = await setup(t, mouseAvailable);
     click('start'); choose('[value="modesty-partnership"]');
     click('next');
+    const faq = $('.about-link a');
+    assert.equal(faq.getAttribute('href'), 'about.html');
+    assert.equal(faq.target, '_blank');
     choose('[name="representation-answer"][value="men-only"]');
     for (let i = 0; i < 5; i++) click('next');
     const answer = window.history.state.bchirot.representationAnswer;
+    assert.deepEqual([...document.querySelectorAll('button.primary')].map(button => button.dataset.action), ['coalitions']);
+    assert.equal($('[data-action="review-questions"]').className, 'text-button');
     const about = $('.about-link a');
     assert.equal(about.getAttribute('href'), 'about.html');
     assert.equal(about.target, '_blank'); // Reading the explanation preserves quiz state in this tab.
