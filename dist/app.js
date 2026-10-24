@@ -391,6 +391,19 @@ function dreamSummary() {
   return `<p class="dream-summary selection-note">החלום שבחרת: ${escape(option.label)}. זיקה לחזון מוצהר נספרת במשקל נקודה אחת.</p>`;
 }
 
+// Equal scores share one rank: the score cell spans the tied rows, so the
+// alphabetical order within a tie does not read as a ranking. The score is
+// pinned while scrolling, since a large tie can be taller than the screen.
+function tiers(parties) {
+  const result = [];
+  for (const party of parties) {
+    const last = result.at(-1);
+    if (last && last[0].points === party.points) last.push(party);
+    else result.push([party]);
+  }
+  return result;
+}
+
 function scoreGroupsView(scores, answered) {
   const groups = [
     { key: 'positive', title: 'נקודות התאמה', matches: points => points > 0, note: 'רשימות עם סכום חיובי לפי התשובות והמקורות שנבדקו.' },
@@ -402,7 +415,7 @@ function scoreGroupsView(scores, answered) {
     if (!parties.length) return '';
     return `<section class="score-group" data-score-group="${key}" aria-labelledby="scores-${key}"><h3 id="scores-${key}">${title}</h3><p class="selection-note">${note}</p><table class="score-table"><caption class="sr-only">${title}</caption>
       <thead><tr><th scope="col">מפלגה</th><th scope="col">נקודות</th></tr></thead>
-      <tbody>${parties.map(party => `<tr data-party-id="${party.id}"><th scope="row"><strong>${escape(party.name)} · ${escape(party.letters)}</strong><small class="score-coverage">מקורות ל־${party.contributions.length} מתוך ${answered} תשובות</small><details><summary>למה?</summary><p>${escape(party.note)} <a href="${party.source}" target="_blank" rel="noopener noreferrer">מקור המיפוי</a>.</p>${party.contributions.map(currentContributionView).join('')}</details></th><td><bdi class="score ${party.points > 0 ? 'score-positive' : party.points < 0 ? 'score-negative' : ''}">${party.points > 0 ? '+' : party.points < 0 ? '−' : ''}${Math.abs(party.points)}</bdi></td></tr>`).join('')}</tbody>
+      ${tiers(parties).map(tier => `<tbody class="score-tier"${tier.length > 1 ? ` data-tied="${tier.length}"` : ''}>${tier.map((party, index) => `<tr data-party-id="${party.id}"><th scope="row"><strong>${escape(party.name)} · ${escape(party.letters)}</strong><small class="score-coverage">מקורות ל־${party.contributions.length} מתוך ${answered} תשובות</small><details><summary>למה?</summary><p>${escape(party.note)} <a href="${party.source}" target="_blank" rel="noopener noreferrer">מקור המיפוי</a>.</p>${party.contributions.map(currentContributionView).join('')}</details></th>${index ? '' : `<td${tier.length > 1 ? ` rowspan="${tier.length}"` : ''}>${tier.length > 1 ? '<div class="score-pin">' : ''}<bdi class="score ${party.points > 0 ? 'score-positive' : party.points < 0 ? 'score-negative' : ''}">${party.points > 0 ? '+' : party.points < 0 ? '−' : ''}${Math.abs(party.points)}</bdi>${tier.length > 1 ? '<small class="score-shared">ציון זהה</small>' : ''}${tier.length > 1 ? '</div>' : ''}</td>`}</tr>`).join('')}</tbody>`).join('')}
     </table></section>`;
   }).join('');
 }
