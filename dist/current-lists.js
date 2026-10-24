@@ -39,7 +39,7 @@ export function mapHistoricalScores(historicalScores) {
     }));
     if (!contributions.length) return [];
     return [{ ...mapping, name: ballot[1], contributions, points: contributions.reduce((sum, item) => sum + item.points, 0) }];
-  }).sort((a, b) => b.contributions.length - a.contributions.length || b.points - a.points || a.name.localeCompare(b.name, 'he'));
+  }).sort((a, b) => b.points - a.points || a.name.localeCompare(b.name, 'he'));
 }
 
 export function scoreCurrentReligion(bridgeAnswer, weekendAnswer, emergencyAnswer = null, dreamAnswer = null, { childProtectionAnswer = null, sidewalkAnswer = null, womenServiceAnswer = null, representationAnswer = null, academiaAnswer = null, draftAnswer = null, burdenAnswer = null, burdenTasksAnswer = null, threatAnswer = null } = {}) {
@@ -71,7 +71,7 @@ export function scoreCurrentReligion(bridgeAnswer, weekendAnswer, emergencyAnswe
       party.points += evidence.points;
     }
   }
-  return results.sort((a, b) => b.contributions.length - a.contributions.length || b.points - a.points || a.name.localeCompare(b.name, 'he'));
+  return results.sort((a, b) => b.points - a.points || a.name.localeCompare(b.name, 'he'));
 }
 
 export function unscoredCurrentLists(scores) {

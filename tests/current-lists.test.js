@@ -96,15 +96,13 @@ test('skips, missing evidence, and withdrawal notices do not become zero-point r
   }
 });
 
-test('mapping preserves source data and keeps partial coverage below complete coverage', () => {
+test('mapping preserves source data and ranks by score, then name, regardless of coverage', () => {
   const historical = scoreReligion('shabbat', 'expand');
   const before = structuredClone(historical);
   const results = mapHistoricalScores(historical);
   assert.deepEqual(historical, before);
-  const firstPartial = results.findIndex(party => party.contributions.length === 1);
-  assert.equal(firstPartial, 6);
-  assert.ok(results.slice(0, firstPartial).every(party => party.contributions.length === 2));
-  assert.ok(results.slice(firstPartial).every(party => party.contributions.length === 1));
+  assert.ok(results.some(party => party.contributions.length === 1));
+  assert.ok(results.every((party, index) => !index || results[index - 1].points > party.points || (results[index - 1].points === party.points && results[index - 1].name.localeCompare(party.name, 'he') <= 0)));
 });
 
 test('weekend records use the same predecessor averaging for Likud and the Joint List', () => {

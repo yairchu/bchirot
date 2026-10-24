@@ -74,14 +74,14 @@ test('results work without Object.hasOwn, including skipped and invalid answers'
   assert.deepEqual(scoreWeekend('toString'), []);
 });
 
-test('combined results sum both answers and distinguish full from partial evidence', () => {
+test('combined results sum both answers and rank by score alone', () => {
   const results = scoreReligion('shabbat', 'expand');
   assert.equal(results.find(party => party.id === 'meretz').points, 4);
   assert.equal(results.find(party => party.id === 'shas').points, -4);
   assert.equal(results.find(party => party.id === 'meretz').contributions.length, 2);
   assert.equal(results.find(party => party.id === 'kulanu').contributions.length, 2);
-  const firstPartial = results.findIndex(party => party.contributions.length === 1);
-  assert.ok(results.slice(0, firstPartial).every(party => party.contributions.length === 2));
+  assert.ok(results.some(party => party.contributions.length === 1));
+  assert.ok(results.every((party, index) => !index || results[index - 1].points > party.points || (results[index - 1].points === party.points && results[index - 1].name.localeCompare(party.name, 'he') <= 0)));
   assert.equal(scoreReligion('shabbat', 'ban').find(party => party.id === 'meretz').points, 0);
 });
 

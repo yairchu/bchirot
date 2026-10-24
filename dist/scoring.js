@@ -97,7 +97,7 @@ export function scoreReligion(bridgeAnswer, weekendAnswer, emergencyAnswer = nul
       total.contributions.push({ ...party, question });
     }
   }
-  // Do not rank incomplete evidence above complete evidence just because a
-  // missing contribution happens to avoid a negative score.
-  return [...totals.values()].sort((a, b) => b.contributions.length - a.contributions.length || b.points - a.points || a.name.localeCompare(b.name, 'he'));
+  // Rank by score alone; coverage is shown beside each party, not used to order
+  // them, so equal scores fall back to alphabetical order.
+  return [...totals.values()].sort((a, b) => b.points - a.points || a.name.localeCompare(b.name, 'he'));
 }
