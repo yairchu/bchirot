@@ -342,22 +342,24 @@ function resultView() {
   return frame({ title: `הפתק שלך: ${escape(name)}`, body: `
     <div class="result-ballot">${blank ? '<span class="sr-only">פתק לבן ריק</span>' : `<strong>${escape(letters)}</strong><span>${escape(name)}</span>`}</div>
     <p class="reason"><strong>השיקול שהוביל לתוצאה</strong>זו ההמלצה של האדם שבחרת לסמוך עליו.</p>
-    ${blank ? blankBallotNote() : thresholdWarning ? thresholdRiskNote(outlook) : ''}
+    ${blank ? blankBallotNote() : thresholdWarning ? thresholdRiskNote(outlook, letters) : ''}
     <button class="primary" data-action="independent">בואו נבדוק גם לפי העמדות שלי <span aria-hidden="true">↻</span></button>
     ${thresholdWarning ? '<button class="text-button" data-action="update-recommendation">יש לי המלצה עדכנית</button>' : ''}
     <button class="text-button" data-action="restart">להתחיל מחדש</button>` }, { stage: 'התוצאה שלך' });
 }
 
-function thresholdRiskNote(outlook) {
-  const warning = outlook === 'borderline'
+function thresholdRiskNote(outlook, letters) {
+  const evidence = THRESHOLD_OUTLOOK.borderlineEvidence[letters];
+  const sources = evidence ? [...THRESHOLD_OUTLOOK.sources, evidence.source] : THRESHOLD_OUTLOOK.sources;
+  const warning = evidence?.warning ?? (outlook === 'borderline'
     ? 'זהירות: הרשימה הזו מתנדנדת סביב אחוז החסימה. בחלק מהסקרים שבדקנו היא עוברת אותו, ובאחרים לא.'
-    : 'אזהרה: הרשימה הזו לא צפויה לעבור את אחוז החסימה, לפי תמונת הסקרים שבדקנו.';
+    : 'אזהרה: הרשימה הזו לא צפויה לעבור את אחוז החסימה, לפי תמונת הסקרים שבדקנו.');
   return `<aside class="threshold-note" aria-label="סיכון באחוז החסימה">
-    <p class="description"><strong>${warning}</strong></p>
+    <p class="description"><strong>${escape(warning)}</strong></p>
     <p class="description">רשימה שלא תעבור את אחוז החסימה לא תשתתף בחלוקת המנדטים. מומלץ לחזור לאדם שבחרת לסמוך עליו ולוודא שההמלצה מביאה בחשבון את הסיכון הזה.</p>
     <p class="selection-note">סקרים אינם תוצאות הבחירות. תמונת הסקרים מ־${THRESHOLD_OUTLOOK.publishedOn.split('-').reverse().join('.')}; נבדקה ב־${THRESHOLD_OUTLOOK.checkedOn.split('-').reverse().join('.')}.</p>
     <p class="source-note"><a href="https://www.gov.il/he/pages/election-about-info?chapterindex=4" target="_blank" rel="noopener noreferrer">מה זה אחוז החסימה?</a></p>
-    <details class="source-note"><summary>הסקרים שבדקנו</summary><ul>${THRESHOLD_OUTLOOK.sources.map(source => `<li><a href="${source.url}" target="_blank" rel="noopener noreferrer">${escape(source.label)}</a></li>`).join('')}</ul></details>
+    <details class="source-note"><summary>הסקרים שבדקנו</summary><ul>${sources.map(source => `<li><a href="${source.url}" target="_blank" rel="noopener noreferrer">${escape(source.label)}</a></li>`).join('')}</ul></details>
   </aside>`;
 }
 

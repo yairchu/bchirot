@@ -46,11 +46,17 @@ export const PARTY_NOTICES = {
   },
 };
 
-// Curated outlook from the final TV polls; no claim about every historical poll.
+// Curated outlook from current polls and documented earlier risk; see party-specific evidence.
 // Maintain these two lists and the dated sources together; see docs/party-notices.md.
 export const THRESHOLD_OUTLOOK = {
-  expected: ['מחל', 'אמת', 'דרך', 'שס', 'ג', 'ודם', 'רק', 'עם', 'ב', 'ל', 'ט'],
-  borderline: ['ך', 'די'],
+  expected: ['מחל', 'אמת', 'דרך', 'שס', 'ג', 'ודם', 'רק', 'עם', 'ב', 'ל'],
+  borderline: ['ך', 'די', 'ט'],
+  borderlineEvidence: {
+    'ט': {
+      warning: 'זהירות: גם כאן יש סיכון באחוז החסימה. הציונות הדתית התנדנדה סביבו לפני האיחוד עם זהות. הרשימה המאוחדת עוברת בסקרים האחרונים שבדקנו, אך כדאי לוודא שההמלצה מביאה בחשבון גם את הסיכון הזה.',
+      source: { label: 'סקר מעריב בוואלה, לפני האיחוד עם זהות, ‏28.8.2026', url: 'https://www.walla.co.il/news/politics/3863754' },
+    },
+  },
   publishedOn: '2026-10-23',
   checkedOn: '2026-10-25',
   sources: [
