@@ -847,7 +847,7 @@ for (const [letters, status] of [['ך', 'borderline'], ['די', 'borderline'], [
     t.mock.timers.tick(2500);
     assert.equal($('.result-ballot strong').textContent, letters);
     const warning = $('.threshold-note').textContent;
-    assert.ok(warning.includes(letters === 'ט' ? 'גם כאן יש סיכון באחוז החסימה' : status === 'borderline' ? 'מתנדנדת סביב אחוז החסימה' : 'לא צפויה לעבור את אחוז החסימה'));
+    assert.ok(warning.includes(letters === 'ט' ? 'בסקרים לקראת הבחירות הציונות הדתית לא תמיד עברה את אחוז החסימה' : status === 'borderline' ? 'מתנדנדת סביב אחוז החסימה' : 'לא צפויה לעבור את אחוז החסימה'));
     assert.ok(warning.includes('סקרים אינם תוצאות הבחירות'));
     assert.ok(warning.includes('לוודא שההמלצה מביאה בחשבון'));
     assert.equal($('.threshold-note a').href, 'https://www.gov.il/he/pages/election-about-info?chapterindex=4');
