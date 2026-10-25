@@ -26,10 +26,18 @@ export const BALLOT_CHOICES = [
 ];
 export const BLANK_BALLOT_SOURCE = 'https://www.gov.il/he/departments/topics/faq-26';
 
-// Announced withdrawals, maintained separately from the original ballot snapshot.
-// This reports a campaign announcement, not a legal ruling on ballot validity.
+// Sourced campaign withdrawals and polling risks, separate from the ballot snapshot.
+// Neither campaign announcements nor polls determine legal ballot validity.
 // See ../docs/party-notices.md before adding or changing a notice.
 export const PARTY_NOTICES = {
+  ...Object.fromEntries([['ך', 2.5], ['די', 2.4], ['זך', 0.5], ['ני', 0.5]].map(([letters, pollPercent]) => [letters, {
+    kind: 'threshold-risk',
+    pollPercent,
+    publishedOn: '2026-10-23',
+    checkedOn: '2026-10-25',
+    sourceUrl: 'https://www.mako.co.il/news-israel-elections/2026/Article-8ea5e45ec2961a1027.htm',
+    sourceLabel: 'סקר חדשות 12 / מדגם, ‏23.10.2026',
+  }])),
   'כן': {
     kind: 'withdrawn',
     announcedOn: '2026-10-19',

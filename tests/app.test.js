@@ -834,6 +834,44 @@ for (const mouseAvailable of [true, false]) {
   });
 }
 
+for (const [letters, percent] of [['ך', '2.5'], ['די', '2.4'], ['זך', '0.5'], ['ני', '0.5']]) {
+  test(`threshold risk for ${letters} preserves the ballot and allows updating the recommendation`, async t => {
+    const { $, click, choose, traverse } = await setup(t);
+    click('start');
+    choose('[name="authority"]');
+    click('next');
+    choose(`[name="party"][value="${letters}"]`);
+    click('next');
+    click('robot-yes');
+    t.mock.timers.tick(CUTSCENE_DURATION);
+    t.mock.timers.tick(2500);
+    assert.equal($('.result-ballot strong').textContent, letters);
+    assert.match($('.threshold-note').textContent, new RegExp(`${percent.replace('.', '\\.')}%`));
+    assert.ok($('.threshold-note').textContent.includes('זהו סקר אחד'));
+    assert.ok($('.threshold-note').textContent.includes('לוודא שההמלצה מביאה בחשבון'));
+    assert.equal($('.threshold-note a').href, 'https://www.mako.co.il/news-israel-elections/2026/Article-8ea5e45ec2961a1027.htm');
+    click('update-recommendation');
+    assert.equal($('[name="party"]:checked'), null);
+    assert.equal($('[data-action="next"]').disabled, true);
+    await traverse('back');
+    assert.ok($('.threshold-note'));
+    click('independent');
+    assert.equal($('[name="authority"]').checked, false);
+  });
+}
+
+for (const letters of ['מחל', 'צף', 'blank', 'כן']) {
+  test(`no polling risk is inferred for ${letters}`, async t => {
+    const { $, click, choose } = await setup(t);
+    click('start'); choose('[name="authority"]'); click('next');
+    choose(`[name="party"][value="${letters}"]`); click('next'); click('robot-yes');
+    t.mock.timers.tick(CUTSCENE_DURATION); t.mock.timers.tick(2500);
+    assert.equal($('.threshold-note'), null);
+    if (letters === 'כן') assert.ok($('.withdrawn-result'));
+    if (letters === 'blank') assert.ok($('.blank-note'));
+  });
+}
+
 test('an updated recommendation clears the withdrawn choice and normal results still work', async t => {
   const { $, click, choose, traverse } = await setup(t);
   click('start');
