@@ -26,18 +26,10 @@ export const BALLOT_CHOICES = [
 ];
 export const BLANK_BALLOT_SOURCE = 'https://www.gov.il/he/departments/topics/faq-26';
 
-// Sourced campaign withdrawals and polling risks, separate from the ballot snapshot.
-// Neither campaign announcements nor polls determine legal ballot validity.
+// Campaign withdrawals are separate from the ballot snapshot and polling outlook.
+// An announcement does not determine legal ballot validity.
 // See ../docs/party-notices.md before adding or changing a notice.
 export const PARTY_NOTICES = {
-  ...Object.fromEntries([['ך', 2.5], ['די', 2.4], ['זך', 0.5], ['ני', 0.5]].map(([letters, pollPercent]) => [letters, {
-    kind: 'threshold-risk',
-    pollPercent,
-    publishedOn: '2026-10-23',
-    checkedOn: '2026-10-25',
-    sourceUrl: 'https://www.mako.co.il/news-israel-elections/2026/Article-8ea5e45ec2961a1027.htm',
-    sourceLabel: 'סקר חדשות 12 / מדגם, ‏23.10.2026',
-  }])),
   'כן': {
     kind: 'withdrawn',
     announcedOn: '2026-10-19',
@@ -53,3 +45,24 @@ export const PARTY_NOTICES = {
     sourceLabel: 'ynet, ‏23.10.2026',
   },
 };
+
+// Curated outlook from the final TV polls; no claim about every historical poll.
+// Maintain these two lists and the dated sources together; see docs/party-notices.md.
+export const THRESHOLD_OUTLOOK = {
+  expected: ['מחל', 'אמת', 'דרך', 'שס', 'ג', 'ודם', 'רק', 'עם', 'ב', 'ל', 'ט'],
+  borderline: ['ך', 'די'],
+  publishedOn: '2026-10-23',
+  checkedOn: '2026-10-25',
+  sources: [
+    { label: 'סקר חדשות 12, ‏23.10.2026', url: 'https://www.mako.co.il/news-israel-elections/2026/Article-8ea5e45ec2961a1027.htm' },
+    { label: 'סיכום סקרי כאן, 12 ו־13, ‏23.10.2026', url: 'https://www.ynet.co.il/news/elections2026/article/hy500sxt2mx' },
+    { label: 'סקר i24NEWS, ‏23.10.2026', url: 'https://www.i24news.tv/he/news/israel-elections-2026/polls/artc-07d162ea' },
+  ],
+};
+
+export function thresholdStatus(letters) {
+  if (!PARTIES.some(party => party[0] === letters) || PARTY_NOTICES[letters]?.kind === 'withdrawn') return null;
+  if (THRESHOLD_OUTLOOK.expected.includes(letters)) return 'expected';
+  if (THRESHOLD_OUTLOOK.borderline.includes(letters)) return 'borderline';
+  return 'unlikely';
+}

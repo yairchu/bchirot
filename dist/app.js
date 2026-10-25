@@ -1,7 +1,7 @@
 import { COALITION_PARTIES, coalitionWeight, scoreCoalitions } from './coalitions.js';
 import { createQuizAnalytics } from './analytics.js';
 import { CUTSCENE_DURATION, MOBILE_CONFIRM_DELAY, EASTER_EGG_DURATION, NO_TOPICS_DURATION, TOPIC_CHOICES, QUESTIONS, questionRoute, questionnaireQuestions, additionalQuestionCount, afterRobot, progress } from './flow.js';
-import { BALLOT_CHOICES, BLANK_BALLOT, BLANK_BALLOT_SOURCE, FAKE_BALLOT, PARTY_NOTICES } from './parties.js';
+import { BALLOT_CHOICES, BLANK_BALLOT, BLANK_BALLOT_SOURCE, FAKE_BALLOT, PARTY_NOTICES, THRESHOLD_OUTLOOK, thresholdStatus } from './parties.js';
 import { BRIDGE_DILEMMA, WEEKEND_DILEMMA, EMERGENCY_DILEMMA, DREAM_QUESTION } from './dilemmas.js';
 import { SERVICE_CHOICES, BURDEN_GROUPS, BURDEN_TIMELINE, DRAFT_DILEMMA, THREAT_DILEMMA, normalizeBurdenAnswer, burdenLevel, scoreBurden } from './policy-questions.js';
 import { REPRESENTATION_DILEMMA, ACADEMIA_DILEMMA, WOMEN_SERVICE_DILEMMA, SIDEWALK_DILEMMA, MINORS_PROTECTION_DILEMMA, scoreMinorsProtection } from './partnership.js';
@@ -337,20 +337,27 @@ function resultView() {
   const notice = PARTY_NOTICES[letters];
   if (notice?.kind === 'withdrawn') return withdrawnResultView(name, notice);
   const blank = letters === BLANK_BALLOT[0];
+  const outlook = thresholdStatus(letters);
+  const thresholdWarning = outlook === 'borderline' || outlook === 'unlikely';
   return frame({ title: `הפתק שלך: ${escape(name)}`, body: `
     <div class="result-ballot">${blank ? '<span class="sr-only">פתק לבן ריק</span>' : `<strong>${escape(letters)}</strong><span>${escape(name)}</span>`}</div>
     <p class="reason"><strong>השיקול שהוביל לתוצאה</strong>זו ההמלצה של האדם שבחרת לסמוך עליו.</p>
-    ${blank ? blankBallotNote() : notice?.kind === 'threshold-risk' ? thresholdRiskNote(notice) : ''}
+    ${blank ? blankBallotNote() : thresholdWarning ? thresholdRiskNote(outlook) : ''}
     <button class="primary" data-action="independent">בואו נבדוק גם לפי העמדות שלי <span aria-hidden="true">↻</span></button>
-    ${notice?.kind === 'threshold-risk' ? '<button class="text-button" data-action="update-recommendation">יש לי המלצה עדכנית</button>' : ''}
+    ${thresholdWarning ? '<button class="text-button" data-action="update-recommendation">יש לי המלצה עדכנית</button>' : ''}
     <button class="text-button" data-action="restart">להתחיל מחדש</button>` }, { stage: 'התוצאה שלך' });
 }
 
-function thresholdRiskNote(notice) {
+function thresholdRiskNote(outlook) {
+  const warning = outlook === 'borderline'
+    ? 'זהירות: הרשימה הזו מתנדנדת סביב אחוז החסימה. בחלק מהסקרים שבדקנו היא עוברת אותו, ובאחרים לא.'
+    : 'אזהרה: הרשימה הזו לא צפויה לעבור את אחוז החסימה, לפי תמונת הסקרים שבדקנו.';
   return `<aside class="threshold-note" aria-label="סיכון באחוז החסימה">
-    <p class="description"><strong>כדאי לוודא שההמלצה עדיין בתוקף.</strong> בסקר חדשות 12 מ־23.10.2026 הרשימה קיבלה ${escape(notice.pollPercent)}%, מתחת לאחוז החסימה (3.25%). זהו סקר אחד, ולא תוצאה ודאית של הבחירות.</p>
+    <p class="description"><strong>${warning}</strong></p>
     <p class="description">רשימה שלא תעבור את אחוז החסימה לא תשתתף בחלוקת המנדטים. מומלץ לחזור לאדם שבחרת לסמוך עליו ולוודא שההמלצה מביאה בחשבון את הסיכון הזה.</p>
-    <p class="source-note"><a href="${notice.sourceUrl}" target="_blank" rel="noopener noreferrer">${escape(notice.sourceLabel)}</a> · <a href="https://www.gov.il/he/pages/election-about-info?chapterindex=4" target="_blank" rel="noopener noreferrer">הסבר ועדת הבחירות על אחוז החסימה</a></p>
+    <p class="selection-note">סקרים אינם תוצאות הבחירות. תמונת הסקרים מ־${THRESHOLD_OUTLOOK.publishedOn.split('-').reverse().join('.')}; נבדקה ב־${THRESHOLD_OUTLOOK.checkedOn.split('-').reverse().join('.')}.</p>
+    <p class="source-note"><a href="https://www.gov.il/he/pages/election-about-info?chapterindex=4" target="_blank" rel="noopener noreferrer">מה זה אחוז החסימה?</a></p>
+    <details class="source-note"><summary>הסקרים שבדקנו</summary><ul>${THRESHOLD_OUTLOOK.sources.map(source => `<li><a href="${source.url}" target="_blank" rel="noopener noreferrer">${escape(source.label)}</a></li>`).join('')}</ul></details>
   </aside>`;
 }
 
